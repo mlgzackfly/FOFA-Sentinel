@@ -197,14 +197,17 @@ export function saveScanResults(
               ? 'scanned'
               : 'error';
 
+        // Convert boolean to number for SQLite (true -> 1, false -> 0, null -> null)
+        const vulnerableValue =
+          result.vulnerable === true ? 1 : result.vulnerable === false ? 0 : null;
         // Log before insertion for debugging
         console.log(
-          `[saveScanResults] Inserting result for ${result.host}: vulnerable=${result.vulnerable} (type: ${typeof result.vulnerable}), status=${status}`
+          `[saveScanResults] Inserting result for ${result.host}: vulnerable=${result.vulnerable} (type: ${typeof result.vulnerable}) -> ${vulnerableValue} (SQLite), status=${status}`
         );
         const insertResult = insertStmt.run(
           sessionId,
           result.host,
-          result.vulnerable, // This should be true, false, or null
+          vulnerableValue, // Convert boolean to integer for SQLite
           result.statusCode || null,
           result.error || null,
           result.finalUrl || null,
@@ -214,8 +217,13 @@ export function saveScanResults(
 
         if (insertResult.changes > 0) {
           insertedCount++;
+          console.log(
+            `[saveScanResults] Successfully inserted result for ${result.host}: vulnerable=${vulnerableValue}`
+          );
         } else {
-          console.warn(`[saveScanResults] Failed to insert result for host ${result.host}`);
+          console.warn(
+            `[saveScanResults] Failed to insert result for host ${result.host}: vulnerable=${result.vulnerable} (converted: ${vulnerableValue})`
+          );
         }
 
         if (result.vulnerable === true) {
