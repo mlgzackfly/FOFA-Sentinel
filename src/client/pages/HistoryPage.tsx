@@ -47,7 +47,6 @@ export function HistoryPage() {
     }
   };
 
-
   return (
     <div className="history-page">
       <div className="history-page-header">
@@ -61,7 +60,11 @@ export function HistoryPage() {
       {error && (
         <div className="history-error">
           <span className="error-prefix">{t('common.error')}:</span> {error}
-          <button className="error-dismiss" onClick={() => setError(null)} aria-label="Dismiss error">
+          <button
+            className="error-dismiss"
+            onClick={() => setError(null)}
+            aria-label="Dismiss error"
+          >
             ×
           </button>
         </div>
@@ -69,13 +72,8 @@ export function HistoryPage() {
       {loading ? (
         <div className="history-loading">{t('common.loading')}</div>
       ) : (
-        <HistoryList
-          history={history}
-          onDelete={handleDelete}
-          onRefresh={loadHistory}
-        />
+        <HistoryList history={history} onDelete={handleDelete} onRefresh={loadHistory} />
       )}
     </div>
   );
 }
-

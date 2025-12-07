@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { searchFofa, getFofaStats, getFofaHostAggregation, getFofaAccountInfo, searchAllFofa } from '../utils/api';
+import {
+  searchFofa,
+  getFofaStats,
+  getFofaHostAggregation,
+  getFofaAccountInfo,
+  searchAllFofa,
+} from '../utils/api';
 import { useTranslation } from '../hooks/useTranslation';
 import './QueryForm.css';
 
@@ -25,7 +31,12 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
   const [dateAfter, setDateAfter] = useState('');
   const [dateBefore, setDateBefore] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<{ fetched: number; total: number; pages: number; message: string } | null>(null);
+  const [progress, setProgress] = useState<{
+    fetched: number;
+    total: number;
+    pages: number;
+    message: string;
+  } | null>(null);
 
   const encodeBase64 = (str: string): string => {
     try {
@@ -85,7 +96,12 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       switch (tab) {
         case 'search':
           if (fetchAll) {
-            setProgress({ fetched: 0, total: 0, pages: 0, message: t('query.fetchingAll') || 'Fetching all results...' });
+            setProgress({
+              fetched: 0,
+              total: 0,
+              pages: 0,
+              message: t('query.fetchingAll') || 'Fetching all results...',
+            });
             result = await searchAllFofa(
               {
                 qbase64,
@@ -93,7 +109,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                 size: Math.min(size, 10000),
                 maxResults: 100000,
               },
-              (progressData) => {
+              progressData => {
                 setProgress(progressData);
               }
             );
@@ -107,17 +123,17 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
               full: true,
             });
           }
-          
+
           if (result && !result.error) {
             const historyResponse = await fetch('/api/history', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+              body: JSON.stringify({
                 query: finalQuery,
                 query_base64: qbase64,
                 fields,
                 page: fetchAll ? 1 : page,
-                size: fetchAll ? (result.fetched || result.results?.length || 0) : size,
+                size: fetchAll ? result.fetched || result.results?.length || 0 : size,
                 full: 1,
               }),
             });
@@ -129,7 +145,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                 body: JSON.stringify({
                   result_data: result,
                   total_size: result.size || result.fetched || result.results?.length || 0,
-                  page: fetchAll ? 1 : (result.page || 1),
+                  page: fetchAll ? 1 : result.page || 1,
                 }),
               });
             }
@@ -165,9 +181,9 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       <div className="query-form">
         <form onSubmit={handleSubmit} className="query-form-content">
           <div className="query-form-actions">
-            <button 
-              type="submit" 
-              className="btn-primary" 
+            <button
+              type="submit"
+              className="btn-primary"
               disabled={loading}
               aria-label="Get FOFA account information"
             >
@@ -191,8 +207,8 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
           <textarea
             className="query-form-input query-form-textarea"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="ip=&quot;103.35.168.38&quot;"
+            onChange={e => setQuery(e.target.value)}
+            placeholder='ip="103.35.168.38"'
             required
             rows={3}
           />
@@ -209,7 +225,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                 type="text"
                 className="query-form-input"
                 value={fields}
-                onChange={(e) => setFields(e.target.value)}
+                onChange={e => setFields(e.target.value)}
                 placeholder="host,ip,port"
               />
             </div>
@@ -224,7 +240,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                   type="number"
                   className="query-form-input"
                   value={page}
-                  onChange={(e) => setPage(parseInt(e.target.value) || 1)}
+                  onChange={e => setPage(parseInt(e.target.value) || 1)}
                   min={1}
                 />
               </div>
@@ -238,7 +254,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                   type="number"
                   className="query-form-input"
                   value={size}
-                  onChange={(e) => setSize(parseInt(e.target.value) || 100)}
+                  onChange={e => setSize(parseInt(e.target.value) || 100)}
                   min={1}
                   max={10000}
                 />
@@ -250,7 +266,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                 <input
                   type="checkbox"
                   checked={fetchAll}
-                  onChange={(e) => setFetchAll(e.target.checked)}
+                  onChange={e => setFetchAll(e.target.checked)}
                 />
                 <span>{t('query.fetchAllLabel')}</span>
               </label>
@@ -268,7 +284,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                     name="dateFilter"
                     value="all"
                     checked={dateFilter === 'all'}
-                    onChange={(e) => setDateFilter(e.target.value as 'all' | 'custom')}
+                    onChange={e => setDateFilter(e.target.value as 'all' | 'custom')}
                   />
                   <span>{t('query.dateFilterAll')}</span>
                 </label>
@@ -278,7 +294,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                     name="dateFilter"
                     value="custom"
                     checked={dateFilter === 'custom'}
-                    onChange={(e) => setDateFilter(e.target.value as 'all' | 'custom')}
+                    onChange={e => setDateFilter(e.target.value as 'all' | 'custom')}
                   />
                   <span>{t('query.dateFilterCustom')}</span>
                 </label>
@@ -291,7 +307,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                       type="date"
                       className="query-form-input"
                       value={dateAfter}
-                      onChange={(e) => setDateAfter(e.target.value)}
+                      onChange={e => setDateAfter(e.target.value)}
                     />
                   </div>
                   <div className="query-form-date-field">
@@ -300,7 +316,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                       type="date"
                       className="query-form-input"
                       value={dateBefore}
-                      onChange={(e) => setDateBefore(e.target.value)}
+                      onChange={e => setDateBefore(e.target.value)}
                     />
                   </div>
                 </div>
@@ -319,16 +335,16 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
               type="number"
               className="query-form-input"
               value={size}
-              onChange={(e) => setSize(parseInt(e.target.value) || 100)}
+              onChange={e => setSize(parseInt(e.target.value) || 100)}
               min={1}
             />
           </div>
         )}
 
         <div className="query-form-actions">
-          <button 
-            type="submit" 
-            className="btn-primary" 
+          <button
+            type="submit"
+            className="btn-primary"
             disabled={loading || !query.trim()}
             aria-label={`Execute ${tab} query`}
           >
@@ -340,17 +356,19 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       {progress && (
         <div className="query-form-progress">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${progress.total > 0 ? (progress.fetched / progress.total) * 100 : 0}%` }}
+            <div
+              className="progress-fill"
+              style={{
+                width: `${progress.total > 0 ? (progress.fetched / progress.total) * 100 : 0}%`,
+              }}
             />
           </div>
           <div className="progress-text">
-            {progress.message} ({progress.fetched.toLocaleString()} / {progress.total.toLocaleString()})
+            {progress.message} ({progress.fetched.toLocaleString()} /{' '}
+            {progress.total.toLocaleString()})
           </div>
         </div>
       )}
     </div>
   );
 }
-

@@ -8,7 +8,7 @@ interface NavbarProps {
 
 export function Navbar({ onMenuClick }: NavbarProps) {
   const { t } = useTranslation();
-  
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -30,4 +30,3 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     </nav>
   );
 }
-

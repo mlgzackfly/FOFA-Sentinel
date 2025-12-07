@@ -8,7 +8,7 @@ export function useTranslation() {
     const handleLocaleChange = () => {
       setCurrentLocale(getLocale());
     };
-    
+
     window.addEventListener('localechange', handleLocaleChange);
     return () => {
       window.removeEventListener('localechange', handleLocaleChange);
@@ -26,4 +26,3 @@ export function useTranslation() {
 
   return { t, locale, changeLocale };
 }
-

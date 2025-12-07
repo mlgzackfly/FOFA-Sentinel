@@ -91,7 +91,12 @@ export async function searchAllFofa(
     size?: number;
     maxResults?: number;
   },
-  onProgress?: (progress: { fetched: number; total: number; pages: number; message: string }) => void
+  onProgress?: (progress: {
+    fetched: number;
+    total: number;
+    pages: number;
+    message: string;
+  }) => void
 ): Promise<FofaSearchAllResult> {
   const response = await fetch(`${API_BASE}/fofa/search-all`, {
     method: 'POST',
@@ -161,4 +166,3 @@ export async function searchAllFofa(
 
   return finalResult;
 }
-

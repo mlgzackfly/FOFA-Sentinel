@@ -35,10 +35,10 @@ export function QueryPage() {
         <p className="query-page-subtitle">{t('query.subtitle')}</p>
       </div>
 
-      <TabSelector 
-        tabs={tabs.map(tab => ({ ...tab, label: t(tab.labelKey) }))} 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+      <TabSelector
+        tabs={tabs.map(tab => ({ ...tab, label: t(tab.labelKey) }))}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
       <div className="query-page-content">
@@ -53,4 +53,3 @@ export function QueryPage() {
     </div>
   );
 }
-

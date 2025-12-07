@@ -10,7 +10,7 @@ export function LanguageSelector() {
     const handleLocaleChange = () => {
       setCurrentLocale(getLocale());
     };
-    
+
     window.addEventListener('localechange', handleLocaleChange);
     return () => {
       window.removeEventListener('localechange', handleLocaleChange);
@@ -29,7 +29,7 @@ export function LanguageSelector() {
     setIsOpen(false);
   };
 
-  const currentLang = languages.find((lang) => lang.code === currentLocale) || languages[0];
+  const currentLang = languages.find(lang => lang.code === currentLocale) || languages[0];
 
   return (
     <div className="language-selector">
@@ -47,7 +47,7 @@ export function LanguageSelector() {
         <>
           <div className="language-selector-overlay" onClick={() => setIsOpen(false)} />
           <div className="language-selector-dropdown">
-            {languages.map((lang) => (
+            {languages.map(lang => (
               <button
                 key={lang.code}
                 className={`language-option ${currentLocale === lang.code ? 'active' : ''}`}
@@ -56,9 +56,7 @@ export function LanguageSelector() {
               >
                 <span className="language-flag">{lang.flag}</span>
                 <span className="language-label">{lang.label}</span>
-                {currentLocale === lang.code && (
-                  <span className="language-check">✓</span>
-                )}
+                {currentLocale === lang.code && <span className="language-check">✓</span>}
               </button>
             ))}
           </div>
@@ -67,4 +65,3 @@ export function LanguageSelector() {
     </div>
   );
 }
-

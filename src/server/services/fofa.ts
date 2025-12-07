@@ -58,15 +58,17 @@ async function getApiCredentials(): Promise<{ email: string; key: string }> {
       const accountUrl = new URL(`${FOFA_API_BASE}/info/my`);
       accountUrl.searchParams.set('key', config.api_key);
       accountUrl.searchParams.set('r_type', 'json');
-      
+
       const accountResponse = await fetch(accountUrl.toString());
       if (accountResponse.ok) {
-        const accountData = await accountResponse.json() as FofaAccountResponse;
+        const accountData = (await accountResponse.json()) as FofaAccountResponse;
         if (accountData.email) {
           email = accountData.email;
           // Save email to database for future use
-          db.prepare('UPDATE api_config SET email = ? WHERE api_key = ?')
-            .run(email, config.api_key);
+          db.prepare('UPDATE api_config SET email = ? WHERE api_key = ?').run(
+            email,
+            config.api_key
+          );
         }
       }
     } catch (error) {
@@ -84,11 +86,11 @@ async function getApiCredentials(): Promise<{ email: string; key: string }> {
 export async function searchFofa(params: FofaSearchParams): Promise<FofaSearchResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/search/all`);
-  
+
   url.searchParams.set('email', email);
   url.searchParams.set('key', key);
   url.searchParams.set('qbase64', params.qbase64);
-  
+
   if (params.fields) url.searchParams.set('fields', params.fields);
   if (params.page) url.searchParams.set('page', params.page.toString());
   if (params.size) url.searchParams.set('size', params.size.toString());
@@ -112,7 +114,7 @@ export interface FofaStatsResponse {
 export async function getFofaStats(params: FofaStatsParams): Promise<FofaStatsResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/search/stats`);
-  
+
   url.searchParams.set('email', email);
   url.searchParams.set('key', key);
   url.searchParams.set('qbase64', params.qbase64);
@@ -136,7 +138,7 @@ export interface FofaHostResponse {
 export async function getFofaHostAggregation(params: FofaHostParams): Promise<FofaHostResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/host`);
-  
+
   url.searchParams.set('email', email);
   url.searchParams.set('key', key);
   url.searchParams.set('qbase64', params.qbase64);
@@ -160,7 +162,7 @@ export async function getFofaHostAggregation(params: FofaHostParams): Promise<Fo
 export async function getFofaAccountInfo(): Promise<FofaAccountResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/info/my`);
-  
+
   url.searchParams.set('email', email);
   url.searchParams.set('key', key);
   url.searchParams.set('r_type', 'json');
@@ -189,7 +191,7 @@ export async function searchAfterFofa(
 ): Promise<FofaSearchAfterResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/search/after`);
-  
+
   url.searchParams.set('email', email);
   url.searchParams.set('key', key);
   url.searchParams.set('qbase64', qbase64);
@@ -204,4 +206,3 @@ export async function searchAfterFofa(
 
   return await response.json();
 }
-

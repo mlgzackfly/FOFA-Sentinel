@@ -12,7 +12,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarProps) {
   const { t } = useTranslation();
-  
+
   const menuItems: { id: Page; labelKey: string; icon: string }[] = [
     { id: 'query', labelKey: 'nav.query', icon: '>' },
     { id: 'history', labelKey: 'nav.history', icon: '[' },
@@ -28,7 +28,7 @@ export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarP
           <span className="sidebar-title">{t('nav.navigation') || 'NAVIGATION'}</span>
         </div>
         <nav className="sidebar-nav">
-          {menuItems.map((item) => (
+          {menuItems.map(item => (
             <button
               key={item.id}
               className={`sidebar-item ${currentPage === item.id ? 'active' : ''}`}
@@ -52,4 +52,3 @@ export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarP
     </>
   );
 }
-

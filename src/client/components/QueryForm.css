@@ -75,7 +75,7 @@
   cursor: pointer;
 }
 
-.query-form-checkbox input[type="checkbox"] {
+.query-form-checkbox input[type='checkbox'] {
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -98,7 +98,7 @@
   cursor: pointer;
 }
 
-.query-form-radio input[type="radio"] {
+.query-form-radio input[type='radio'] {
   width: 16px;
   height: 16px;
   cursor: pointer;
@@ -207,4 +207,3 @@
   color: var(--text-secondary);
   text-align: center;
 }
-

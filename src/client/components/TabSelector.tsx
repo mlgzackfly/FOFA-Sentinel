@@ -13,10 +13,14 @@ interface TabSelectorProps<T = string> {
   onTabChange: (tab: T) => void;
 }
 
-export function TabSelector<T extends string = string>({ tabs, activeTab, onTabChange }: TabSelectorProps<T>) {
+export function TabSelector<T extends string = string>({
+  tabs,
+  activeTab,
+  onTabChange,
+}: TabSelectorProps<T>) {
   return (
     <div className="tab-selector" role="tablist">
-      {tabs.map((tab) => (
+      {tabs.map(tab => (
         <button
           key={String(tab.id)}
           className={`tab-item ${activeTab === tab.id ? 'active' : ''}`}
@@ -32,4 +36,3 @@ export function TabSelector<T extends string = string>({ tabs, activeTab, onTabC
     </div>
   );
 }
-

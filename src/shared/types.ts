@@ -34,7 +34,11 @@ export interface FofaAccountResult {
   errmsg?: string;
 }
 
-export type FofaQueryResult = FofaSearchResult | FofaStatsResult | FofaHostResult | FofaAccountResult;
+export type FofaQueryResult =
+  | FofaSearchResult
+  | FofaStatsResult
+  | FofaHostResult
+  | FofaAccountResult;
 
 export interface HistoryItem {
   id: number;

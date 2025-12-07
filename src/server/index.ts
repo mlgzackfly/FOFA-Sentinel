@@ -37,7 +37,7 @@ const clientDistPath = path.join(__dirname, '../../client');
 // Check if client dist exists (for production builds)
 if (existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
-  
+
   // Serve React app for all non-API routes
   app.get('*', (req, res) => {
     res.sendFile(path.join(clientDistPath, 'index.html'));
@@ -48,4 +48,3 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server running on http://localhost:${PORT}`);
 });
-

@@ -43,18 +43,24 @@ export function initDatabase(): void {
   `);
 
   try {
-    const hasTaskIdColumn = db.prepare(`
+    const hasTaskIdColumn = db
+      .prepare(
+        `
       SELECT COUNT(*) as count 
       FROM pragma_table_info('query_history') 
       WHERE name = 'task_id'
-    `).get() as { count: number };
+    `
+      )
+      .get() as { count: number };
 
     if (hasTaskIdColumn.count === 0) {
       db.exec(`ALTER TABLE query_history ADD COLUMN task_id TEXT`);
-      
-      const existingRecords = db.prepare('SELECT id FROM query_history WHERE task_id IS NULL').all() as { id: number }[];
+
+      const existingRecords = db
+        .prepare('SELECT id FROM query_history WHERE task_id IS NULL')
+        .all() as { id: number }[];
       const updateStmt = db.prepare('UPDATE query_history SET task_id = ? WHERE id = ?');
-      
+
       for (const record of existingRecords) {
         updateStmt.run(randomUUID(), record.id);
       }
@@ -102,4 +108,3 @@ export function closeDatabase(): void {
     db = null;
   }
 }
-

@@ -25,10 +25,10 @@ export function convertToCSV(data: ExportData): string {
 
   if (Array.isArray(firstRow)) {
     headers = firstRow.map((_, idx) => `COL_${idx + 1}`);
-    rows = data.results.map((row) => (Array.isArray(row) ? row : [row]));
+    rows = data.results.map(row => (Array.isArray(row) ? row : [row]));
   } else if (typeof firstRow === 'object' && firstRow !== null) {
     headers = Object.keys(firstRow as ExportRow);
-    rows = data.results.map((row) => {
+    rows = data.results.map(row => {
       if (typeof row === 'object' && row !== null) {
         return Object.values(row as ExportRow);
       }
@@ -38,9 +38,9 @@ export function convertToCSV(data: ExportData): string {
 
   const csvRows = [
     headers.join(','),
-    ...rows.map((row) =>
+    ...rows.map(row =>
       row
-        .map((cell) => {
+        .map(cell => {
           const value = cell?.toString() || '';
           if (value.includes(',') || value.includes('"') || value.includes('\n')) {
             return `"${value.replace(/"/g, '""')}"`;
@@ -61,7 +61,7 @@ export function convertToTXT(data: ExportData): string {
   if (data.results && Array.isArray(data.results) && data.results.length > 0) {
     const hosts: string[] = [];
 
-    data.results.forEach((row) => {
+    data.results.forEach(row => {
       if (Array.isArray(row)) {
         const host = row[0];
         if (host && typeof host === 'string') {
@@ -119,4 +119,3 @@ export function ensureFileExtension(filename: string, extension: string): string
   }
   return filename;
 }
-

@@ -42,7 +42,10 @@ export function SettingsPage() {
         throw new Error(error.error || t('errors.failedToSave'));
       }
 
-      setMessage({ type: 'success', text: t('settings.apiKeySaved') || 'API key saved successfully' });
+      setMessage({
+        type: 'success',
+        text: t('settings.apiKeySaved') || 'API key saved successfully',
+      });
       setApiKey('');
       loadConfig();
     } catch (error) {
@@ -82,7 +85,7 @@ export function SettingsPage() {
                 type="password"
                 className="settings-input"
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={e => setApiKey(e.target.value)}
                 placeholder={maskedKey ? t('settings.enterNewKey') : t('settings.enterApiKey')}
                 required={!maskedKey}
               />
@@ -103,12 +106,8 @@ export function SettingsPage() {
         <div className="settings-section">
           <h2 className="settings-section-title">{t('settings.about')}</h2>
           <div className="settings-about">
-            <p className="about-text">
-              {t('settings.version')}
-            </p>
-            <p className="about-text">
-              {t('settings.description')}
-            </p>
+            <p className="about-text">{t('settings.version')}</p>
+            <p className="about-text">{t('settings.description')}</p>
             <p className="about-text">
               {t('settings.getApiKey')}{' '}
               <a
@@ -126,4 +125,3 @@ export function SettingsPage() {
     </div>
   );
 }
-

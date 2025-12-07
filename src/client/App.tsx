@@ -18,7 +18,7 @@ function App() {
     const handleLocaleChange = () => {
       setLocale(getLocale());
     };
-    
+
     window.addEventListener('localechange', handleLocaleChange);
     return () => {
       window.removeEventListener('localechange', handleLocaleChange);
@@ -58,4 +58,3 @@ function App() {
 }
 
 export default App;
-

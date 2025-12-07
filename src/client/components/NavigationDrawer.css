@@ -45,7 +45,7 @@
     height: 100vh;
     transform: translateX(-100%);
   }
-  
+
   .nav-drawer-open {
     transform: translateX(0);
   }
@@ -138,7 +138,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -296,11 +297,11 @@
     border: 1px solid var(--border-default);
     box-shadow: var(--shadow-md);
   }
-  
+
   .nav-drawer-open ~ .nav-drawer-toggle {
     display: none;
   }
-  
+
   .nav-drawer-toggle:hover {
     border-color: var(--color-primary);
     box-shadow: var(--glow-primary);
@@ -308,4 +309,3 @@
     transform: translateY(-1px);
   }
 }
-

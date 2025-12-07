@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
-import { type ExportData, type ExportFormat, convertToCSV, convertToTXT, getMimeType, getFileExtension, ensureFileExtension } from '../utils/export';
+import {
+  type ExportData,
+  type ExportFormat,
+  convertToCSV,
+  convertToTXT,
+  getMimeType,
+  getFileExtension,
+  ensureFileExtension,
+} from '../utils/export';
 import { type HistoryItem as SharedHistoryItem } from '../../shared/types';
 import './HistoryList.css';
 
@@ -11,7 +19,11 @@ interface HistoryExportButtonWrapperProps {
   onLoadResults: () => Promise<void>;
 }
 
-function HistoryExportButtonWrapper({ historyId, exportData, onLoadResults }: HistoryExportButtonWrapperProps) {
+function HistoryExportButtonWrapper({
+  historyId,
+  exportData,
+  onLoadResults,
+}: HistoryExportButtonWrapperProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleExportClick = async (format: ExportFormat) => {
@@ -49,13 +61,10 @@ function HistoryExportButtonWrapper({ historyId, exportData, onLoadResults }: Hi
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    
-    const downloadFilename = ensureFileExtension(
-      `fofa_${historyId}_${Date.now()}`,
-      extension
-    );
+
+    const downloadFilename = ensureFileExtension(`fofa_${historyId}_${Date.now()}`, extension);
     a.download = downloadFilename;
-    
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -86,7 +95,9 @@ interface HistoryListProps {
 export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [results, setResults] = useState<Record<number, Array<ExportData & { total_size?: number; result_data?: unknown }>>>({});
+  const [results, setResults] = useState<
+    Record<number, Array<ExportData & { total_size?: number; result_data?: unknown }>>
+  >({});
   const [loadingResults, setLoadingResults] = useState<number | null>(null);
   const [exportData, setExportData] = useState<Record<number, ExportData | null>>({});
 
@@ -102,11 +113,11 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
       setLoadingResults(id);
       const response = await fetch(`/api/history/${id}/results`);
       const data = await response.json();
-      setResults((prev) => ({ ...prev, [id]: data }));
+      setResults(prev => ({ ...prev, [id]: data }));
       if (expand) {
         setExpandedId(id);
       }
-      
+
       const allResults: unknown[] = [];
       data.forEach((result: { result_data?: unknown }) => {
         const resultData = result.result_data;
@@ -118,9 +129,9 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
           }
         }
       });
-      
+
       if (allResults.length > 0) {
-        setExportData((prev) => ({ ...prev, [id]: { results: allResults } }));
+        setExportData(prev => ({ ...prev, [id]: { results: allResults } }));
       }
     } catch (error) {
       console.error('Failed to load results:', error);
@@ -145,7 +156,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
           {t('common.refresh')}
         </button>
       </div>
-      {history.map((item) => (
+      {history.map(item => (
         <div key={item.id} className="history-item">
           <div className="history-item-header">
             <div className="history-item-main">
@@ -155,16 +166,22 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                 aria-expanded={expandedId === item.id}
                 aria-label={`${expandedId === item.id ? t('history.collapse') : t('history.expand')} task ${item.id}`}
               >
-                <span className="toggle-icon">
-                  {expandedId === item.id ? '▼' : '▶'}
+                <span className="toggle-icon">{expandedId === item.id ? '▼' : '▶'}</span>
+                <span className="history-item-title">
+                  {item.task_id || `TASK-${item.id.toString().padStart(6, '0')}`}
                 </span>
-                <span className="history-item-title">{item.task_id || `TASK-${item.id.toString().padStart(6, '0')}`}</span>
               </button>
               <div className="history-item-meta">
-                <span className="meta-badge">{t('history.page')}: {item.page}</span>
-                <span className="meta-badge">{t('history.size')}: {item.size}</span>
+                <span className="meta-badge">
+                  {t('history.page')}: {item.page}
+                </span>
+                <span className="meta-badge">
+                  {t('history.size')}: {item.size}
+                </span>
                 {item.full === 1 && <span className="meta-badge">{t('history.full')}</span>}
-                <span className="meta-badge">{t('history.results')}: {item.result_count.toLocaleString()}</span>
+                <span className="meta-badge">
+                  {t('history.results')}: {item.result_count.toLocaleString()}
+                </span>
               </div>
             </div>
             <div className="history-item-actions">
@@ -186,9 +203,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
               </button>
             </div>
           </div>
-          <div className="history-item-time">
-            {new Date(item.created_at).toLocaleString()}
-          </div>
+          <div className="history-item-time">{new Date(item.created_at).toLocaleString()}</div>
           {expandedId === item.id && (
             <div className="history-item-results">
               <div className="history-item-query-section">
@@ -202,8 +217,12 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                   {results[item.id].map((result, idx: number) => (
                     <div key={idx} className="result-item">
                       <div className="result-header">
-                        <span>{t('history.resultSet')} {idx + 1}</span>
-                        <span>{t('query.results.total')}: {result.total_size || 'N/A'}</span>
+                        <span>
+                          {t('history.resultSet')} {idx + 1}
+                        </span>
+                        <span>
+                          {t('query.results.total')}: {result.total_size || 'N/A'}
+                        </span>
                       </div>
                       <pre className="result-data">
                         {JSON.stringify(result.result_data, null, 2)}
@@ -212,7 +231,9 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                   ))}
                 </div>
               ) : (
-                <div className="results-empty">{t('history.noResultsSaved') || 'No results saved'}</div>
+                <div className="results-empty">
+                  {t('history.noResultsSaved') || 'No results saved'}
+                </div>
               )}
             </div>
           )}

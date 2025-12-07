@@ -12,7 +12,7 @@ export const fofaRoutes = Router();
 fofaRoutes.post('/search', async (req, res) => {
   try {
     const { qbase64, fields, page, size, full } = req.body;
-    
+
     if (!qbase64) {
       return res.status(400).json({ error: 'qbase64 is required' });
     }
@@ -36,7 +36,7 @@ fofaRoutes.post('/search', async (req, res) => {
 fofaRoutes.post('/stats', async (req, res) => {
   try {
     const { qbase64, fields } = req.body;
-    
+
     if (!qbase64) {
       return res.status(400).json({ error: 'qbase64 is required' });
     }
@@ -53,7 +53,7 @@ fofaRoutes.post('/stats', async (req, res) => {
 fofaRoutes.post('/host', async (req, res) => {
   try {
     const { qbase64, size } = req.body;
-    
+
     if (!qbase64) {
       return res.status(400).json({ error: 'qbase64 is required' });
     }
@@ -81,7 +81,7 @@ fofaRoutes.get('/account', async (req, res) => {
 fofaRoutes.post('/search-after', async (req, res) => {
   try {
     const { qbase64, search_after, size } = req.body;
-    
+
     if (!qbase64 || !search_after) {
       return res.status(400).json({ error: 'qbase64 and search_after are required' });
     }
@@ -98,7 +98,7 @@ fofaRoutes.post('/search-after', async (req, res) => {
 fofaRoutes.post('/search-all', async (req, res) => {
   try {
     const { qbase64, fields, size, maxResults } = req.body;
-    
+
     if (!qbase64) {
       return res.status(400).json({ error: 'qbase64 is required' });
     }
@@ -165,7 +165,7 @@ fofaRoutes.post('/search-all', async (req, res) => {
 
       while (searchAfter && totalFetched < maxResultsLimit && totalFetched < totalSize) {
         const nextResult = await searchAfterFofa(qbase64, searchAfter, pageSize);
-        
+
         if (nextResult.error || !nextResult.results || nextResult.results.length === 0) {
           break;
         }
@@ -216,13 +216,15 @@ fofaRoutes.post('/search-all', async (req, res) => {
       res.end();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch all results';
-      res.write(JSON.stringify({ 
-        type: 'error', 
-        error: true, 
-        errmsg: errorMessage,
-        fetched: totalFetched,
-        pages: pageCount,
-      }) + '\n');
+      res.write(
+        JSON.stringify({
+          type: 'error',
+          error: true,
+          errmsg: errorMessage,
+          fetched: totalFetched,
+          pages: pageCount,
+        }) + '\n'
+      );
       res.end();
     }
   } catch (error) {
@@ -231,4 +233,3 @@ fofaRoutes.post('/search-all', async (req, res) => {
     res.status(500).json({ error: errorMessage });
   }
 });
-

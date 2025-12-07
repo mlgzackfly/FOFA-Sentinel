@@ -7,16 +7,21 @@ configRoutes.get('/key', (req, res) => {
   try {
     const db = getDatabase();
     const config = db
-      .prepare('SELECT email, api_key, created_at, updated_at FROM api_config ORDER BY updated_at DESC LIMIT 1')
-      .get() as { email: string | null; api_key: string; created_at: string; updated_at: string } | undefined;
+      .prepare(
+        'SELECT email, api_key, created_at, updated_at FROM api_config ORDER BY updated_at DESC LIMIT 1'
+      )
+      .get() as
+      | { email: string | null; api_key: string; created_at: string; updated_at: string }
+      | undefined;
 
     if (!config) {
       return res.json({ api_key: null, has_key: false });
     }
 
-    const maskedKey = config.api_key.length > 4
-      ? '*'.repeat(config.api_key.length - 4) + config.api_key.slice(-4)
-      : '****';
+    const maskedKey =
+      config.api_key.length > 4
+        ? '*'.repeat(config.api_key.length - 4) + config.api_key.slice(-4)
+        : '****';
 
     res.json({
       api_key: maskedKey,
@@ -44,11 +49,11 @@ configRoutes.post('/key', (req, res) => {
 
     if (existing) {
       const existingConfig = existing as { id: number };
-      db.prepare('UPDATE api_config SET api_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-        .run(api_key, existingConfig.id);
+      db.prepare(
+        'UPDATE api_config SET api_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+      ).run(api_key, existingConfig.id);
     } else {
-      db.prepare('INSERT INTO api_config (api_key) VALUES (?)')
-        .run(api_key);
+      db.prepare('INSERT INTO api_config (api_key) VALUES (?)').run(api_key);
     }
 
     res.json({ success: true });
@@ -58,4 +63,3 @@ configRoutes.post('/key', (req, res) => {
     res.status(500).json({ error: errorMessage });
   }
 });
-

@@ -7,7 +7,7 @@ export const en = {
     docs: 'DOCS',
     config: 'CONFIG',
   },
-  
+
   // Common
   common: {
     online: 'ONLINE',
@@ -29,7 +29,7 @@ export const en = {
     noResults: 'No results found',
     noHistory: 'No query history found',
   },
-  
+
   // Query Page
   query: {
     title: 'FOFA QUERY INTERFACE',
@@ -63,7 +63,7 @@ export const en = {
       copyJson: 'COPY JSON',
     },
   },
-  
+
   // History Page
   history: {
     title: 'QUERY HISTORY',
@@ -80,7 +80,7 @@ export const en = {
     query: 'QUERY',
     noResultsSaved: 'No results saved',
   },
-  
+
   // Settings Page
   settings: {
     title: 'CONFIGURATION',
@@ -99,7 +99,7 @@ export const en = {
     getApiKey: 'Get your API key from:',
     language: 'LANGUAGE',
   },
-  
+
   // Docs Page
   docs: {
     title: 'DOCUMENTATION',
@@ -132,25 +132,30 @@ export const en = {
     certificate: 'Certificate:',
     ipRange: 'IP Range:',
     searchTitle: 'SEARCH - Search All Assets',
-    searchDesc: 'Returns a list of all assets matching the query conditions, supports pagination. Suitable for scenarios where you need to view specific asset details.',
+    searchDesc:
+      'Returns a list of all assets matching the query conditions, supports pagination. Suitable for scenarios where you need to view specific asset details.',
     searchFeatures: 'Features:',
     searchFeature1: '• Returns complete asset list',
     searchFeature2: '• Supports pagination (page, size)',
     searchFeature3: '• Can specify return fields (fields)',
     searchFeature4: '• Can choose to search all data (full)',
     searchUseCase: 'Use Case:',
-    searchUseCaseExample: 'Find all WordPress sites and get their IP, port, title and other information',
+    searchUseCaseExample:
+      'Find all WordPress sites and get their IP, port, title and other information',
     statsTitle: 'STATS - Statistics Aggregation',
-    statsDesc: 'Performs statistical analysis on query results, returns aggregated data. Suitable for scenarios where you need to understand data distribution and statistics.',
+    statsDesc:
+      'Performs statistical analysis on query results, returns aggregated data. Suitable for scenarios where you need to understand data distribution and statistics.',
     statsFeatures: 'Features:',
     statsFeature1: '• Returns statistical and aggregated data',
     statsFeature2: '• Does not return specific asset list',
     statsFeature3: '• Can specify statistical fields (fields)',
     statsFeature4: '• Used for analyzing data distribution',
     statsUseCase: 'Use Case:',
-    statsUseCaseExample: 'Statistics on the distribution of different countries, ports, and servers under a certain query condition',
+    statsUseCaseExample:
+      'Statistics on the distribution of different countries, ports, and servers under a certain query condition',
     hostTitle: 'HOST - Host Aggregation',
-    hostDesc: 'Performs aggregation query for a single host (IP or domain), returns all related asset information for that host. Suitable for scenarios where you need to view complete information of a single host.',
+    hostDesc:
+      'Performs aggregation query for a single host (IP or domain), returns all related asset information for that host. Suitable for scenarios where you need to view complete information of a single host.',
     hostFeatures: 'Features:',
     hostFeature1: '• Query for a single host',
     hostFeature2: '• Returns all ports and services of that host',
@@ -195,7 +200,7 @@ export const en = {
     paramSize: 'Results per page (max 10000)',
     paramFull: 'Search all results (not just last year)',
   },
-  
+
   // Error Messages
   errors: {
     unknown: 'Unknown error',
@@ -207,4 +212,3 @@ export const en = {
     apiError: 'FOFA API error',
   },
 };
-

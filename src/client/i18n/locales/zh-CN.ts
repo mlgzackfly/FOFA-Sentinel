@@ -7,7 +7,7 @@ export const zhCN = {
     docs: '文档',
     config: '设置',
   },
-  
+
   // Common
   common: {
     online: '在线',
@@ -29,7 +29,7 @@ export const zhCN = {
     noResults: '未找到结果',
     noHistory: '未找到查询历史',
   },
-  
+
   // Query Page
   query: {
     title: 'FOFA 查询界面',
@@ -63,7 +63,7 @@ export const zhCN = {
       copyJson: '复制 JSON',
     },
   },
-  
+
   // History Page
   history: {
     title: '查询历史',
@@ -80,7 +80,7 @@ export const zhCN = {
     query: '查询',
     noResultsSaved: '未保存结果',
   },
-  
+
   // Settings Page
   settings: {
     title: '设置',
@@ -99,7 +99,7 @@ export const zhCN = {
     getApiKey: '从以下位置获取您的 API 密钥：',
     language: '语言',
   },
-  
+
   // Docs Page
   docs: {
     title: '文档',
@@ -150,7 +150,8 @@ export const zhCN = {
     statsUseCase: '使用场景：',
     statsUseCaseExample: '统计某个查询条件下，不同国家、端口、服务器的分布情况',
     hostTitle: '主机 - 主机聚合',
-    hostDesc: '针对单个主机（IP 或域名）进行聚合查询，返回该主机的所有相关资产信息。适合需要查看单个主机完整信息的场景。',
+    hostDesc:
+      '针对单个主机（IP 或域名）进行聚合查询，返回该主机的所有相关资产信息。适合需要查看单个主机完整信息的场景。',
     hostFeatures: '特点：',
     hostFeature1: '• 针对单个主机进行查询',
     hostFeature2: '• 返回该主机的所有端口和服务',
@@ -195,7 +196,7 @@ export const zhCN = {
     paramSize: '每页结果数（最多 10000）',
     paramFull: '搜索所有结果（不限于最近一年）',
   },
-  
+
   // Error Messages
   errors: {
     unknown: '未知错误',
@@ -207,4 +208,3 @@ export const zhCN = {
     apiError: 'FOFA API 错误',
   },
 };
-

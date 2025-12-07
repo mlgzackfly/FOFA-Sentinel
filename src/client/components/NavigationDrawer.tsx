@@ -11,9 +11,14 @@ interface NavigationDrawerProps {
   onToggle: () => void;
 }
 
-export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }: NavigationDrawerProps) {
+export function NavigationDrawer({
+  isOpen,
+  currentPage,
+  onPageChange,
+  onToggle,
+}: NavigationDrawerProps) {
   const { t } = useTranslation();
-  
+
   const menuItems: { id: Page; labelKey: string; icon: string }[] = [
     { id: 'query', labelKey: 'nav.query', icon: '>' },
     { id: 'history', labelKey: 'nav.history', icon: '[' },
@@ -30,15 +35,15 @@ export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }
             <span className="nav-drawer-brand-text">FOFA</span>
             <span className="nav-drawer-brand-accent">_SENTINEL</span>
           </div>
-          <button 
-            className="nav-drawer-close-btn" 
+          <button
+            className="nav-drawer-close-btn"
             onClick={onToggle}
             aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
           >
             <span className="nav-drawer-close-icon">{isOpen ? '×' : '☰'}</span>
           </button>
         </div>
-        
+
         <div className="nav-drawer-top">
           <div className="nav-drawer-status">
             <span className="status-dot"></span>
@@ -50,7 +55,7 @@ export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }
         <div className="nav-drawer-divider"></div>
 
         <nav className="nav-drawer-nav">
-          {menuItems.map((item) => (
+          {menuItems.map(item => (
             <button
               key={item.id}
               className={`nav-drawer-item ${currentPage === item.id ? 'active' : ''}`}
@@ -74,9 +79,9 @@ export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }
           <div className="nav-drawer-footer-text">v0.1.0</div>
         </div>
       </aside>
-      
-      <button 
-        className="nav-drawer-toggle" 
+
+      <button
+        className="nav-drawer-toggle"
         onClick={onToggle}
         aria-label="Toggle navigation"
         aria-expanded={isOpen}
@@ -86,4 +91,3 @@ export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }
     </>
   );
 }
-

@@ -1,6 +1,14 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { convertToCSV, convertToTXT, type ExportData, type ExportFormat, getMimeType, getFileExtension, ensureFileExtension } from '../utils/export';
+import {
+  convertToCSV,
+  convertToTXT,
+  type ExportData,
+  type ExportFormat,
+  getMimeType,
+  getFileExtension,
+  ensureFileExtension,
+} from '../utils/export';
 import './ExportButton.css';
 
 interface ExportButtonProps {
@@ -10,7 +18,12 @@ interface ExportButtonProps {
   isLoading?: boolean;
 }
 
-export function ExportButton({ data, filename, onExportClick, isLoading = false }: ExportButtonProps) {
+export function ExportButton({
+  data,
+  filename,
+  onExportClick,
+  isLoading = false,
+}: ExportButtonProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -47,13 +60,13 @@ export function ExportButton({ data, filename, onExportClick, isLoading = false 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      
+
       const downloadFilename = ensureFileExtension(
         filename || `fofa_export_${Date.now()}`,
         fileExtension
       );
       a.download = downloadFilename;
-      
+
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -86,14 +99,18 @@ export function ExportButton({ data, filename, onExportClick, isLoading = false 
         aria-label={t('common.export')}
         aria-expanded={isOpen}
       >
-        {isLoading ? (t('common.loading') || 'LOADING...') : exporting ? (t('common.exporting') || 'EXPORTING...') : t('common.export')}
+        {isLoading
+          ? t('common.loading') || 'LOADING...'
+          : exporting
+            ? t('common.exporting') || 'EXPORTING...'
+            : t('common.export')}
         <span className="export-arrow">{isOpen ? '▲' : '▼'}</span>
       </button>
       {isOpen && (
         <>
           <div className="export-overlay" onClick={() => setIsOpen(false)} />
           <div className="export-dropdown">
-            {formats.map((format) => (
+            {formats.map(format => (
               <button
                 key={format.value}
                 className="export-option"
@@ -109,4 +126,3 @@ export function ExportButton({ data, filename, onExportClick, isLoading = false 
     </div>
   );
 }
-

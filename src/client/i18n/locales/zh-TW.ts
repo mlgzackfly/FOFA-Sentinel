@@ -7,7 +7,7 @@ export const zhTW = {
     docs: '文檔',
     config: '設定',
   },
-  
+
   // Common
   common: {
     online: '在線',
@@ -29,7 +29,7 @@ export const zhTW = {
     noResults: '未找到結果',
     noHistory: '未找到查詢歷史',
   },
-  
+
   // Query Page
   query: {
     title: 'FOFA 查詢介面',
@@ -63,7 +63,7 @@ export const zhTW = {
       copyJson: '複製 JSON',
     },
   },
-  
+
   // History Page
   history: {
     title: '查詢歷史',
@@ -80,7 +80,7 @@ export const zhTW = {
     query: '查詢',
     noResultsSaved: '未儲存結果',
   },
-  
+
   // Settings Page
   settings: {
     title: '設定',
@@ -99,7 +99,7 @@ export const zhTW = {
     getApiKey: '從以下位置取得您的 API 金鑰：',
     language: '語言',
   },
-  
+
   // Docs Page
   docs: {
     title: '文檔',
@@ -150,7 +150,8 @@ export const zhTW = {
     statsUseCase: '使用情境：',
     statsUseCaseExample: '統計某個查詢條件下，不同國家、連接埠、伺服器的分布情況',
     hostTitle: '主機 - 主機聚合',
-    hostDesc: '針對單個主機（IP 或域名）進行聚合查詢，返回該主機的所有相關資產資訊。適合需要查看單個主機完整資訊的情境。',
+    hostDesc:
+      '針對單個主機（IP 或域名）進行聚合查詢，返回該主機的所有相關資產資訊。適合需要查看單個主機完整資訊的情境。',
     hostFeatures: '特點：',
     hostFeature1: '• 針對單個主機進行查詢',
     hostFeature2: '• 返回該主機的所有連接埠和服務',
@@ -195,7 +196,7 @@ export const zhTW = {
     paramSize: '每頁結果數（最多 10000）',
     paramFull: '搜尋所有結果（不限於最近一年）',
   },
-  
+
   // Error Messages
   errors: {
     unknown: '未知錯誤',
@@ -207,4 +208,3 @@ export const zhTW = {
     apiError: 'FOFA API 錯誤',
   },
 };
-

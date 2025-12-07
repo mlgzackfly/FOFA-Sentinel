@@ -30,7 +30,9 @@ historyRoutes.get('/', (req, res) => {
       )
       .all(limit, offset);
 
-    const total = db.prepare('SELECT COUNT(*) as count FROM query_history').get() as { count: number };
+    const total = db.prepare('SELECT COUNT(*) as count FROM query_history').get() as {
+      count: number;
+    };
 
     res.json({
       history,
@@ -239,7 +241,12 @@ historyRoutes.get('/:id/export', (req, res) => {
         txtContent += `Result Set ${index + 1} (Page: ${result.page || 'N/A'}, Total: ${result.total_size || 'N/A'})\n`;
         txtContent += `-`.repeat(50) + `\n`;
 
-        if (data && typeof data === 'object' && 'results' in data && Array.isArray((data as { results: unknown[] }).results)) {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'results' in data &&
+          Array.isArray((data as { results: unknown[] }).results)
+        ) {
           const resultsArray = (data as { results: unknown[] }).results;
           resultsArray.forEach((row: unknown, rowIndex: number) => {
             if (Array.isArray(row)) {
@@ -275,7 +282,10 @@ historyRoutes.get('/:id/export', (req, res) => {
     });
 
     res.setHeader('Content-Type', 'text/plain');
-    res.setHeader('Content-Disposition', `attachment; filename="fofa_export_${historyId}_${Date.now()}.txt"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="fofa_export_${historyId}_${Date.now()}.txt"`
+    );
     res.send(txtContent);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
@@ -283,4 +293,3 @@ historyRoutes.get('/:id/export', (req, res) => {
     res.status(500).json({ error: errorMessage });
   }
 });
-

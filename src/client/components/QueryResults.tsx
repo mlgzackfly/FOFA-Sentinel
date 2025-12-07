@@ -19,7 +19,8 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     return (
       <div className="query-results">
         <div className="query-results-error">
-          <span className="error-prefix">{t('common.error')}:</span> {result.errmsg || t('errors.unknown')}
+          <span className="error-prefix">{t('common.error')}:</span>{' '}
+          {result.errmsg || t('errors.unknown')}
         </div>
       </div>
     );
@@ -40,28 +41,33 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
             <div className="query-results-header">
               <div className="query-results-meta">
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.query')}:</span> {('query' in result && result.query ? String(result.query) : 'N/A')}
+                  <span className="meta-label">{t('query.results.query')}:</span>{' '}
+                  {'query' in result && result.query ? String(result.query) : 'N/A'}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.total')}:</span> {'size' in result ? (result.size || 0) : 0}
+                  <span className="meta-label">{t('query.results.total')}:</span>{' '}
+                  {'size' in result ? result.size || 0 : 0}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.page')}:</span> {'page' in result ? (result.page || 1) : 1}
+                  <span className="meta-label">{t('query.results.page')}:</span>{' '}
+                  {'page' in result ? result.page || 1 : 1}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.displayed')}:</span> {'results' in result ? (result.results?.length || 0) : 0} {t('query.results.of')} {'size' in result ? (result.size || 0) : 0}
+                  <span className="meta-label">{t('query.results.displayed')}:</span>{' '}
+                  {'results' in result ? result.results?.length || 0 : 0} {t('query.results.of')}{' '}
+                  {'size' in result ? result.size || 0 : 0}
                 </span>
               </div>
               <div className="query-results-actions">
-                <button 
-                  className="btn-secondary" 
+                <button
+                  className="btn-secondary"
                   onClick={handleCopy}
                   aria-label="Copy results to clipboard"
                 >
                   {copied ? t('common.copied') : t('query.results.copyJson')}
                 </button>
-                <ExportButton 
-                  data={result as ExportData} 
+                <ExportButton
+                  data={result as ExportData}
                   filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
                 />
               </div>
@@ -78,7 +84,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                             <th key={idx}>COL_{idx + 1}</th>
                           ));
                         } else if (typeof firstResult === 'object' && firstResult !== null) {
-                          return Object.keys(firstResult).map((key) => (
+                          return Object.keys(firstResult).map(key => (
                             <th key={key}>{key.toUpperCase()}</th>
                           ));
                         }
@@ -122,17 +128,14 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
           <div className="query-results-content">
             <pre className="query-results-json">{JSON.stringify(result, null, 2)}</pre>
             <div className="query-results-actions">
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 onClick={handleCopy}
                 aria-label="Copy results to clipboard"
               >
                 {copied ? t('common.copied') : t('query.results.copyJson')}
               </button>
-              <ExportButton 
-                data={result} 
-                filename={`fofa_${tab}_${Date.now()}`}
-              />
+              <ExportButton data={result} filename={`fofa_${tab}_${Date.now()}`} />
             </div>
           </div>
         );
@@ -151,4 +154,3 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     </div>
   );
 }
-
