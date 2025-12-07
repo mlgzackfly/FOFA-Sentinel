@@ -1,12 +1,18 @@
 .navbar {
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-default);
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-3) var(--space-4);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 640px) {
+  .navbar {
+    padding: var(--space-4) var(--space-6);
+  }
 }
 
 .navbar-content {
@@ -28,8 +34,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .navbar-menu-btn:hover {

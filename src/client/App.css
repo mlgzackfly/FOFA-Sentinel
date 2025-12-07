@@ -23,12 +23,20 @@
 
 .app-main {
   flex: 1;
-  padding: var(--space-6);
+  padding: var(--space-4);
   overflow-y: auto;
   margin-left: 0;
   transition: margin-left var(--transition-normal);
   min-height: 100vh;
   position: relative;
+  padding-top: calc(var(--space-4) + 60px);
+}
+
+@media (min-width: 640px) {
+  .app-main {
+    padding: var(--space-6);
+    padding-top: calc(var(--space-6) + 60px);
+  }
 }
 
 @media (min-width: 1024px) {
