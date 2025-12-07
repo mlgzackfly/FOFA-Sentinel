@@ -50,7 +50,8 @@ export async function checkHostHealth(
   }
 
   const finalPort = defaultPort || (protocol === 'https' ? 443 : 80);
-  const finalProtocol = defaultPort === 443 || (!defaultPort && protocol === 'https') ? 'https' : 'http';
+  const finalProtocol =
+    defaultPort === 443 || (!defaultPort && protocol === 'https') ? 'https' : 'http';
   const url = `${finalProtocol}://${hostname}${finalPort && finalPort !== 80 && finalPort !== 443 ? `:${finalPort}` : ''}`;
 
   const startTime = Date.now();
@@ -84,7 +85,7 @@ export async function checkHostHealth(
     try {
       const net = await import('node:net');
       const socket = new net.Socket();
-      const tcpAlive = await new Promise<boolean>((resolve) => {
+      const tcpAlive = await new Promise<boolean>(resolve => {
         const tcpTimeout = setTimeout(() => {
           socket.destroy();
           resolve(false);
@@ -126,7 +127,6 @@ export async function checkHostsHealth(
   hosts: string[],
   options: HealthCheckOptions = {}
 ): Promise<HealthCheckResult[]> {
-  const checks = hosts.map((host) => checkHostHealth(host, options));
+  const checks = hosts.map(host => checkHostHealth(host, options));
   return Promise.all(checks);
 }
-

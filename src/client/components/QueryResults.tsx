@@ -18,7 +18,11 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
   const [checkingAll, setCheckingAll] = useState(false);
   const [checkProgress, setCheckProgress] = useState({ current: 0, total: 0 });
   const [checkResults, setCheckResults] = useState<Record<string, HealthCheckResult>>({});
-  const [checkSummary, setCheckSummary] = useState<{ total: number; alive: number; dead: number } | null>(null);
+  const [checkSummary, setCheckSummary] = useState<{
+    total: number;
+    alive: number;
+    dead: number;
+  } | null>(null);
 
   // Extract all hosts from results - must be before early returns
   const extractHosts = useCallback((): string[] => {
@@ -33,9 +37,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
         hostValue = String(row[0] ?? '').trim();
       } else if (typeof row === 'object' && row !== null) {
         const rowObj = row as Record<string, unknown>;
-        hostValue = String(
-          rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? ''
-        ).trim();
+        hostValue = String(rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? '').trim();
       }
       if (hostValue && !hosts.includes(hostValue)) {
         hosts.push(hostValue);
@@ -88,7 +90,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
         const batch = hosts.slice(i, i + batchSize);
         const batchResults = await checkHostsHealth(batch, { timeout: 5000 });
 
-        batchResults.forEach((checkResult) => {
+        batchResults.forEach(checkResult => {
           resultsMap[checkResult.host] = checkResult;
           if (checkResult.alive) {
             aliveCount++;
@@ -147,7 +149,9 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 >
                   {copied ? t('common.copied') : t('query.results.copyJson')}
                 </button>
-                {'results' in result && Array.isArray(result.results) && result.results.length > 0 ? (
+                {'results' in result &&
+                Array.isArray(result.results) &&
+                result.results.length > 0 ? (
                   <button
                     className="btn-secondary btn-check-all"
                     onClick={handleCheckAll}
@@ -213,8 +217,9 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                         hostValue = String(row[0] ?? '');
                       } else if (typeof row === 'object' && row !== null) {
                         const rowObj = row as Record<string, unknown>;
-                        hostValue =
-                          String(rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? '');
+                        hostValue = String(
+                          rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? ''
+                        );
                       }
 
                       if (Array.isArray(row)) {

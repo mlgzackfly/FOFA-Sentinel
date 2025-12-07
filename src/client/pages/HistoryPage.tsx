@@ -15,12 +15,12 @@ export function HistoryPage() {
       setLoading(true);
       setError(null);
       const response = await fetch('/api/history?limit=100');
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || t('errors.failedToLoad'));
       }
-      
+
       const data = await response.json();
       setHistory(data.history || []);
     } catch (error) {
