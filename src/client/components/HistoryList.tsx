@@ -26,14 +26,22 @@ function HistoryExportButtonWrapper({
   exportData,
   onLoadResults,
 }: HistoryExportButtonWrapperProps) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const handleExportClick = async (format: ExportFormat) => {
+    // If data is not loaded yet, load it first
     if (!exportData) {
       if (!isLoading) {
         setIsLoading(true);
         try {
           await onLoadResults();
+          setDataLoaded(true);
+          // After loading, wait a bit for state to update, then retry export
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 100);
         } catch (error) {
           console.error('Failed to load results:', error);
           setIsLoading(false);
@@ -43,6 +51,7 @@ function HistoryExportButtonWrapper({
       return;
     }
 
+    // Data is loaded, proceed with export
     let content = '';
     switch (format) {
       case 'json':
@@ -74,8 +83,32 @@ function HistoryExportButtonWrapper({
     setIsLoading(false);
   };
 
+  // Show button even if data is not loaded yet
+  // If data is not loaded, show a simple button that loads data on click
   if (!exportData) {
-    return null;
+    return (
+      <button
+        className="btn-action"
+        onClick={async () => {
+          if (!isLoading) {
+            setIsLoading(true);
+            try {
+              await onLoadResults();
+              setDataLoaded(true);
+            } catch (error) {
+              console.error('Failed to load results:', error);
+            } finally {
+              setIsLoading(false);
+            }
+          }
+        }}
+        disabled={isLoading}
+        title={t('common.export')}
+        aria-label={t('common.export')}
+      >
+        {isLoading ? t('common.loading') : t('common.export')}
+      </button>
+    );
   }
 
   return (
