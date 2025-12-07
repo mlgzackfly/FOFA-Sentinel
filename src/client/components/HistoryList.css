@@ -132,6 +132,12 @@
   color: var(--color-terminal-red);
 }
 
+.btn-action:focus-visible,
+.btn-danger:focus-visible {
+  outline: 2px solid var(--color-terminal-green);
+  outline-offset: 2px;
+}
+
 .history-item-time {
   font-family: var(--font-mono);
   font-size: 0.75rem;

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { QueryForm } from '../components/QueryForm';
 import { QueryResults } from '../components/QueryResults';
 import { TabSelector } from '../components/TabSelector';
+import { useTranslation } from '../hooks/useTranslation';
 import './QueryPage.css';
 
 type QueryTab = 'search' | 'stats' | 'host' | 'account';
 
 export function QueryPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<QueryTab>('search');
   const [queryResult, setQueryResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -16,10 +18,10 @@ export function QueryPage() {
   }, [activeTab]);
 
   const tabs = [
-    { id: 'search' as QueryTab, label: 'SEARCH', icon: '>' },
-    { id: 'stats' as QueryTab, label: 'STATS', icon: '#' },
-    { id: 'host' as QueryTab, label: 'HOST', icon: '@' },
-    { id: 'account' as QueryTab, label: 'ACCOUNT', icon: '$' },
+    { id: 'search' as QueryTab, labelKey: 'query.tabs.search', icon: '>' },
+    { id: 'stats' as QueryTab, labelKey: 'query.tabs.stats', icon: '#' },
+    { id: 'host' as QueryTab, labelKey: 'query.tabs.host', icon: '@' },
+    { id: 'account' as QueryTab, labelKey: 'query.tabs.account', icon: '$' },
   ];
 
   return (
@@ -27,12 +29,16 @@ export function QueryPage() {
       <div className="query-page-header">
         <h1 className="query-page-title">
           <span className="query-page-title-prefix">$</span>
-          FOFA QUERY INTERFACE
+          {t('query.title')}
         </h1>
-        <p className="query-page-subtitle">Execute FOFA API queries and analyze results</p>
+        <p className="query-page-subtitle">{t('query.subtitle')}</p>
       </div>
 
-      <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabSelector 
+        tabs={tabs.map(tab => ({ ...tab, label: t(tab.labelKey) }))} 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+      />
 
       <div className="query-page-content">
         <QueryForm

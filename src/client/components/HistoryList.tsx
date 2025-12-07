@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import './HistoryList.css';
 
 interface HistoryItem {
@@ -20,6 +21,7 @@ interface HistoryListProps {
 }
 
 export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryListProps) {
+  const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [results, setResults] = useState<Record<number, any[]>>({});
   const [loadingResults, setLoadingResults] = useState<number | null>(null);
@@ -47,7 +49,7 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
     return (
       <div className="history-list-empty">
         <span className="empty-prefix">{'>'}</span>
-        No query history found
+        {t('common.noHistory')}
       </div>
     );
   }
@@ -56,7 +58,7 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
     <div className="history-list">
       <div className="history-list-header">
         <button className="btn-secondary" onClick={onRefresh}>
-          REFRESH
+          {t('common.refresh')}
         </button>
       </div>
       {history.map((item) => (
@@ -66,6 +68,8 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
               <button
                 className="history-item-toggle"
                 onClick={() => loadResults(item.id)}
+                aria-expanded={expandedId === item.id}
+                aria-label={`${expandedId === item.id ? t('history.collapse') : t('history.expand')} query results for ${item.query}`}
               >
                 <span className="toggle-icon">
                   {expandedId === item.id ? '▼' : '▶'}
@@ -73,10 +77,10 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
                 <span className="history-item-query">{item.query}</span>
               </button>
               <div className="history-item-meta">
-                <span className="meta-badge">PAGE: {item.page}</span>
-                <span className="meta-badge">SIZE: {item.size}</span>
-                {item.full === 1 && <span className="meta-badge">FULL</span>}
-                <span className="meta-badge">RESULTS: {item.result_count}</span>
+                <span className="meta-badge">{t('history.page')}: {item.page}</span>
+                <span className="meta-badge">{t('history.size')}: {item.size}</span>
+                {item.full === 1 && <span className="meta-badge">{t('history.full')}</span>}
+                <span className="meta-badge">{t('history.results')}: {item.result_count}</span>
               </div>
             </div>
             <div className="history-item-actions">
@@ -84,17 +88,19 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
                 <button
                   className="btn-action"
                   onClick={() => onExport(item.id)}
-                  title="Export to TXT"
+                  title={t('history.exportToTxt')}
+                  aria-label={`${t('history.exportToTxt')} for ${item.query}`}
                 >
-                  EXPORT
+                  {t('common.export')}
                 </button>
               )}
               <button
                 className="btn-action btn-danger"
                 onClick={() => onDelete(item.id)}
-                title="Delete"
+                title={t('history.deleteQuery')}
+                aria-label={`${t('history.deleteQuery')} ${item.query}`}
               >
-                DELETE
+                {t('common.delete')}
               </button>
             </div>
           </div>
@@ -104,14 +110,14 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
           {expandedId === item.id && (
             <div className="history-item-results">
               {loadingResults === item.id ? (
-                <div className="results-loading">LOADING...</div>
+                <div className="results-loading">{t('common.loading')}</div>
               ) : results[item.id] && results[item.id].length > 0 ? (
                 <div className="results-content">
                   {results[item.id].map((result: any, idx: number) => (
                     <div key={idx} className="result-item">
                       <div className="result-header">
-                        <span>Result Set {idx + 1}</span>
-                        <span>Total: {result.total_size || 'N/A'}</span>
+                        <span>{t('history.resultSet')} {idx + 1}</span>
+                        <span>{t('query.results.total')}: {result.total_size || 'N/A'}</span>
                       </div>
                       <pre className="result-data">
                         {JSON.stringify(result.result_data, null, 2)}
@@ -120,7 +126,7 @@ export function HistoryList({ history, onDelete, onExport, onRefresh }: HistoryL
                   ))}
                 </div>
               ) : (
-                <div className="results-empty">No results saved</div>
+                <div className="results-empty">{t('history.noResultsSaved')}</div>
               )}
             </div>
           )}

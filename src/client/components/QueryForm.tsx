@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { searchFofa, getFofaStats, getFofaHostAggregation, getFofaAccountInfo } from '../utils/api';
+import { useTranslation } from '../hooks/useTranslation';
 import './QueryForm.css';
 
 type QueryTab = 'search' | 'stats' | 'host' | 'account';
@@ -12,6 +13,7 @@ interface QueryFormProps {
 }
 
 export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [fields, setFields] = useState('host,ip,port');
   const [page, setPage] = useState(1);
@@ -23,7 +25,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
     try {
       return btoa(unescape(encodeURIComponent(str)));
     } catch (e) {
-      throw new Error('Invalid query string');
+      throw new Error(t('errors.invalidQuery'));
     }
   };
 
@@ -90,7 +92,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
 
       onResult(result);
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      setError(err.message || t('errors.unknown'));
       onResult(null);
     } finally {
       setLoading(false);
@@ -102,8 +104,13 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       <div className="query-form">
         <form onSubmit={handleSubmit} className="query-form-content">
           <div className="query-form-actions">
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'LOADING...' : 'GET ACCOUNT INFO'}
+            <button 
+              type="submit" 
+              className="btn-primary" 
+              disabled={loading}
+              aria-label="Get FOFA account information"
+            >
+              {loading ? t('common.loading') : t('query.getAccountInfo')}
             </button>
           </div>
         </form>
@@ -118,7 +125,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         <div className="query-form-field">
           <label className="query-form-label">
             <span className="label-prefix">$</span>
-            QUERY
+            {t('query.queryLabel')}
           </label>
           <textarea
             className="query-form-input query-form-textarea"
@@ -135,7 +142,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
             <div className="query-form-field">
               <label className="query-form-label">
                 <span className="label-prefix">#</span>
-                FIELDS
+                {t('query.fieldsLabel')}
               </label>
               <input
                 type="text"
@@ -150,7 +157,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
               <div className="query-form-field">
                 <label className="query-form-label">
                   <span className="label-prefix">#</span>
-                  PAGE
+                  {t('query.pageLabel')}
                 </label>
                 <input
                   type="number"
@@ -164,7 +171,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
               <div className="query-form-field">
                 <label className="query-form-label">
                   <span className="label-prefix">#</span>
-                  SIZE
+                  {t('query.sizeLabel')}
                 </label>
                 <input
                   type="number"
@@ -184,27 +191,12 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                   checked={full}
                   onChange={(e) => setFull(e.target.checked)}
                 />
-                <span>Search all results (not just last year)</span>
+                <span>{t('query.fullLabel')}</span>
               </label>
             </div>
           </>
         )}
 
-        {tab === 'stats' && (
-          <div className="query-form-field">
-            <label className="query-form-label">
-              <span className="label-prefix">#</span>
-              FIELDS
-            </label>
-            <input
-              type="text"
-              className="query-form-input"
-              value={fields}
-              onChange={(e) => setFields(e.target.value)}
-              placeholder="host,ip,port"
-            />
-          </div>
-        )}
 
         {tab === 'host' && (
           <div className="query-form-field">
@@ -223,8 +215,13 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         )}
 
         <div className="query-form-actions">
-          <button type="submit" className="btn-primary" disabled={loading || !query.trim()}>
-            {loading ? 'EXECUTING...' : 'EXECUTE'}
+          <button 
+            type="submit" 
+            className="btn-primary" 
+            disabled={loading || !query.trim()}
+            aria-label={`Execute ${tab} query`}
+          >
+            {loading ? t('common.executing') : t('common.execute')}
           </button>
         </div>
       </form>

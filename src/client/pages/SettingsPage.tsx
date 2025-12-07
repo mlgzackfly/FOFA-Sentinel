@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import './SettingsPage.css';
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const [apiKey, setApiKey] = useState('');
   const [email, setEmail] = useState('');
   const [maskedKey, setMaskedKey] = useState<string | null>(null);
@@ -39,10 +41,10 @@ export function SettingsPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to save API key');
+        throw new Error(error.error || t('errors.failedToSave'));
       }
 
-      setMessage({ type: 'success', text: 'API key saved successfully' });
+      setMessage({ type: 'success', text: t('settings.apiKeySaved') || 'API key saved successfully' });
       setApiKey('');
       loadConfig();
     } catch (error: any) {
@@ -57,25 +59,25 @@ export function SettingsPage() {
       <div className="settings-page-header">
         <h1 className="settings-page-title">
           <span className="settings-page-title-prefix">$</span>
-          CONFIGURATION
+          {t('settings.title')}
         </h1>
-        <p className="settings-page-subtitle">Manage your FOFA API credentials</p>
+        <p className="settings-page-subtitle">{t('settings.subtitle')}</p>
       </div>
 
       <div className="settings-content">
         <div className="settings-section">
-          <h2 className="settings-section-title">API CREDENTIALS</h2>
+          <h2 className="settings-section-title">{t('settings.apiCredentials')}</h2>
           <form onSubmit={handleSubmit} className="settings-form">
             {maskedKey && (
               <div className="settings-info">
-                <span className="info-label">Current API Key:</span>
+                <span className="info-label">{t('settings.currentApiKey')}</span>
                 <span className="info-value">{maskedKey}</span>
               </div>
             )}
             <div className="settings-field">
               <label className="settings-label">
                 <span className="label-prefix">#</span>
-                FOFA EMAIL
+                {t('settings.fofaEmail')}
               </label>
               <input
                 type="email"
@@ -88,20 +90,20 @@ export function SettingsPage() {
             <div className="settings-field">
               <label className="settings-label">
                 <span className="label-prefix">#</span>
-                FOFA API KEY
+                {t('settings.fofaApiKey')}
               </label>
               <input
                 type="password"
                 className="settings-input"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder={maskedKey ? 'Enter new API key to update' : 'Enter your API key'}
+                placeholder={maskedKey ? t('settings.enterNewKey') : t('settings.enterApiKey')}
                 required={!maskedKey}
               />
             </div>
             <div className="settings-actions">
               <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'SAVING...' : 'SAVE'}
+                {loading ? t('settings.saving') : t('common.save')}
               </button>
             </div>
             {message && (
@@ -113,16 +115,16 @@ export function SettingsPage() {
         </div>
 
         <div className="settings-section">
-          <h2 className="settings-section-title">ABOUT</h2>
+          <h2 className="settings-section-title">{t('settings.about')}</h2>
           <div className="settings-about">
             <p className="about-text">
-              FOFA API Client v0.1.0
+              {t('settings.version')}
             </p>
             <p className="about-text">
-              A modern, hacker-style interface for the FOFA API.
+              {t('settings.description')}
             </p>
             <p className="about-text">
-              Get your API key from:{' '}
+              {t('settings.getApiKey')}{' '}
               <a
                 href="https://fofa.info/user/personal"
                 target="_blank"

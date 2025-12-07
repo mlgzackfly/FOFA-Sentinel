@@ -110,6 +110,9 @@
 .settings-input:focus {
   outline: none;
   border-color: var(--color-terminal-green);
+  box-shadow: 0 0 0 2px var(--color-terminal-green);
+}
+  border-color: var(--color-terminal-green);
   box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
 }
 

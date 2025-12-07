@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -7,6 +8,7 @@ interface QueryResultsProps {
 }
 
 export function QueryResults({ result, tab }: QueryResultsProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   if (!result) return null;
@@ -15,7 +17,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     return (
       <div className="query-results">
         <div className="query-results-error">
-          <span className="error-prefix">ERROR:</span> {result.errmsg || 'Unknown error'}
+          <span className="error-prefix">{t('common.error')}:</span> {result.errmsg || t('errors.unknown')}
         </div>
       </div>
     );
@@ -36,17 +38,21 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
             <div className="query-results-header">
               <div className="query-results-meta">
                 <span className="meta-item">
-                  <span className="meta-label">QUERY:</span> {result.query || 'N/A'}
+                  <span className="meta-label">{t('query.results.query')}:</span> {result.query || 'N/A'}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">TOTAL:</span> {result.size || 0}
+                  <span className="meta-label">{t('query.results.total')}:</span> {result.size || 0}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">PAGE:</span> {result.page || 1}
+                  <span className="meta-label">{t('query.results.page')}:</span> {result.page || 1}
                 </span>
               </div>
-              <button className="btn-secondary" onClick={handleExport}>
-                {copied ? 'COPIED!' : 'COPY JSON'}
+              <button 
+                className="btn-secondary" 
+                onClick={handleExport}
+                aria-label="Copy results to clipboard"
+              >
+                {copied ? t('common.copied') : t('query.results.copyJson')}
               </button>
             </div>
             {result.results && result.results.length > 0 ? (
@@ -94,7 +100,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 </table>
               </div>
             ) : (
-              <div className="query-results-empty">No results found</div>
+              <div className="query-results-empty">{t('common.noResults')}</div>
             )}
           </div>
         );
@@ -104,7 +110,11 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
         return (
           <div className="query-results-content">
             <pre className="query-results-json">{JSON.stringify(result, null, 2)}</pre>
-            <button className="btn-secondary" onClick={handleExport}>
+            <button 
+              className="btn-secondary" 
+              onClick={handleExport}
+              aria-label="Copy results to clipboard"
+            >
               {copied ? 'COPIED!' : 'COPY JSON'}
             </button>
           </div>
@@ -118,7 +128,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     <div className="query-results">
       <div className="query-results-title">
         <span className="title-prefix">{'>'}</span>
-        RESULTS
+        {t('query.results.title')}
       </div>
       {renderContent()}
     </div>

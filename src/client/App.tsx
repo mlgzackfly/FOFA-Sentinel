@@ -5,6 +5,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { DocsPage } from './pages/DocsPage';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
+import { getLocale } from './i18n';
 import './App.css';
 
 type Page = 'query' | 'history' | 'settings' | 'docs';
@@ -12,6 +13,18 @@ type Page = 'query' | 'history' | 'settings' | 'docs';
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('query');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [, setLocale] = useState(getLocale());
+
+  useEffect(() => {
+    const handleLocaleChange = () => {
+      setLocale(getLocale());
+    };
+    
+    window.addEventListener('localechange', handleLocaleChange);
+    return () => {
+      window.removeEventListener('localechange', handleLocaleChange);
+    };
+  }, []);
 
   return (
     <div className="app">
