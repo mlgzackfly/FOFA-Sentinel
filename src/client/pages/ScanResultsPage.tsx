@@ -356,9 +356,8 @@ export function ScanResultsPage() {
                     <tbody>
                       {results.map((result, idx) => (
                         <tr key={idx}>
-                          <td className="host-cell">{result.host}</td>
+                          <td className="url-cell">{result.testedUrl || result.host || '-'}</td>
                           <td>{getVulnerabilityBadge(result.vulnerable)}</td>
-                          <td className="url-cell">{result.testedUrl || '-'}</td>
                           <td
                             className="error-cell"
                             title={result.error ? getFullError(result.error) : undefined}
