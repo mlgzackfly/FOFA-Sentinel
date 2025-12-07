@@ -239,12 +239,16 @@ export function saveScanResults(
     // Update session statistics
     try {
       const currentSession = getScanSession(sessionId);
+      // Use insertedCount instead of results.length to reflect actual saved records
       updateScanSession(sessionId, {
-        scannedHosts: currentSession.scannedHosts + results.length,
+        scannedHosts: currentSession.scannedHosts + insertedCount,
         vulnerableCount: currentSession.vulnerableCount + vulnerableCount,
         safeCount: currentSession.safeCount + safeCount,
         errorCount: currentSession.errorCount + errorCount,
       });
+      console.log(
+        `[saveScanResults] Updated session ${sessionId} stats: scannedHosts=${currentSession.scannedHosts} + ${insertedCount} = ${currentSession.scannedHosts + insertedCount}, safeCount=${currentSession.safeCount} + ${safeCount} = ${currentSession.safeCount + safeCount}`
+      );
     } catch (updateError) {
       console.error(`[saveScanResults] Error updating session statistics:`, updateError);
       throw updateError; // Re-throw to rollback transaction
