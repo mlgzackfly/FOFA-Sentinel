@@ -3,7 +3,6 @@ import { getDatabase } from '../db/index.js';
 
 export const historyRoutes = Router();
 
-// Get all query history
 historyRoutes.get('/', (req, res) => {
   try {
     const db = getDatabase();
@@ -43,7 +42,6 @@ historyRoutes.get('/', (req, res) => {
   }
 });
 
-// Get specific query history
 historyRoutes.get('/:id', (req, res) => {
   try {
     const db = getDatabase();
@@ -77,7 +75,6 @@ historyRoutes.get('/:id', (req, res) => {
   }
 });
 
-// Save query history
 historyRoutes.post('/', (req, res) => {
   try {
     const db = getDatabase();
@@ -101,7 +98,6 @@ historyRoutes.post('/', (req, res) => {
   }
 });
 
-// Save query results
 historyRoutes.post('/:id/results', (req, res) => {
   try {
     const db = getDatabase();
@@ -112,7 +108,6 @@ historyRoutes.post('/:id/results', (req, res) => {
       return res.status(400).json({ error: 'result_data is required' });
     }
 
-    // Check if history exists
     const history = db.prepare('SELECT id FROM query_history WHERE id = ?').get(historyId);
     if (!history) {
       return res.status(404).json({ error: 'Query history not found' });
@@ -132,7 +127,6 @@ historyRoutes.post('/:id/results', (req, res) => {
   }
 });
 
-// Get query results
 historyRoutes.get('/:id/results', (req, res) => {
   try {
     const db = getDatabase();
@@ -159,7 +153,6 @@ historyRoutes.get('/:id/results', (req, res) => {
   }
 });
 
-// Delete query history
 historyRoutes.delete('/:id', (req, res) => {
   try {
     const db = getDatabase();
@@ -178,7 +171,6 @@ historyRoutes.delete('/:id', (req, res) => {
   }
 });
 
-// Export results as TXT
 historyRoutes.get('/:id/export', (req, res) => {
   try {
     const db = getDatabase();

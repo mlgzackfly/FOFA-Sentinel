@@ -45,7 +45,6 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
             size,
             full,
           });
-          // Save to history
           if (result && !result.error) {
             const historyResponse = await fetch('/api/history', {
               method: 'POST',

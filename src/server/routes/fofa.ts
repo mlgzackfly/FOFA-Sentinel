@@ -9,7 +9,6 @@ import {
 
 export const fofaRoutes = Router();
 
-// Search interface
 fofaRoutes.post('/search', async (req, res) => {
   try {
     const { qbase64, fields, page, size, full } = req.body;
@@ -33,7 +32,6 @@ fofaRoutes.post('/search', async (req, res) => {
   }
 });
 
-// Statistics aggregation
 fofaRoutes.post('/stats', async (req, res) => {
   try {
     const { qbase64, fields } = req.body;
@@ -50,7 +48,6 @@ fofaRoutes.post('/stats', async (req, res) => {
   }
 });
 
-// Host aggregation
 fofaRoutes.post('/host', async (req, res) => {
   try {
     const { qbase64, size } = req.body;
@@ -67,7 +64,6 @@ fofaRoutes.post('/host', async (req, res) => {
   }
 });
 
-// Account information
 fofaRoutes.get('/account', async (req, res) => {
   try {
     const result = await getFofaAccountInfo();
@@ -78,7 +74,6 @@ fofaRoutes.get('/account', async (req, res) => {
   }
 });
 
-// Search after interface
 fofaRoutes.post('/search-after', async (req, res) => {
   try {
     const { qbase64, search_after, size } = req.body;

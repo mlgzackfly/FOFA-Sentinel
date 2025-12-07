@@ -22,8 +22,6 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
   }
 
   const handleExport = async () => {
-    // This would export the current result
-    // For now, we'll just copy to clipboard
     const text = JSON.stringify(result, null, 2);
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -56,19 +54,42 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 <table>
                   <thead>
                     <tr>
-                      {result.results[0].map((_: any, idx: number) => (
-                        <th key={idx}>COL_{idx + 1}</th>
-                      ))}
+                      {(() => {
+                        const firstResult = result.results[0];
+                        if (Array.isArray(firstResult)) {
+                          return firstResult.map((_: any, idx: number) => (
+                            <th key={idx}>COL_{idx + 1}</th>
+                          ));
+                        } else if (typeof firstResult === 'object') {
+                          return Object.keys(firstResult).map((key) => (
+                            <th key={key}>{key.toUpperCase()}</th>
+                          ));
+                        }
+                        return null;
+                      })()}
                     </tr>
                   </thead>
                   <tbody>
-                    {result.results.map((row: any[], rowIdx: number) => (
-                      <tr key={rowIdx}>
-                        {row.map((cell: any, cellIdx: number) => (
-                          <td key={cellIdx}>{cell || '-'}</td>
-                        ))}
-                      </tr>
-                    ))}
+                    {result.results.map((row: any, rowIdx: number) => {
+                      if (Array.isArray(row)) {
+                        return (
+                          <tr key={rowIdx}>
+                            {row.map((cell: any, cellIdx: number) => (
+                              <td key={cellIdx}>{cell || '-'}</td>
+                            ))}
+                          </tr>
+                        );
+                      } else if (typeof row === 'object') {
+                        return (
+                          <tr key={rowIdx}>
+                            {Object.values(row).map((cell: any, cellIdx: number) => (
+                              <td key={cellIdx}>{cell || '-'}</td>
+                            ))}
+                          </tr>
+                        );
+                      }
+                      return null;
+                    })}
                   </tbody>
                 </table>
               </div>

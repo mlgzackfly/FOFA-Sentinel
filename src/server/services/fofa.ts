@@ -42,13 +42,12 @@ export interface FofaAccountResponse {
 
 async function getApiCredentials(): Promise<{ email: string; key: string }> {
   const db = getDatabase();
-  const config = db.prepare('SELECT email, api_key FROM api_config ORDER BY updated_at DESC LIMIT 1').get() as {
-    email: string | null;
-    api_key: string;
-  } | undefined;
+  const config = db
+    .prepare('SELECT email, api_key FROM api_config ORDER BY updated_at DESC LIMIT 1')
+    .get() as { email: string | null; api_key: string } | undefined;
 
-  if (!config || !config.api_key) {
-    throw new Error('API key not configured. Please set your FOFA API key in settings.');
+  if (!config?.api_key) {
+    throw new Error('API key not configured');
   }
 
   return {

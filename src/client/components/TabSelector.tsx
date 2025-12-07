@@ -1,23 +1,23 @@
 import './TabSelector.css';
 
-interface Tab {
-  id: string;
+interface Tab<T = string> {
+  id: T;
   label: string;
   icon: string;
 }
 
-interface TabSelectorProps {
-  tabs: Tab[];
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+interface TabSelectorProps<T = string> {
+  tabs: Tab<T>[];
+  activeTab: T;
+  onTabChange: (tab: T) => void;
 }
 
-export function TabSelector({ tabs, activeTab, onTabChange }: TabSelectorProps) {
+export function TabSelector<T extends string = string>({ tabs, activeTab, onTabChange }: TabSelectorProps<T>) {
   return (
     <div className="tab-selector">
       {tabs.map((tab) => (
         <button
-          key={tab.id}
+          key={String(tab.id)}
           className={`tab-item ${activeTab === tab.id ? 'active' : ''}`}
           onClick={() => onTabChange(tab.id)}
         >

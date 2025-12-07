@@ -1,6 +1,17 @@
 # FOFA API Client
 
+<div align="center">
+
+![FOFA API Client](https://img.shields.io/badge/FOFA-API%20Client-d72638?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+
 A modern, hacker-style web application for interacting with the FOFA API.
+
+[Features](#features) • [Installation](#getting-started) • [Documentation](#documentation) • [Contributing](./CONTRIBUTING.md)
+
+</div>
 
 ## Features
 
@@ -39,7 +50,7 @@ npm run dev
 
 The application will be available at:
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
+- Backend API: http://localhost:3002 (default, configurable via `.env`)
 
 ### First Time Setup
 
@@ -64,9 +75,16 @@ After building, you can run the production server:
 # Start the server
 npm run build:server
 
-# The server will run on port 3001 (or PORT from .env)
+# The server will run on port 3002 (or PORT from .env)
 # Serve the frontend build from dist/client using any static file server
 ```
+
+## Documentation
+
+- [Environment Variables](./docs/ENVIRONMENT.md) - Configuration guide
+- [Troubleshooting](./docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Contributing](./CONTRIBUTING.md) - How to contribute
+- [Changelog](./CHANGELOG.md) - Version history
 
 ## Project Structure
 
@@ -84,6 +102,8 @@ fofa/
 │   │   ├── hooks/       # Custom hooks
 │   │   └── utils/       # Utilities
 │   └── shared/          # Shared types
+├── docs/                # Documentation
+├── .github/             # GitHub templates and workflows
 ├── data/                # SQLite database files
 └── public/              # Static assets
 ```
@@ -106,7 +126,24 @@ fofa/
 - `POST /api/config/key` - Save API key
 - `GET /api/config/key` - Get API key (masked)
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## Acknowledgments
+
+- [FOFA](https://fofa.info/) - For providing the excellent security search engine API
+- Design inspiration from terminal and hacker aesthetics
+
+## Support
+
+If you find this project helpful, please consider giving it a ⭐ on GitHub!
+
+---
+
+Made with ❤️ by the FOFA API Client contributors
 

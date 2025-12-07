@@ -1,6 +1,6 @@
 import './Sidebar.css';
 
-type Page = 'query' | 'history' | 'settings';
+type Page = 'query' | 'history' | 'settings' | 'docs';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarP
   const menuItems: { id: Page; label: string; icon: string }[] = [
     { id: 'query', label: 'QUERY', icon: '>' },
     { id: 'history', label: 'HISTORY', icon: '[' },
+    { id: 'docs', label: 'DOCS', icon: '?' },
     { id: 'settings', label: 'CONFIG', icon: '$' },
   ];
 
