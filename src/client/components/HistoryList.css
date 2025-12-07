@@ -479,6 +479,10 @@
 .btn-check-all,
 .btn-scan-all {
   white-space: nowrap;
+  width: auto;
+  min-width: auto;
+  padding: var(--space-2) var(--space-3);
+  flex-shrink: 0;
 }
 
 /* Secondary Button Styles (if not defined globally) */

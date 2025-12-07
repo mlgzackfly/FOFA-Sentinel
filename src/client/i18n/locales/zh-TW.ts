@@ -95,10 +95,10 @@ export const zhTW = {
   scanResults: {
     title: '漏洞掃描結果',
     subtitle: '管理和追蹤漏洞掃描結果',
-    confirmDelete: '確定要刪除此掃描會話嗎？',
-    deleteError: '刪除會話失敗',
-    loadError: '載入會話失敗',
-    selectSession: '選擇會話以查看結果',
+    confirmDelete: '確定要刪除此掃描 Session 嗎？',
+    deleteError: '刪除 Session 失敗',
+    loadError: '載入 Session 失敗',
+    selectSession: '選擇 Session 以查看結果',
     vulnerable: '存在漏洞',
     safe: '安全',
     error: '錯誤',
@@ -109,15 +109,15 @@ export const zhTW = {
       failed: '失敗',
     },
     stats: {
-      totalSessions: '總會話數',
+      totalSessions: '總 Session 數',
       totalScanned: '總掃描數',
       vulnerable: '存在漏洞',
       safe: '安全',
       errors: '錯誤',
     },
     sessions: {
-      title: '掃描會話',
-      empty: '未找到掃描會話',
+      title: '掃描 Session',
+      empty: '未找到掃描 Session',
       scanned: '已掃描',
     },
     results: {
