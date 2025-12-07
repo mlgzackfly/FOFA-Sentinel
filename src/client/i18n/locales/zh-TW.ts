@@ -61,6 +61,13 @@ export const zhTW = {
       displayed: '顯示',
       of: '/',
       copyJson: '複製 JSON',
+      checkAll: '測試全部',
+      checking: '測試中',
+      summary: {
+        total: '總數',
+        alive: '存活',
+        dead: '死亡',
+      },
     },
   },
 

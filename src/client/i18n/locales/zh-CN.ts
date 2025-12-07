@@ -61,6 +61,13 @@ export const zhCN = {
       displayed: '显示',
       of: '/',
       copyJson: '复制 JSON',
+      checkAll: '测试全部',
+      checking: '测试中',
+      summary: {
+        total: '总数',
+        alive: '存活',
+        dead: '死亡',
+      },
     },
   },
 
