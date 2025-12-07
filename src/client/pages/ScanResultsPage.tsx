@@ -44,7 +44,9 @@ export function ScanResultsPage() {
 
   useEffect(() => {
     if (selectedSession) {
-      console.log(`[Frontend] Loading results for session: ${selectedSession.sessionId}, filter: ${filter}`);
+      console.log(
+        `[Frontend] Loading results for session: ${selectedSession.sessionId}, filter: ${filter}`
+      );
       loadResults(selectedSession.sessionId);
     } else {
       // Clear results when no session is selected
@@ -75,6 +77,11 @@ export function ScanResultsPage() {
   };
 
   const loadResults = async (sessionId: string) => {
+    if (!sessionId) {
+      console.warn('[Frontend] loadResults called with empty sessionId');
+      setResults([]);
+      return;
+    }
     setLoading(true);
     try {
       const filterParams: { vulnerable?: boolean | null; status?: string } = {};
@@ -85,16 +92,21 @@ export function ScanResultsPage() {
       } else if (filter === 'error') {
         filterParams.status = 'error';
       }
+      // When filter is 'all', filterParams will be empty, which should return all results
 
+      console.log(
+        `[Frontend] Calling getPocResults for session ${sessionId} with filterParams:`,
+        filterParams
+      );
       const data = await getPocResults(sessionId, filterParams);
       console.log(
-        `Loaded ${data.results.length} results for session ${sessionId} with filter:`,
+        `[Frontend] Loaded ${data.results?.length || 0} results for session ${sessionId} with filter:`,
         filter,
         filterParams
       );
       setResults(data.results || []);
     } catch (error) {
-      console.error('Failed to load results:', error);
+      console.error('[Frontend] Failed to load results:', error);
       setResults([]); // Ensure results is set to empty array on error
     } finally {
       setLoading(false);
