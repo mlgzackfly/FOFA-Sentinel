@@ -7,12 +7,11 @@ import './HistoryList.css';
 
 interface HistoryExportButtonWrapperProps {
   historyId: number;
-  query: string;
   exportData: ExportData | null;
   onLoadResults: () => Promise<void>;
 }
 
-function HistoryExportButtonWrapper({ historyId, query, exportData, onLoadResults }: HistoryExportButtonWrapperProps) {
+function HistoryExportButtonWrapper({ historyId, exportData, onLoadResults }: HistoryExportButtonWrapperProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleExportClick = async (format: ExportFormat) => {
@@ -76,18 +75,6 @@ function HistoryExportButtonWrapper({ historyId, query, exportData, onLoadResult
       isLoading={isLoading}
     />
   );
-}
-
-interface HistoryItem {
-  id: number;
-  task_id: string;
-  query: string;
-  fields: string | null;
-  page: number;
-  size: number;
-  full: number;
-  created_at: string;
-  result_count: number;
 }
 
 interface HistoryListProps {
@@ -185,7 +172,6 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                 <HistoryExportButtonWrapper
                   key={`export-${item.id}-${exportData[item.id] ? 'loaded' : 'unloaded'}`}
                   historyId={item.id}
-                  query={item.query}
                   exportData={exportData[item.id]}
                   onLoadResults={() => loadResults(item.id, false)}
                 />

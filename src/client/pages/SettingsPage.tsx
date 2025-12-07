@@ -5,7 +5,6 @@ import './SettingsPage.css';
 export function SettingsPage() {
   const { t } = useTranslation();
   const [apiKey, setApiKey] = useState('');
-  const [email, setEmail] = useState('');
   const [maskedKey, setMaskedKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -20,7 +19,6 @@ export function SettingsPage() {
       const data = await response.json();
       if (data.has_key) {
         setMaskedKey(data.api_key);
-        setEmail(data.email || '');
       }
     } catch (error) {
       console.error('Failed to load config:', error);
@@ -36,7 +34,7 @@ export function SettingsPage() {
       const response = await fetch('/api/config/key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ api_key: apiKey, email }),
+        body: JSON.stringify({ api_key: apiKey }),
       });
 
       if (!response.ok) {
@@ -74,19 +72,6 @@ export function SettingsPage() {
                 <span className="info-value">{maskedKey}</span>
               </div>
             )}
-            <div className="settings-field">
-              <label className="settings-label">
-                <span className="label-prefix">#</span>
-                {t('settings.fofaEmail')}
-              </label>
-              <input
-                type="email"
-                className="settings-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-              />
-            </div>
             <div className="settings-field">
               <label className="settings-label">
                 <span className="label-prefix">#</span>

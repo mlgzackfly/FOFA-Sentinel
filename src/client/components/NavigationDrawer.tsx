@@ -28,7 +28,7 @@ export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }
         <div className="nav-drawer-header">
           <div className="nav-drawer-brand">
             <span className="nav-drawer-brand-text">FOFA</span>
-            <span className="nav-drawer-brand-accent">_CLIENT</span>
+            <span className="nav-drawer-brand-accent">_SENTINEL</span>
           </div>
           <button 
             className="nav-drawer-close-btn" 
@@ -50,7 +50,6 @@ export function NavigationDrawer({ isOpen, currentPage, onPageChange, onToggle }
         <div className="nav-drawer-divider"></div>
 
         <nav className="nav-drawer-nav">
-          <div className="nav-drawer-nav-title">{t('nav.navigation') || 'NAVIGATION'}</div>
           {menuItems.map((item) => (
             <button
               key={item.id}

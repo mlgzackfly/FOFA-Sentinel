@@ -94,7 +94,7 @@ export const zhTW = {
     saving: '儲存中...',
     apiKeySaved: 'API 金鑰已成功儲存',
     about: '關於',
-    version: 'FOFA API 客戶端 v0.1.0',
+    version: 'FOFA Sentinel v0.1.0',
     description: '一個現代化、駭客風格的 FOFA API 介面。',
     getApiKey: '從以下位置取得您的 API 金鑰：',
     language: '語言',

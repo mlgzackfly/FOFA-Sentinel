@@ -94,7 +94,7 @@ export const zhCN = {
     saving: '保存中...',
     apiKeySaved: 'API 密钥已成功保存',
     about: '关于',
-    version: 'FOFA API 客户端 v0.1.0',
+    version: 'FOFA Sentinel v0.1.0',
     description: '一个现代化、黑客风格的 FOFA API 界面。',
     getApiKey: '从以下位置获取您的 API 密钥：',
     language: '语言',

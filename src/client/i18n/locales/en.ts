@@ -94,7 +94,7 @@ export const en = {
     saving: 'SAVING...',
     apiKeySaved: 'API key saved successfully',
     about: 'ABOUT',
-    version: 'FOFA API Client v0.1.0',
+    version: 'FOFA Sentinel v0.1.0',
     description: 'A modern, hacker-style interface for the FOFA API.',
     getApiKey: 'Get your API key from:',
     language: 'LANGUAGE',
