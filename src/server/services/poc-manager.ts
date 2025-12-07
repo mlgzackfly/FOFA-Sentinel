@@ -331,7 +331,8 @@ export function getScanResults(
       query += ' AND vulnerable IS NULL';
     } else {
       query += ' AND vulnerable = ?';
-      params.push(filter.vulnerable);
+      // SQLite stores BOOLEAN as INTEGER (0 or 1), so convert boolean to number
+      params.push(filter.vulnerable ? 1 : 0);
     }
   }
   if (filter?.status) {
