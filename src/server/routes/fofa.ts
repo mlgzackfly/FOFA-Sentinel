@@ -7,6 +7,19 @@ import {
   searchAfterFofa,
 } from '../services/fofa.js';
 import { checkHostHealth, checkHostsHealth } from '../services/healthcheck.js';
+import { scanHost, scanHosts } from '../services/rsc-scanner.js';
+import {
+  createScanSession,
+  saveScanResults,
+  updateScanSession,
+  getScanSession,
+} from '../services/poc-manager.js';
+import {
+  executePocScript,
+  executePocScriptForHosts,
+  type PocScanResult,
+} from '../services/poc-executor.js';
+import { getPocScript } from '../services/poc-scripts.js';
 
 export const fofaRoutes = Router();
 
@@ -107,9 +120,9 @@ fofaRoutes.post('/search-all', async (req, res) => {
     const pageSize = Math.min(size || 100, 10000);
     const maxResultsLimit = maxResults || 100000;
     const allResults: unknown[][] = [];
-    let searchAfter: string | null = null;
     let totalFetched = 0;
     let pageCount = 0;
+    let currentPage = 1;
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Transfer-Encoding', 'chunked');
@@ -126,10 +139,11 @@ fofaRoutes.post('/search-all', async (req, res) => {
     };
 
     try {
+      // Fetch first page
       const firstResult = await searchFofa({
         qbase64,
         fields,
-        page: 1,
+        page: currentPage,
         size: pageSize,
         full: false,
       });
@@ -152,65 +166,58 @@ fofaRoutes.post('/search-all', async (req, res) => {
         message: `Fetched page ${pageCount}, ${totalFetched} results`,
       });
 
-      if (firstResult.results && firstResult.results.length > 0) {
-        const lastResult = firstResult.results[firstResult.results.length - 1];
-        if (Array.isArray(lastResult) && lastResult.length > 0) {
-          searchAfter = String(lastResult[0]);
-        } else if (
-          typeof lastResult === 'object' &&
-          lastResult !== null &&
-          !Array.isArray(lastResult)
-        ) {
-          const keys = Object.keys(lastResult);
-          if (keys.length > 0) {
-            const record = lastResult as Record<string, unknown>;
-            searchAfter = String(record[keys[0]]);
-          }
-        }
-      }
-
-      while (searchAfter && totalFetched < maxResultsLimit && totalFetched < totalSize) {
-        const nextResult = await searchAfterFofa(qbase64, searchAfter, pageSize);
-
-        if (nextResult.error || !nextResult.results || nextResult.results.length === 0) {
+      // Continue fetching pages using page parameter
+      let lastPageResults = firstResult.results || [];
+      while (totalFetched < maxResultsLimit && totalFetched < totalSize) {
+        // Check if we got fewer results than requested (last page)
+        if (lastPageResults.length < pageSize) {
           break;
         }
 
-        allResults.push(...nextResult.results);
-        totalFetched += nextResult.results.length;
-        pageCount++;
-
-        sendProgress({
-          fetched: totalFetched,
-          total: totalSize,
-          pages: pageCount,
-          message: `Fetched page ${pageCount}, ${totalFetched} results`,
-        });
-
-        if (nextResult.results.length < pageSize) {
+        currentPage++;
+        const maxPages = Math.ceil(Math.min(maxResultsLimit, totalSize) / pageSize);
+        if (currentPage > maxPages) {
           break;
         }
 
-        const lastResult = nextResult.results[nextResult.results.length - 1];
-        if (Array.isArray(lastResult) && lastResult.length > 0) {
-          searchAfter = String(lastResult[0]);
-        } else if (
-          typeof lastResult === 'object' &&
-          lastResult !== null &&
-          !Array.isArray(lastResult)
-        ) {
-          const keys = Object.keys(lastResult);
-          if (keys.length > 0) {
-            const record = lastResult as Record<string, unknown>;
-            searchAfter = String(record[keys[0]]);
-          } else {
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        try {
+          const nextResult = await searchFofa({
+            qbase64,
+            fields,
+            page: currentPage,
+            size: pageSize,
+            full: false,
+          });
+
+          if (nextResult.error || !nextResult.results || nextResult.results.length === 0) {
             break;
           }
-        } else {
+
+          lastPageResults = nextResult.results;
+          allResults.push(...lastPageResults);
+          totalFetched += lastPageResults.length;
+          pageCount++;
+
+          sendProgress({
+            fetched: totalFetched,
+            total: totalSize,
+            pages: pageCount,
+            message: `Fetched page ${pageCount}, ${totalFetched} results`,
+          });
+
+          // If we got fewer results than requested, we've reached the last page
+          if (lastPageResults.length < pageSize) {
+            break;
+          }
+        } catch (error) {
+          // If page doesn't exist or other error, stop fetching
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`Error fetching page ${currentPage}:`, errorMessage);
           break;
         }
-
-        await new Promise(resolve => setTimeout(resolve, 200));
       }
 
       const finalResult = {
@@ -263,6 +270,208 @@ fofaRoutes.post('/healthcheck', async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Health check error:', error);
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+fofaRoutes.post('/rsc-scan', async (req, res) => {
+  try {
+    const {
+      host,
+      hosts,
+      timeout,
+      safeCheck,
+      windows,
+      wafBypass,
+      wafBypassSize,
+      vercelWafBypass,
+      paths,
+      customHeaders,
+      verifySsl,
+      followRedirects,
+      sessionId,
+      saveToPoc,
+      pocName,
+      pocDescription,
+      pocQuery,
+    } = req.body;
+
+    let pocSessionId: string | null = null;
+
+    // Create PoC session if requested
+    if (saveToPoc) {
+      const session = createScanSession(pocName, pocDescription, pocQuery);
+      pocSessionId = session.sessionId;
+      updateScanSession(session.sessionId, {
+        totalHosts: host ? 1 : (hosts?.length || 0),
+        status: 'scanning',
+      });
+    } else if (sessionId) {
+      pocSessionId = sessionId;
+      try {
+        const currentSession = getScanSession(sessionId);
+        updateScanSession(sessionId, {
+          status: 'scanning',
+          totalHosts: host ? 1 : (hosts?.length || 0),
+        });
+      } catch (error) {
+        // Session doesn't exist, ignore
+        console.warn('PoC session not found:', sessionId);
+      }
+    }
+
+    if (host) {
+      // Single host scan
+      const result = await scanHost(host, {
+        timeout,
+        safeCheck,
+        windows,
+        wafBypass,
+        wafBypassSize,
+        vercelWafBypass,
+        paths,
+        customHeaders,
+        verifySsl,
+        followRedirects,
+      });
+
+      // Save to PoC if requested
+      if (pocSessionId) {
+        saveScanResults(pocSessionId, [result]);
+        updateScanSession(pocSessionId, { status: 'completed' });
+      }
+
+      res.json({ ...result, sessionId: pocSessionId });
+    } else if (hosts && Array.isArray(hosts)) {
+      // Multiple hosts scan
+      const results = await scanHosts(hosts, {
+        timeout,
+        safeCheck,
+        windows,
+        wafBypass,
+        wafBypassSize,
+        vercelWafBypass,
+        paths,
+        customHeaders,
+        verifySsl,
+        followRedirects,
+      });
+
+      // Save to PoC if requested
+      if (pocSessionId) {
+        saveScanResults(pocSessionId, results);
+        updateScanSession(pocSessionId, { status: 'completed' });
+      }
+
+      res.json({ results, sessionId: pocSessionId });
+    } else {
+      res.status(400).json({ error: 'host or hosts array is required' });
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    console.error('RSC scan error:', error);
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// PoC scan endpoint - uses selected PoC script
+fofaRoutes.post('/poc-scan', async (req, res) => {
+  try {
+    const {
+      host,
+      hosts,
+      scriptId,
+      timeout,
+      verifySsl,
+      followRedirects,
+      customHeaders,
+      sessionId,
+      saveToPoc,
+      pocName,
+      pocDescription,
+      pocQuery,
+    } = req.body;
+
+    if (!scriptId) {
+      return res.status(400).json({ error: 'scriptId is required' });
+    }
+
+    let pocSessionId: string | null = null;
+
+    // Create PoC session if requested
+    if (saveToPoc) {
+      const session = createScanSession(pocName, pocDescription, pocQuery);
+      pocSessionId = session.sessionId;
+      updateScanSession(session.sessionId, {
+        totalHosts: host ? 1 : hosts?.length || 0,
+        status: 'scanning',
+      });
+    } else if (sessionId) {
+      pocSessionId = sessionId;
+      const currentSession = getScanSession(sessionId);
+      if (currentSession) {
+        updateScanSession(sessionId, {
+          status: 'scanning',
+          totalHosts: (currentSession.totalHosts || 0) + (host ? 1 : hosts?.length || 0),
+        });
+      }
+    }
+
+    let results: PocScanResult[] = [];
+    if (host) {
+      // Single host scan
+      const result = await executePocScript(scriptId, host, {
+        timeout,
+        verifySsl,
+        followRedirects,
+        customHeaders,
+      });
+      results.push(result);
+    } else if (hosts && Array.isArray(hosts)) {
+      // Multiple hosts scan
+      results = await executePocScriptForHosts(scriptId, hosts, {
+        timeout,
+        verifySsl,
+        followRedirects,
+        customHeaders,
+      });
+    } else {
+      return res.status(400).json({ error: 'host or hosts array is required' });
+    }
+
+    // Save to PoC if a session ID is available
+    if (pocSessionId) {
+      const scanResults = results.map(r => ({
+        host: r.host,
+        vulnerable: r.vulnerable,
+        statusCode: r.statusCode,
+        error: r.error,
+        finalUrl: r.finalUrl,
+        testedUrl: r.testedUrl,
+      }));
+      saveScanResults(pocSessionId, scanResults);
+      
+      // Update session status and counts after scan
+      const vulnerableCount = results.filter(r => r.vulnerable === true).length;
+      const safeCount = results.filter(r => r.vulnerable === false).length;
+      const errorCount = results.filter(r => r.vulnerable === null || r.error).length;
+      updateScanSession(pocSessionId, {
+        scannedHosts: results.length,
+        vulnerableCount: vulnerableCount,
+        safeCount: safeCount,
+        errorCount: errorCount,
+        status: 'completed',
+      });
+    }
+
+    if (host) {
+      res.json({ ...results[0], sessionId: pocSessionId });
+    } else {
+      res.json({ results, sessionId: pocSessionId });
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    console.error('PoC scan error:', error);
     res.status(500).json({ error: errorMessage });
   }
 });

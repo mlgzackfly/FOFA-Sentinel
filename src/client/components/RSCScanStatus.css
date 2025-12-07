@@ -1,0 +1,101 @@
+.rsc-scan-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rsc-scan-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  min-height: 24px;
+}
+
+.rsc-scan-button:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #555;
+}
+
+.rsc-scan-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rsc-scan-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.rsc-scan-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rsc-scan-text {
+  font-size: 11px;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status-specific colors */
+.rsc-scan-idle .rsc-scan-button {
+  color: #888;
+}
+
+.rsc-scan-scanning .rsc-scan-button {
+  color: #4a9eff;
+}
+
+.rsc-scan-vulnerable .rsc-scan-button {
+  color: #ff4444;
+  border-color: #ff4444;
+  background: #2a1a1a;
+}
+
+.rsc-scan-vulnerable .rsc-scan-button:hover:not(:disabled) {
+  background: #3a2a2a;
+}
+
+.rsc-scan-safe .rsc-scan-button {
+  color: #44ff44;
+  border-color: #44ff44;
+}
+
+.rsc-scan-error .rsc-scan-button {
+  color: #ffaa44;
+  border-color: #ffaa44;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .rsc-scan-button {
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 32px;
+  }
+
+  .rsc-scan-text {
+    font-size: 12px;
+  }
+}
+

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { checkHostHealth, type HealthCheckResult } from '../utils/api';
+import { getFullError } from '../utils/error-format';
 import './HealthCheckStatus.css';
 
 interface HealthCheckStatusProps {
@@ -84,7 +85,13 @@ export function HealthCheckStatus({
         onClick={performCheck}
         disabled={status === 'checking'}
         aria-label={`Check if ${host} is alive`}
-        title={result?.error || (result?.alive ? 'Host is alive' : 'Host is dead')}
+        title={
+          result?.error
+            ? getFullError(result.error)
+            : result?.alive
+              ? 'Host is alive'
+              : 'Host is dead'
+        }
       >
         <span className="health-check-icon">{getStatusIcon()}</span>
         {status === 'checking' && <span className="health-check-spinner">⟳</span>}

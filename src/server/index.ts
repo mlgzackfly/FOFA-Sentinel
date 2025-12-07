@@ -8,6 +8,7 @@ import { initDatabase } from './db/index.js';
 import { fofaRoutes } from './routes/fofa.js';
 import { historyRoutes } from './routes/history.js';
 import { configRoutes } from './routes/config.js';
+import { pocRoutes } from './routes/poc.js';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ initDatabase();
 app.use('/api/fofa', fofaRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/poc', pocRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

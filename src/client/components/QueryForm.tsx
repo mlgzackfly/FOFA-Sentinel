@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   searchFofa,
   getFofaStats,
   getFofaHostAggregation,
   getFofaAccountInfo,
   searchAllFofa,
+  scanWithPoc,
 } from '../utils/api';
+import { getAllPocScripts, createPocSession } from '../utils/poc-api';
 import { useTranslation } from '../hooks/useTranslation';
 import './QueryForm.css';
 
@@ -37,6 +39,33 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
     pages: number;
     message: string;
   } | null>(null);
+  const [selectedPocScript, setSelectedPocScript] = useState<string>('');
+  const [pocScripts, setPocScripts] = useState<
+    Array<{ scriptId: string; name: string; enabled: boolean }>
+  >([]);
+  const [pocScanning, setPocScanning] = useState(false);
+  const [pocProgress, setPocProgress] = useState({ current: 0, total: 0 });
+
+  // Load PoC scripts on mount
+  useEffect(() => {
+    const loadPocScripts = async () => {
+      try {
+        const data = await getAllPocScripts();
+        setPocScripts(
+          data.scripts
+            .filter(s => s.enabled)
+            .map(s => ({
+              scriptId: s.scriptId,
+              name: s.name,
+              enabled: s.enabled,
+            }))
+        );
+      } catch (error) {
+        console.error('Failed to load PoC scripts:', error);
+      }
+    };
+    loadPocScripts();
+  }, []);
 
   const encodeBase64 = (str: string): string => {
     try {
@@ -168,11 +197,99 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       }
 
       onResult(result);
+
+      // Auto-execute PoC scan if selected and result has hosts (only for search tab)
+      // Run this asynchronously to avoid blocking the UI
+      if (
+        selectedPocScript &&
+        tab === 'search' &&
+        result &&
+        !result.error &&
+        'results' in result &&
+        Array.isArray(result.results)
+      ) {
+        // Execute in background without blocking
+        executeAutoPocScan(result, finalQuery).catch(err => {
+          console.error('Auto PoC scan failed:', err);
+          // Don't show error to user, just log it
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknown'));
       onResult({ error: true, errmsg: err instanceof Error ? err.message : t('errors.unknown') });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Extract hosts from query result
+  const extractHostsFromResult = (result: FofaQueryResult): string[] => {
+    if (!result || !('results' in result) || !Array.isArray(result.results)) {
+      return [];
+    }
+
+    const hosts: string[] = [];
+    result.results.forEach((row: unknown) => {
+      let hostValue = '';
+      if (Array.isArray(row) && row.length > 0) {
+        hostValue = String(row[0] ?? '').trim();
+      } else if (typeof row === 'object' && row !== null) {
+        const rowObj = row as Record<string, unknown>;
+        hostValue = String(rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? '').trim();
+      }
+      if (hostValue && !hosts.includes(hostValue)) {
+        hosts.push(hostValue);
+      }
+    });
+    return hosts;
+  };
+
+  // Auto-execute PoC scan after query completes
+  const executeAutoPocScan = async (result: FofaQueryResult, query: string) => {
+    const hosts = extractHostsFromResult(result);
+    if (hosts.length === 0) {
+      return;
+    }
+
+    setPocScanning(true);
+    setPocProgress({ current: 0, total: hosts.length });
+
+    try {
+      // Create PoC session
+      const session = await createPocSession(
+        `Auto Scan: ${query || 'FOFA Query'}`,
+        `Automatic PoC scan for ${hosts.length} hosts from FOFA query`,
+        query
+      );
+
+      // Scan hosts in batches
+      const batchSize = 5;
+      let scannedCount = 0;
+
+      for (let i = 0; i < hosts.length; i += batchSize) {
+        const batch = hosts.slice(i, i + batchSize);
+        try {
+          await scanWithPoc(batch, selectedPocScript, {
+            timeout: 30, // Increased timeout for PoC scripts
+            sessionId: session.sessionId,
+            saveToPoc: false, // Already have session, just use it
+          });
+        } catch (batchError) {
+          console.error(`Failed to scan batch ${i}-${i + batchSize}:`, batchError);
+          // Continue with next batch even if this one fails
+        }
+
+        scannedCount = Math.min(i + batchSize, hosts.length);
+        setPocProgress({ current: scannedCount, total: hosts.length });
+      }
+
+      // Show notification or navigate to scan results
+      // PoC scan completed - session saved with ID: ${session.sessionId}
+    } catch (error) {
+      console.error('Failed to execute auto PoC scan:', error);
+    } finally {
+      setPocScanning(false);
+      setPocProgress({ current: 0, total: 0 });
     }
   };
 
@@ -341,11 +458,38 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
           </div>
         )}
 
+        {tab === 'search' && (
+          <div className="query-form-field">
+            <label className="query-form-label">
+              <span className="label-prefix">⚠</span>
+              {t('query.pocScanLabel')}
+            </label>
+            <select
+              className="query-form-input query-form-select"
+              value={selectedPocScript}
+              onChange={e => setSelectedPocScript(e.target.value)}
+              disabled={loading || pocScanning}
+            >
+              <option value="">{t('query.pocScanNone')}</option>
+              {pocScripts.map(script => (
+                <option key={script.scriptId} value={script.scriptId}>
+                  {script.name}
+                </option>
+              ))}
+            </select>
+            {pocScanning && (
+              <div className="poc-scan-progress">
+                {t('query.pocScanning')} ({pocProgress.current}/{pocProgress.total})
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="query-form-actions">
           <button
             type="submit"
             className="btn-primary"
-            disabled={loading || !query.trim()}
+            disabled={loading || pocScanning || !query.trim()}
             aria-label={`Execute ${tab} query`}
           >
             {loading ? t('common.executing') : t('common.execute')}

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { HealthCheckStatus } from './HealthCheckStatus';
+import { RSCScanStatus } from './RSCScanStatus';
 import {
   type ExportData,
   type ExportFormat,
@@ -11,7 +12,13 @@ import {
   ensureFileExtension,
 } from '../utils/export';
 import { type HistoryItem as SharedHistoryItem } from '../../shared/types';
-import { checkHostsHealth, type HealthCheckResult } from '../utils/api';
+import {
+  checkHostsHealth,
+  type HealthCheckResult,
+  scanRSCs,
+  type RSCScanResult,
+} from '../utils/api';
+import { createPocSession } from '../utils/poc-api';
 import './HistoryList.css';
 
 interface HistoryExportButtonWrapperProps {
@@ -187,6 +194,15 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
   const [checkSummary, setCheckSummary] = useState<
     Record<number, { total: number; alive: number; dead: number }>
   >({});
+  const [scanningAll, setScanningAll] = useState<Record<number, boolean>>({});
+  const [scanProgress, setScanProgress] = useState<
+    Record<number, { current: number; total: number }>
+  >({});
+  const [scanResults, setScanResults] = useState<Record<number, Record<string, RSCScanResult>>>({});
+  const [scanSummary, setScanSummary] = useState<
+    Record<number, { total: number; vulnerable: number; safe: number }>
+  >({});
+  const [saveToPoc, setSaveToPoc] = useState<Record<number, boolean>>({});
 
   const loadResults = async (id: number, expand: boolean = true) => {
     if (results[id] && exportData[id]) {
@@ -315,6 +331,99 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
     }
   };
 
+  // Batch scan all hosts for RSC vulnerability
+  const handleScanAll = async (historyId: number) => {
+    const resultData = exportData[historyId];
+    if (!resultData) {
+      return;
+    }
+
+    const hosts = extractHostsFromResult(resultData);
+    if (hosts.length === 0) {
+      return;
+    }
+
+    setScanningAll(prev => ({ ...prev, [historyId]: true }));
+    setScanProgress(prev => ({ ...prev, [historyId]: { current: 0, total: hosts.length } }));
+    setScanSummary(prev => {
+      const newSummary = { ...prev };
+      delete newSummary[historyId];
+      return newSummary;
+    });
+
+    let sessionId: string | null = null;
+
+    try {
+      // Create PoC session if saveToPoc is enabled
+      if (saveToPoc[historyId]) {
+        const historyItem = history.find(h => h.id === historyId);
+        const session = await createPocSession(
+          `History Scan: ${historyItem?.query || 'RSC Scan'}`,
+          `RSC vulnerability scan from history #${historyId}`,
+          historyItem?.query
+        );
+        sessionId = session.sessionId;
+      }
+
+      const batchSize = 5;
+      const resultsMap: Record<string, RSCScanResult> = {};
+      let vulnerableCount = 0;
+      let safeCount = 0;
+
+      for (let i = 0; i < hosts.length; i += batchSize) {
+        const batch = hosts.slice(i, i + batchSize);
+
+        // Create session on first batch if saveToPoc is enabled
+        if (saveToPoc[historyId] && i === 0 && !sessionId) {
+          const historyItem = history.find(h => h.id === historyId);
+          const session = await createPocSession(
+            `History Scan: ${historyItem?.query || 'RSC Scan'}`,
+            `RSC vulnerability scan from history #${historyId}`,
+            historyItem?.query
+          );
+          sessionId = session.sessionId;
+        }
+
+        const batchResults = await scanRSCs(batch, {
+          timeout: 15,
+          sessionId: sessionId || undefined,
+          saveToPoc: false, // Don't create new session, use existing sessionId
+        });
+
+        batchResults.forEach(scanResult => {
+          resultsMap[scanResult.host] = scanResult;
+          if (scanResult.vulnerable === true) {
+            vulnerableCount++;
+          } else if (scanResult.vulnerable === false) {
+            safeCount++;
+          }
+        });
+
+        setScanResults(prev => ({
+          ...prev,
+          [historyId]: { ...prev[historyId], ...resultsMap },
+        }));
+        setScanProgress(prev => ({
+          ...prev,
+          [historyId]: { current: Math.min(i + batchSize, hosts.length), total: hosts.length },
+        }));
+      }
+
+      setScanSummary(prev => ({
+        ...prev,
+        [historyId]: {
+          total: hosts.length,
+          vulnerable: vulnerableCount,
+          safe: safeCount,
+        },
+      }));
+    } catch (error) {
+      console.error('Failed to scan all hosts:', error);
+    } finally {
+      setScanningAll(prev => ({ ...prev, [historyId]: false }));
+    }
+  };
+
   if (history.length === 0) {
     return (
       <div className="history-list-empty">
@@ -409,15 +518,42 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                             {t('query.results.total')}: {result.total_size || 'N/A'}
                           </span>
                           {hasResults && (
-                            <button
-                              className="btn-secondary btn-check-all"
-                              onClick={() => handleCheckAll(item.id)}
-                              disabled={checkingAll[item.id] || false}
-                            >
-                              {checkingAll[item.id]
-                                ? `${t('query.results.checking')} (${checkProgress[item.id]?.current || 0}/${checkProgress[item.id]?.total || 0})`
-                                : t('query.results.checkAll')}
-                            </button>
+                            <>
+                              <button
+                                className="btn-secondary btn-check-all"
+                                onClick={() => handleCheckAll(item.id)}
+                                disabled={checkingAll[item.id] || false}
+                              >
+                                {checkingAll[item.id]
+                                  ? `${t('query.results.checking')} (${checkProgress[item.id]?.current || 0}/${checkProgress[item.id]?.total || 0})`
+                                  : t('query.results.checkAll')}
+                              </button>
+                              <div className="scan-actions-group">
+                                <label className="save-to-poc-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    checked={saveToPoc[item.id] || false}
+                                    onChange={e =>
+                                      setSaveToPoc(prev => ({
+                                        ...prev,
+                                        [item.id]: e.target.checked,
+                                      }))
+                                    }
+                                    disabled={scanningAll[item.id] || false}
+                                  />
+                                  <span>{t('query.results.saveToPoc')}</span>
+                                </label>
+                                <button
+                                  className="btn-secondary btn-scan-all"
+                                  onClick={() => handleScanAll(item.id)}
+                                  disabled={scanningAll[item.id] || false}
+                                >
+                                  {scanningAll[item.id]
+                                    ? `${t('query.results.scanning')} (${scanProgress[item.id]?.current || 0}/${scanProgress[item.id]?.total || 0})`
+                                    : t('query.results.scanAll')}
+                                </button>
+                              </div>
+                            </>
                           )}
                         </div>
                         {checkSummary[item.id] && (
@@ -442,6 +578,30 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                             </div>
                           </div>
                         )}
+                        {scanSummary[item.id] && (
+                          <div className="query-results-summary">
+                            <div className="summary-item summary-total">
+                              <span className="summary-label">
+                                {t('query.results.summary.total')}:
+                              </span>
+                              <span className="summary-value">{scanSummary[item.id].total}</span>
+                            </div>
+                            <div className="summary-item summary-vulnerable">
+                              <span className="summary-label">
+                                {t('query.results.summary.vulnerable')}:
+                              </span>
+                              <span className="summary-value">
+                                {scanSummary[item.id].vulnerable}
+                              </span>
+                            </div>
+                            <div className="summary-item summary-safe">
+                              <span className="summary-label">
+                                {t('query.results.summary.safe')}:
+                              </span>
+                              <span className="summary-value">{scanSummary[item.id].safe}</span>
+                            </div>
+                          </div>
+                        )}
                         {hasResults ? (
                           <div className="history-results-table">
                             <table>
@@ -458,6 +618,9 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                                             <th key={colIdx}>COL_{colIdx + 1}</th>
                                           ))}
                                           <th className="health-check-header">STATUS</th>
+                                          <th className="rsc-scan-header">
+                                            {t('query.results.rscScan')}
+                                          </th>
                                         </>
                                       );
                                     } else if (
@@ -470,6 +633,9 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                                             <th key={key}>{key.toUpperCase()}</th>
                                           ))}
                                           <th className="health-check-header">STATUS</th>
+                                          <th className="rsc-scan-header">
+                                            {t('query.results.rscScan')}
+                                          </th>
                                         </>
                                       );
                                     }
@@ -506,6 +672,16 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                                               '-'
                                             )}
                                           </td>
+                                          <td className="rsc-scan-cell">
+                                            {hostValue ? (
+                                              <RSCScanStatus
+                                                host={hostValue}
+                                                externalResult={scanResults[item.id]?.[hostValue]}
+                                              />
+                                            ) : (
+                                              '-'
+                                            )}
+                                          </td>
                                         </tr>
                                       );
                                     } else if (typeof row === 'object' && row !== null) {
@@ -521,6 +697,16 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                                               <HealthCheckStatus
                                                 host={hostValue}
                                                 externalResult={checkResults[item.id]?.[hostValue]}
+                                              />
+                                            ) : (
+                                              '-'
+                                            )}
+                                          </td>
+                                          <td className="rsc-scan-cell">
+                                            {hostValue ? (
+                                              <RSCScanStatus
+                                                host={hostValue}
+                                                externalResult={scanResults[item.id]?.[hostValue]}
                                               />
                                             ) : (
                                               '-'

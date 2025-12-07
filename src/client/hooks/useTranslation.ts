@@ -26,3 +26,4 @@ export function useTranslation() {
 
   return { t, locale, changeLocale };
 }
+

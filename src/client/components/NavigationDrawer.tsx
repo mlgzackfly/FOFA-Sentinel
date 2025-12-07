@@ -2,7 +2,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from './LanguageSelector';
 import './NavigationDrawer.css';
 
-type Page = 'query' | 'history' | 'settings' | 'docs';
+type Page = 'query' | 'history' | 'scan-results' | 'poc' | 'settings' | 'docs';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
@@ -22,6 +22,8 @@ export function NavigationDrawer({
   const menuItems: { id: Page; labelKey: string; icon: string }[] = [
     { id: 'query', labelKey: 'nav.query', icon: '>' },
     { id: 'history', labelKey: 'nav.history', icon: '[' },
+    { id: 'scan-results', labelKey: 'nav.vulnerabilityScanResults', icon: '!' },
+    { id: 'poc', labelKey: 'nav.poc', icon: '⚠' },
     { id: 'docs', labelKey: 'nav.docs', icon: '?' },
     { id: 'settings', labelKey: 'nav.config', icon: '$' },
   ];
