@@ -1,0 +1,178 @@
+/* Hacker-Style Design System - Based on Fenryx Design System */
+
+:root {
+  /* Base Colors - Dark Theme */
+  --bg-base: #050505;
+  --bg-elevated: #0a0a0a;
+  --bg-surface: #121212;
+  --bg-overlay: #1a1a1a;
+  --bg-subtle: #0f0f0f;
+
+  /* Brand Colors - Crimson with Hacker Aesthetic */
+  --color-primary: #d72638;
+  --color-primary-hover: #e03547;
+  --color-primary-active: #b91c2d;
+  --color-primary-glow: rgba(215, 38, 56, 0.3);
+
+  /* Terminal Colors */
+  --color-terminal-green: #00ff41;
+  --color-terminal-cyan: #00ffff;
+  --color-terminal-yellow: #ffff00;
+  --color-terminal-red: #ff0040;
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #a7a7a7;
+  --text-tertiary: #737373;
+  --text-disabled: #525252;
+  --text-code: #00ff41;
+
+  /* Borders */
+  --border-subtle: rgba(167, 167, 167, 0.1);
+  --border-default: rgba(167, 167, 167, 0.2);
+  --border-strong: rgba(167, 167, 167, 0.3);
+  --border-glow: rgba(0, 255, 65, 0.3);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+
+  /* Shadows & Glows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --glow-primary: 0 0 20px var(--color-primary-glow);
+  --glow-terminal: 0 0 10px var(--color-terminal-green);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Terminal-style scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-srollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-overlay);
+}
+
+/* Code & Terminal Elements */
+code,
+pre,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* Glitch effect for headers */
+@keyframes glitch {
+  0%, 100% {
+    text-shadow: 
+      2px 2px 0 var(--color-terminal-green),
+      -2px -2px 0 var(--color-primary);
+  }
+  25% {
+    text-shadow: 
+      -2px 2px 0 var(--color-terminal-green),
+      2px -2px 0 var(--color-primary);
+  }
+  50% {
+    text-shadow: 
+      2px -2px 0 var(--color-terminal-green),
+      -2px 2px 0 var(--color-primary);
+  }
+  75% {
+    text-shadow: 
+      -2px -2px 0 var(--color-terminal-green),
+      2px 2px 0 var(--color-primary);
+  }
+}
+
+/* Scanline effect */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.scanline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-terminal-green),
+    transparent
+  );
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 var(--space-8);
+  }
+}
+
