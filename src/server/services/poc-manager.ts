@@ -358,12 +358,10 @@ export function getScanResults(
   }
   if (filter?.status) {
     if (filter.status === 'error') {
-      // When filtering for errors, check multiple conditions to catch all error cases:
-      // 1. status = 'error'
-      // 2. vulnerable IS NULL (which indicates an error)
-      // 3. error IS NOT NULL (has an error message)
-      query += ' AND (status = ? OR vulnerable IS NULL OR error IS NOT NULL)';
-      params.push(filter.status);
+      // When filtering for errors, only show actual errors:
+      // vulnerable IS NULL (which indicates an error occurred)
+      // Do NOT include safe results (vulnerable = false) even if they have error messages
+      query += ' AND vulnerable IS NULL';
     } else {
       query += ' AND status = ?';
       params.push(filter.status);
