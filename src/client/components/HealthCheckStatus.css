@@ -1,0 +1,76 @@
+.health-check-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.health-check-button {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 24px;
+  justify-content: center;
+}
+
+.health-check-button:hover:not(:disabled) {
+  border-color: var(--color-terminal-green);
+  background: rgba(0, 255, 65, 0.1);
+  color: var(--color-terminal-green);
+}
+
+.health-check-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.health-check-button:focus-visible {
+  outline: 2px solid var(--color-terminal-green);
+  outline-offset: 2px;
+}
+
+.health-check-icon {
+  display: inline-block;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.health-check-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  font-size: 0.875rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.health-check-idle .health-check-icon {
+  color: var(--text-tertiary);
+}
+
+.health-check-checking .health-check-icon {
+  color: var(--color-terminal-cyan);
+}
+
+.health-check-alive .health-check-icon {
+  color: var(--color-terminal-green);
+}
+
+.health-check-dead .health-check-icon {
+  color: var(--color-terminal-red);
+}
+

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
+import { HealthCheckStatus } from './HealthCheckStatus';
 import { type FofaQueryResult } from '../../shared/types';
 import { type ExportData } from '../utils/export';
 import './QueryResults.css';
@@ -100,12 +101,25 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                   </thead>
                   <tbody>
                     {result.results.map((row: unknown, rowIdx: number) => {
+                      // Extract host from row (usually first column or 'host' field)
+                      let hostValue = '';
+                      if (Array.isArray(row) && row.length > 0) {
+                        hostValue = String(row[0] ?? '');
+                      } else if (typeof row === 'object' && row !== null) {
+                        const rowObj = row as Record<string, unknown>;
+                        hostValue =
+                          String(rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? '');
+                      }
+
                       if (Array.isArray(row)) {
                         return (
                           <tr key={rowIdx}>
                             {row.map((cell: unknown, cellIdx: number) => (
                               <td key={cellIdx}>{String(cell ?? '-')}</td>
                             ))}
+                            <td className="health-check-cell">
+                              {hostValue ? <HealthCheckStatus host={hostValue} /> : '-'}
+                            </td>
                           </tr>
                         );
                       } else if (typeof row === 'object' && row !== null) {
@@ -114,6 +128,9 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                             {Object.values(row).map((cell: unknown, cellIdx: number) => (
                               <td key={cellIdx}>{String(cell ?? '-')}</td>
                             ))}
+                            <td className="health-check-cell">
+                              {hostValue ? <HealthCheckStatus host={hostValue} /> : '-'}
+                            </td>
                           </tr>
                         );
                       }

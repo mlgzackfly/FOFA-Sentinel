@@ -6,6 +6,7 @@ import {
   getFofaAccountInfo,
   searchAfterFofa,
 } from '../services/fofa.js';
+import { checkHostHealth, checkHostsHealth } from '../services/healthcheck.js';
 
 export const fofaRoutes = Router();
 
@@ -240,6 +241,28 @@ fofaRoutes.post('/search-all', async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA search all error:', error);
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+fofaRoutes.post('/healthcheck', async (req, res) => {
+  try {
+    const { host, hosts, timeout, port, protocol } = req.body;
+
+    if (host) {
+      // Single host check
+      const result = await checkHostHealth(host, { timeout, port, protocol });
+      res.json(result);
+    } else if (hosts && Array.isArray(hosts)) {
+      // Multiple hosts check
+      const results = await checkHostsHealth(hosts, { timeout, port, protocol });
+      res.json({ results });
+    } else {
+      res.status(400).json({ error: 'host or hosts array is required' });
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    console.error('Health check error:', error);
     res.status(500).json({ error: errorMessage });
   }
 });

@@ -166,3 +166,54 @@ export async function searchAllFofa(
 
   return finalResult;
 }
+
+export interface HealthCheckOptions {
+  timeout?: number;
+  port?: number;
+  protocol?: 'http' | 'https';
+}
+
+export interface HealthCheckResult {
+  host: string;
+  alive: boolean;
+  statusCode?: number;
+  error?: string;
+  responseTime?: number;
+}
+
+export async function checkHostHealth(
+  host: string,
+  options: HealthCheckOptions = {}
+): Promise<HealthCheckResult> {
+  const response = await fetch(`${API_BASE}/fofa/healthcheck`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ host, ...options }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Health check failed');
+  }
+
+  return response.json();
+}
+
+export async function checkHostsHealth(
+  hosts: string[],
+  options: HealthCheckOptions = {}
+): Promise<HealthCheckResult[]> {
+  const response = await fetch(`${API_BASE}/fofa/healthcheck`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ hosts, ...options }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Health check failed');
+  }
+
+  const data = await response.json();
+  return data.results || [];
+}
