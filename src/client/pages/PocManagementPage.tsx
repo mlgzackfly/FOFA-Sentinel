@@ -248,6 +248,7 @@ export function PocManagementPage() {
                       onChange={e => setFormData({ ...formData, language: e.target.value as any })}
                     >
                       <option value="python">Python</option>
+                      <option value="http">HTTP Request</option>
                       <option value="javascript">JavaScript</option>
                       <option value="bash">Bash</option>
                       <option value="other">Other</option>
@@ -257,6 +258,31 @@ export function PocManagementPage() {
 
                 <div className="form-group">
                   <label>{t('poc.editor.script')}</label>
+                  <div className="script-help">
+                    {formData.language === 'python' && (
+                      <div className="help-text">
+                        <strong>{t('poc.editor.help.title')}</strong>
+                        <p>{t('poc.editor.help.python')}</p>
+                        <pre className="help-code">
+                          <code>{t('poc.editor.help.pythonExample')}</code>
+                        </pre>
+                      </div>
+                    )}
+                    {formData.language === 'http' && (
+                      <div className="help-text">
+                        <strong>{t('poc.editor.help.title')}</strong>
+                        <p>{t('poc.editor.help.http')}</p>
+                      </div>
+                    )}
+                    {formData.language &&
+                      formData.language !== 'python' &&
+                      formData.language !== 'http' && (
+                        <div className="help-text">
+                          <strong>{t('poc.editor.help.title')}</strong>
+                          <p>{t('poc.editor.help.general')}</p>
+                        </div>
+                      )}
+                  </div>
                   <textarea
                     className="script-editor"
                     value={formData.script || ''}
