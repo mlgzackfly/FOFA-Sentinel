@@ -69,15 +69,15 @@ export function DocsPage() {
             <h3 className="docs-subtitle">{t('docs.advancedQueries')}</h3>
             <div className="docs-example">
               <div className="docs-example-label">{t('docs.iconHash') || 'Icon Hash:'}</div>
-              <code>icon_hash="-247388890"</code>
+              <code>icon_hash=&quot;-247388890&quot;</code>
             </div>
             <div className="docs-example">
               <div className="docs-example-label">{t('docs.certificate') || 'Certificate:'}</div>
-              <code>cert="google"</code>
+              <code>cert=&quot;google&quot;</code>
             </div>
             <div className="docs-example">
               <div className="docs-example-label">{t('docs.ipRange') || 'IP Range:'}</div>
-              <code>ip="192.168.1.1/24"</code>
+              <code>ip=&quot;192.168.1.1/24&quot;</code>
             </div>
           </div>
         </section>
@@ -97,82 +97,82 @@ export function DocsPage() {
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>title</code></div>
                 <div className="docs-table-cell">{t('docs.fieldTitle')}</div>
-                <div className="docs-table-cell"><code>title="admin"</code></div>
+                <div className="docs-table-cell"><code>title=&quot;admin&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>header</code></div>
                 <div className="docs-table-cell">{t('docs.fieldHeader')}</div>
-                <div className="docs-table-cell"><code>header="server"</code></div>
+                <div className="docs-table-cell"><code>header=&quot;server&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>body</code></div>
                 <div className="docs-table-cell">{t('docs.fieldBody')}</div>
-                <div className="docs-table-cell"><code>body="password"</code></div>
+                <div className="docs-table-cell"><code>body=&quot;password&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>host</code></div>
                 <div className="docs-table-cell">{t('docs.fieldHost')}</div>
-                <div className="docs-table-cell"><code>host="example.com"</code></div>
+                <div className="docs-table-cell"><code>host=&quot;example.com&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>ip</code></div>
                 <div className="docs-table-cell">{t('docs.fieldIp')}</div>
-                <div className="docs-table-cell"><code>ip="192.168.1.1"</code></div>
+                <div className="docs-table-cell"><code>ip=&quot;192.168.1.1&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>port</code></div>
                 <div className="docs-table-cell">{t('docs.fieldPort')}</div>
-                <div className="docs-table-cell"><code>port="443"</code></div>
+                <div className="docs-table-cell"><code>port=&quot;443&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>protocol</code></div>
                 <div className="docs-table-cell">{t('docs.fieldProtocol')}</div>
-                <div className="docs-table-cell"><code>protocol="https"</code></div>
+                <div className="docs-table-cell"><code>protocol=&quot;https&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>domain</code></div>
                 <div className="docs-table-cell">{t('docs.fieldDomain')}</div>
-                <div className="docs-table-cell"><code>domain="google.com"</code></div>
+                <div className="docs-table-cell"><code>domain=&quot;google.com&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>country</code></div>
                 <div className="docs-table-cell">{t('docs.fieldCountry')}</div>
-                <div className="docs-table-cell"><code>country="US"</code></div>
+                <div className="docs-table-cell"><code>country=&quot;US&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>city</code></div>
                 <div className="docs-table-cell">{t('docs.fieldCity')}</div>
-                <div className="docs-table-cell"><code>city="Beijing"</code></div>
+                <div className="docs-table-cell"><code>city=&quot;Beijing&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>os</code></div>
                 <div className="docs-table-cell">{t('docs.fieldOs')}</div>
-                <div className="docs-table-cell"><code>os="Linux"</code></div>
+                <div className="docs-table-cell"><code>os=&quot;Linux&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>server</code></div>
                 <div className="docs-table-cell">{t('docs.fieldServer')}</div>
-                <div className="docs-table-cell"><code>server="nginx"</code></div>
+                <div className="docs-table-cell"><code>server=&quot;nginx&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>app</code></div>
                 <div className="docs-table-cell">{t('docs.fieldApp')}</div>
-                <div className="docs-table-cell"><code>app="WordPress"</code></div>
+                <div className="docs-table-cell"><code>app=&quot;WordPress&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>cert</code></div>
                 <div className="docs-table-cell">{t('docs.fieldCert')}</div>
-                <div className="docs-table-cell"><code>cert="Let's Encrypt"</code></div>
+                <div className="docs-table-cell"><code>cert=&quot;Let&apos;s Encrypt&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>banner</code></div>
                 <div className="docs-table-cell">{t('docs.fieldBanner')}</div>
-                <div className="docs-table-cell"><code>banner="Apache"</code></div>
+                <div className="docs-table-cell"><code>banner=&quot;Apache&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>icon_hash</code></div>
                 <div className="docs-table-cell">{t('docs.fieldIconHash')}</div>
-                <div className="docs-table-cell"><code>icon_hash="-247388890"</code></div>
+                <div className="docs-table-cell"><code>icon_hash=&quot;-247388890&quot;</code></div>
               </div>
             </div>
           </div>
@@ -208,27 +208,27 @@ export function DocsPage() {
           <div className="docs-section-content">
             <div className="docs-example-block">
               <div className="docs-example-title">{t('docs.exampleWordPress')}</div>
-              <code>app="WordPress"</code>
+              <code>app=&quot;WordPress&quot;</code>
             </div>
             <div className="docs-example-block">
               <div className="docs-example-title">{t('docs.exampleChinaServers')}</div>
-              <code>country="CN" && port="443"</code>
+              <code>country=&quot;CN&quot; && port=&quot;443&quot;</code>
             </div>
             <div className="docs-example-block">
               <div className="docs-example-title">{t('docs.exampleApache')}</div>
-              <code>server="Apache" || banner="Apache"</code>
+              <code>server=&quot;Apache&quot; || banner=&quot;Apache&quot;</code>
             </div>
             <div className="docs-example-block">
               <div className="docs-example-title">{t('docs.exampleLogin')}</div>
-              <code>title="login" || title="signin" || body="password"</code>
+              <code>title=&quot;login&quot; || title=&quot;signin&quot; || body=&quot;password&quot;</code>
             </div>
             <div className="docs-example-block">
               <div className="docs-example-title">{t('docs.exampleIpRange')}</div>
-              <code>ip="192.168.1.0/24"</code>
+              <code>ip=&quot;192.168.1.0/24&quot;</code>
             </div>
             <div className="docs-example-block">
               <div className="docs-example-title">{t('docs.exampleIconHash')}</div>
-              <code>icon_hash="-247388890"</code>
+              <code>icon_hash=&quot;-247388890&quot;</code>
             </div>
           </div>
         </section>

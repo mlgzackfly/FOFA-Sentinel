@@ -26,9 +26,10 @@ fofaRoutes.post('/search', async (req, res) => {
     });
 
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA search error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -42,9 +43,10 @@ fofaRoutes.post('/stats', async (req, res) => {
 
     const result = await getFofaStats({ qbase64, fields });
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA stats error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -58,9 +60,10 @@ fofaRoutes.post('/host', async (req, res) => {
 
     const result = await getFofaHostAggregation({ qbase64, size });
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA host aggregation error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -68,9 +71,10 @@ fofaRoutes.get('/account', async (req, res) => {
   try {
     const result = await getFofaAccountInfo();
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA account info error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -84,9 +88,10 @@ fofaRoutes.post('/search-after', async (req, res) => {
 
     const result = await searchAfterFofa(qbase64, search_after, size);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA search after error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -100,7 +105,7 @@ fofaRoutes.post('/search-all', async (req, res) => {
 
     const pageSize = Math.min(size || 100, 10000);
     const maxResultsLimit = maxResults || 100000;
-    const allResults: any[] = [];
+    const allResults: unknown[][] = [];
     let searchAfter: string | null = null;
     let totalFetched = 0;
     let pageCount = 0;
@@ -108,12 +113,19 @@ fofaRoutes.post('/search-all', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Transfer-Encoding', 'chunked');
 
-    const sendProgress = (progress: any) => {
+    interface ProgressData {
+      fetched: number;
+      total: number;
+      pages: number;
+      message: string;
+    }
+
+    const sendProgress = (progress: ProgressData) => {
       res.write(JSON.stringify({ type: 'progress', ...progress }) + '\n');
     };
 
     try {
-      let firstResult = await searchFofa({
+      const firstResult = await searchFofa({
         qbase64,
         fields,
         page: 1,
@@ -146,7 +158,7 @@ fofaRoutes.post('/search-all', async (req, res) => {
         } else if (typeof lastResult === 'object' && lastResult !== null) {
           const keys = Object.keys(lastResult);
           if (keys.length > 0) {
-            searchAfter = String((lastResult as any)[keys[0]]);
+            searchAfter = String((lastResult as Record<string, unknown>)[keys[0]]);
           }
         }
       }
@@ -179,7 +191,7 @@ fofaRoutes.post('/search-all', async (req, res) => {
         } else if (typeof lastResult === 'object' && lastResult !== null) {
           const keys = Object.keys(lastResult);
           if (keys.length > 0) {
-            searchAfter = String((lastResult as any)[keys[0]]);
+            searchAfter = String((lastResult as Record<string, unknown>)[keys[0]]);
           } else {
             break;
           }
@@ -202,19 +214,21 @@ fofaRoutes.post('/search-all', async (req, res) => {
 
       res.write(JSON.stringify({ type: 'complete', ...finalResult }) + '\n');
       res.end();
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch all results';
       res.write(JSON.stringify({ 
         type: 'error', 
         error: true, 
-        errmsg: error.message || 'Failed to fetch all results',
+        errmsg: errorMessage,
         fetched: totalFetched,
         pages: pageCount,
       }) + '\n');
       res.end();
     }
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('FOFA search all error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 

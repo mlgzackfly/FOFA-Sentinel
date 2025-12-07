@@ -16,7 +16,7 @@ export interface FofaSearchResponse {
   page: number;
   mode?: string;
   query: string;
-  results: any[][];
+  results: unknown[][];
   search_after?: string;
 }
 
@@ -103,7 +103,13 @@ export async function searchFofa(params: FofaSearchParams): Promise<FofaSearchRe
   return await response.json();
 }
 
-export async function getFofaStats(params: FofaStatsParams): Promise<any> {
+export interface FofaStatsResponse {
+  [key: string]: unknown;
+  error?: boolean;
+  errmsg?: string;
+}
+
+export async function getFofaStats(params: FofaStatsParams): Promise<FofaStatsResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/search/stats`);
   
@@ -121,7 +127,13 @@ export async function getFofaStats(params: FofaStatsParams): Promise<any> {
   return await response.json();
 }
 
-export async function getFofaHostAggregation(params: FofaHostParams): Promise<any> {
+export interface FofaHostResponse {
+  [key: string]: unknown;
+  error?: boolean;
+  errmsg?: string;
+}
+
+export async function getFofaHostAggregation(params: FofaHostParams): Promise<FofaHostResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/host`);
   
@@ -161,11 +173,20 @@ export async function getFofaAccountInfo(): Promise<FofaAccountResponse> {
   return await response.json();
 }
 
+export interface FofaSearchAfterResponse {
+  error: boolean;
+  size: number;
+  query: string;
+  results: unknown[][];
+  search_after?: string;
+  errmsg?: string;
+}
+
 export async function searchAfterFofa(
   qbase64: string,
   searchAfter: string,
   size?: number
-): Promise<any> {
+): Promise<FofaSearchAfterResponse> {
   const { email, key } = await getApiCredentials();
   const url = new URL(`${FOFA_API_BASE}/search/after`);
   

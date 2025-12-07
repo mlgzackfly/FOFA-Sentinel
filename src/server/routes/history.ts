@@ -38,9 +38,10 @@ historyRoutes.get('/', (req, res) => {
       limit,
       offset,
     });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Get history error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -71,9 +72,10 @@ historyRoutes.get('/:id', (req, res) => {
     }
 
     res.json(query);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Get query error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -95,9 +97,10 @@ historyRoutes.post('/', (req, res) => {
       .run(taskId, query, query_base64, fields || null, page || 1, size || 100, full ? 1 : 0);
 
     res.json({ id: result.lastInsertRowid, task_id: taskId });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Save history error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -124,9 +127,10 @@ historyRoutes.post('/:id/results', (req, res) => {
       .run(historyId, JSON.stringify(result_data), total_size || null, page || null);
 
     res.json({ id: result.lastInsertRowid });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Save results error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -144,15 +148,24 @@ historyRoutes.get('/:id/results', (req, res) => {
       )
       .all(historyId);
 
-    const parsedResults = results.map((r: any) => ({
+    interface QueryResultRow {
+      id: number;
+      result_data: string;
+      total_size: number | null;
+      page: number | null;
+      created_at: string;
+    }
+
+    const parsedResults = results.map((r: QueryResultRow) => ({
       ...r,
       result_data: JSON.parse(r.result_data),
     }));
 
     res.json(parsedResults);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Get results error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -168,9 +181,10 @@ historyRoutes.delete('/:id', (req, res) => {
     }
 
     res.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Delete history error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -206,9 +220,16 @@ historyRoutes.get('/:id/export', (req, res) => {
     txtContent += `Date: ${history.created_at}\n`;
     txtContent += `\n${'='.repeat(50)}\n\n`;
 
-    results.forEach((result: any, index: number) => {
+    interface ExportResultRow {
+      result_data: string | unknown;
+      total_size: number | null;
+      page: number | null;
+      created_at: string;
+    }
+
+    results.forEach((result: ExportResultRow, index: number) => {
       try {
-        let data;
+        let data: unknown;
         if (typeof result.result_data === 'string') {
           data = JSON.parse(result.result_data);
         } else {
@@ -218,22 +239,23 @@ historyRoutes.get('/:id/export', (req, res) => {
         txtContent += `Result Set ${index + 1} (Page: ${result.page || 'N/A'}, Total: ${result.total_size || 'N/A'})\n`;
         txtContent += `-`.repeat(50) + `\n`;
 
-        if (data && data.results && Array.isArray(data.results)) {
-          data.results.forEach((row: any, rowIndex: number) => {
+        if (data && typeof data === 'object' && 'results' in data && Array.isArray((data as { results: unknown[] }).results)) {
+          const resultsArray = (data as { results: unknown[] }).results;
+          resultsArray.forEach((row: unknown, rowIndex: number) => {
             if (Array.isArray(row)) {
               txtContent += `${rowIndex + 1}. ${row.join(' | ')}\n`;
-            } else if (typeof row === 'object') {
+            } else if (typeof row === 'object' && row !== null) {
               const rowValues = Object.values(row).map(v => String(v || ''));
               txtContent += `${rowIndex + 1}. ${rowValues.join(' | ')}\n`;
             } else {
               txtContent += `${rowIndex + 1}. ${String(row)}\n`;
             }
           });
-        } else if (data && Array.isArray(data)) {
-          data.forEach((row: any, rowIndex: number) => {
+        } else if (Array.isArray(data)) {
+          data.forEach((row: unknown, rowIndex: number) => {
             if (Array.isArray(row)) {
               txtContent += `${rowIndex + 1}. ${row.join(' | ')}\n`;
-            } else if (typeof row === 'object') {
+            } else if (typeof row === 'object' && row !== null) {
               const rowValues = Object.values(row).map(v => String(v || ''));
               txtContent += `${rowIndex + 1}. ${rowValues.join(' | ')}\n`;
             } else {
@@ -245,18 +267,20 @@ historyRoutes.get('/:id/export', (req, res) => {
         }
 
         txtContent += `\n`;
-      } catch (parseError: any) {
+      } catch (parseError) {
+        const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown error';
         console.error(`Error parsing result set ${index + 1}:`, parseError);
-        txtContent += `Error parsing result set ${index + 1}: ${parseError.message}\n\n`;
+        txtContent += `Error parsing result set ${index + 1}: ${errorMessage}\n\n`;
       }
     });
 
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Content-Disposition', `attachment; filename="fofa_export_${historyId}_${Date.now()}.txt"`);
     res.send(txtContent);
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Export error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
