@@ -55,9 +55,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 </span>
                 <span className="meta-item">
                   <span className="meta-label">{t('query.results.displayed')}:</span>{' '}
-                  {'results' in result && Array.isArray(result.results)
-                    ? result.results.length
-                    : 0}{' '}
+                  {'results' in result && Array.isArray(result.results) ? result.results.length : 0}{' '}
                   {t('query.results.of')}{' '}
                   {'size' in result && typeof result.size === 'number' ? result.size : 0}
                 </span>
@@ -72,7 +70,9 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 </button>
                 {'results' in result ? (
                   <ExportButton
-                    data={{ results: Array.isArray(result.results) ? result.results : [] } as ExportData}
+                    data={
+                      { results: Array.isArray(result.results) ? result.results : [] } as ExportData
+                    }
                     filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
                   />
                 ) : null}

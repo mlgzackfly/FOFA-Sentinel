@@ -155,7 +155,11 @@ fofaRoutes.post('/search-all', async (req, res) => {
         const lastResult = firstResult.results[firstResult.results.length - 1];
         if (Array.isArray(lastResult) && lastResult.length > 0) {
           searchAfter = String(lastResult[0]);
-        } else if (typeof lastResult === 'object' && lastResult !== null && !Array.isArray(lastResult)) {
+        } else if (
+          typeof lastResult === 'object' &&
+          lastResult !== null &&
+          !Array.isArray(lastResult)
+        ) {
           const keys = Object.keys(lastResult);
           if (keys.length > 0) {
             const record = lastResult as Record<string, unknown>;
@@ -189,7 +193,11 @@ fofaRoutes.post('/search-all', async (req, res) => {
         const lastResult = nextResult.results[nextResult.results.length - 1];
         if (Array.isArray(lastResult) && lastResult.length > 0) {
           searchAfter = String(lastResult[0]);
-        } else if (typeof lastResult === 'object' && lastResult !== null && !Array.isArray(lastResult)) {
+        } else if (
+          typeof lastResult === 'object' &&
+          lastResult !== null &&
+          !Array.isArray(lastResult)
+        ) {
           const keys = Object.keys(lastResult);
           if (keys.length > 0) {
             const record = lastResult as Record<string, unknown>;
