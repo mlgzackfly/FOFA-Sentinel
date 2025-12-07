@@ -9,6 +9,8 @@
 
 A modern, hacker-style web application for proactive security reconnaissance using the FOFA API.
 
+[English](./README.md) • [简体中文](./README_zh-CN.md) • [繁體中文](./README_zh-TW.md)
+
 [Features](#features) • [Installation](#getting-started) • [Documentation](#documentation) • [Contributing](./CONTRIBUTING.md)
 
 </div>
