@@ -162,11 +162,17 @@ pocRoutes.post('/scan-batch', async (req, res) => {
 
             // Save results to database
             console.log(
-              `[scan-batch] Saving ${batchResults.length} batch results for session ${session.sessionId}`
+              `[scan-batch] Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(hosts.length / batchSize)}: Saving ${batchResults.length} results for session ${session.sessionId}`
             );
             console.log(`[scan-batch] Batch results sample:`, batchResults.slice(0, 2));
             saveScanResults(session.sessionId, batchResults);
             console.log(`[scan-batch] saveScanResults completed for session ${session.sessionId}`);
+
+            // Log progress
+            const progressPercent = Math.round((scannedCount / hosts.length) * 100);
+            console.log(
+              `[scan-batch] Progress: ${scannedCount}/${hosts.length} (${progressPercent}%) - Vulnerable: ${vulnerableCount}, Safe: ${safeCount}, Errors: ${errorCount}`
+            );
 
             // Update counts
             batchResults.forEach(result => {

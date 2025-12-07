@@ -334,12 +334,51 @@ export async function executePocScriptForHosts(
   hosts: string[],
   options: PocScanOptions = {}
 ): Promise<PocScanResult[]> {
-  const results: PocScanResult[] = [];
+  // Execute all hosts in parallel using Promise.allSettled
+  // This ensures that if one host hangs or fails, others can still complete
+  console.log(`[executePocScriptForHosts] Starting parallel scan for ${hosts.length} hosts`);
 
-  for (const host of hosts) {
-    const result = await executePocScript(scriptId, host, options);
-    results.push(result);
-  }
+  const promises = hosts.map(host => {
+    // Wrap each execution in a promise that will always resolve
+    // This prevents one hanging host from blocking others
+    return Promise.race([
+      executePocScript(scriptId, host, options),
+      new Promise<PocScanResult>(resolve => {
+        // Fallback timeout (should be longer than PoC timeout)
+        const fallbackTimeout = (options.timeout || 30) * 1000 + 5000; // PoC timeout + 5s buffer
+        setTimeout(() => {
+          console.warn(`[executePocScriptForHosts] Host ${host} exceeded fallback timeout`);
+          resolve({
+            host,
+            vulnerable: null,
+            error: 'Scan timeout (fallback)',
+            timestamp: new Date().toISOString(),
+          });
+        }, fallbackTimeout);
+      }),
+    ]);
+  });
 
+  // Use allSettled to ensure all promises complete, even if some fail
+  const settledResults = await Promise.allSettled(promises);
+
+  const results: PocScanResult[] = settledResults.map((settled, index) => {
+    if (settled.status === 'fulfilled') {
+      return settled.value;
+    } else {
+      // If a promise was rejected, create an error result
+      console.error(`[executePocScriptForHosts] Host ${hosts[index]} failed:`, settled.reason);
+      return {
+        host: hosts[index],
+        vulnerable: null,
+        error: settled.reason instanceof Error ? settled.reason.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      };
+    }
+  });
+
+  console.log(
+    `[executePocScriptForHosts] Completed scan for ${hosts.length} hosts, got ${results.length} results`
+  );
   return results;
 }
