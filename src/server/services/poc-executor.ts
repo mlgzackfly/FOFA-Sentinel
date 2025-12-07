@@ -65,6 +65,8 @@ export async function executePocScript(
     switch (script.language) {
       case 'python':
         return await executePythonPoc(script, targetUrl, options, timeout);
+      case 'http':
+        return await executeHttpRequestPoc(script, targetUrl, options, timeout);
       case 'javascript':
         return await executeJavaScriptPoc(script, targetUrl, options, timeout);
       case 'bash':
