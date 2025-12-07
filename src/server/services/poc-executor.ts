@@ -155,9 +155,22 @@ async function executePythonPoc(
       // Try to parse JSON output
       try {
         const jsonOutput = JSON.parse(stdout.trim() || '{}');
+        // Handle vulnerable field: can be true, false, or null/undefined
+        // Use explicit check instead of ?? to preserve false values
+        let vulnerableValue: boolean | null = null;
+        if (jsonOutput.vulnerable === true) {
+          vulnerableValue = true;
+        } else if (jsonOutput.vulnerable === false) {
+          vulnerableValue = false;
+        } else {
+          vulnerableValue = null;
+        }
+        console.log(
+          `[poc-executor] PoC result for ${targetUrl}: vulnerable=${vulnerableValue}, jsonOutput.vulnerable=${jsonOutput.vulnerable}`
+        );
         resolve({
           host: targetUrl,
-          vulnerable: jsonOutput.vulnerable ?? null,
+          vulnerable: vulnerableValue,
           statusCode: jsonOutput.status_code,
           error: jsonOutput.error,
           finalUrl: jsonOutput.final_url,

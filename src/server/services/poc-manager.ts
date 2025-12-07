@@ -197,10 +197,14 @@ export function saveScanResults(
               ? 'scanned'
               : 'error';
 
+        // Log before insertion for debugging
+        console.log(
+          `[saveScanResults] Inserting result for ${result.host}: vulnerable=${result.vulnerable} (type: ${typeof result.vulnerable}), status=${status}`
+        );
         const insertResult = insertStmt.run(
           sessionId,
           result.host,
-          result.vulnerable,
+          result.vulnerable, // This should be true, false, or null
           result.statusCode || null,
           result.error || null,
           result.finalUrl || null,
@@ -332,7 +336,12 @@ export function getScanResults(
     } else {
       query += ' AND vulnerable = ?';
       // SQLite stores BOOLEAN as INTEGER (0 or 1), so convert boolean to number
-      params.push(filter.vulnerable ? 1 : 0);
+      // false -> 0, true -> 1
+      const vulnerableValue = filter.vulnerable === true ? 1 : 0;
+      params.push(vulnerableValue);
+      console.log(
+        `[getScanResults] Filtering by vulnerable=${filter.vulnerable} (SQL: vulnerable=${vulnerableValue})`
+      );
     }
   }
   if (filter?.status) {
