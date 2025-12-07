@@ -279,19 +279,18 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         result.results.length > 0
       ) {
         // Pass result with PoC script ID - scan will start automatically
-        const hosts = extractHostsFromResult(result);
+        const initialHosts = extractHostsFromResult(result);
+        console.log(
+          `[QueryForm] Extracted ${initialHosts.length} unique hosts from ${result.results?.length || 0} results`
+        );
         onResult(result, selectedPocScript, {
           scanning: true,
-          progress: { current: 0, total: hosts.length },
+          progress: { current: 0, total: initialHosts.length },
           sessionId: null, // Will be updated when scan starts
         });
 
         // Execute in background without blocking
         // The sessionId will be updated via the executeAutoPocScan callback
-        const hosts = extractHostsFromResult(result);
-        console.log(
-          `[QueryForm] Extracted ${hosts.length} unique hosts from ${result.results?.length || 0} results`
-        );
         executeAutoPocScan(result, finalQuery, (sessionId: string) => {
           // Callback to update parent with sessionId
           const extractedHosts = extractHostsFromResult(result); // Re-extract hosts to ensure total is correct
