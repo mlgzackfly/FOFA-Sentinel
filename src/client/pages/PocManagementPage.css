@@ -296,6 +296,46 @@
   border-color: var(--color-terminal-green);
 }
 
+.script-help {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+}
+
+.help-text {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.help-text strong {
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.help-text p {
+  margin: var(--space-2) 0;
+}
+
+.help-code {
+  margin: var(--space-2) 0;
+  padding: var(--space-2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-terminal-green);
+  overflow-x: auto;
+}
+
+.help-code code {
+  white-space: pre;
+}
+
 .script-editor {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 0.8rem;
