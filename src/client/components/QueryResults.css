@@ -37,6 +37,12 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.query-results-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
 .query-results-meta {
   display: flex;
   flex-wrap: wrap;
@@ -73,6 +79,11 @@
   border-color: var(--color-terminal-green);
   background: rgba(0, 255, 65, 0.1);
   color: var(--color-terminal-green);
+}
+
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--color-terminal-green);
+  outline-offset: 2px;
 }
 
 .query-results-table {

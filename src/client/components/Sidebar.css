@@ -29,6 +29,7 @@
   transform: translateX(-100%);
   transition: transform var(--transition-normal);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-open {
@@ -38,7 +39,11 @@
 @media (min-width: 1024px) {
   .sidebar {
     transform: translateX(0);
-    position: relative;
+    position: fixed;
+    top: 68px;
+    left: 0;
+    height: calc(100vh - 68px);
+    max-height: calc(100vh - 68px);
   }
 }
 

@@ -9,7 +9,6 @@ import {
 
 export const fofaRoutes = Router();
 
-// Search interface
 fofaRoutes.post('/search', async (req, res) => {
   try {
     const { qbase64, fields, page, size, full } = req.body;
@@ -33,7 +32,6 @@ fofaRoutes.post('/search', async (req, res) => {
   }
 });
 
-// Statistics aggregation
 fofaRoutes.post('/stats', async (req, res) => {
   try {
     const { qbase64, fields } = req.body;
@@ -50,7 +48,6 @@ fofaRoutes.post('/stats', async (req, res) => {
   }
 });
 
-// Host aggregation
 fofaRoutes.post('/host', async (req, res) => {
   try {
     const { qbase64, size } = req.body;
@@ -67,7 +64,6 @@ fofaRoutes.post('/host', async (req, res) => {
   }
 });
 
-// Account information
 fofaRoutes.get('/account', async (req, res) => {
   try {
     const result = await getFofaAccountInfo();
@@ -78,7 +74,6 @@ fofaRoutes.get('/account', async (req, res) => {
   }
 });
 
-// Search after interface
 fofaRoutes.post('/search-after', async (req, res) => {
   try {
     const { qbase64, search_after, size } = req.body;
@@ -91,6 +86,134 @@ fofaRoutes.post('/search-after', async (req, res) => {
     res.json(result);
   } catch (error: any) {
     console.error('FOFA search after error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
+fofaRoutes.post('/search-all', async (req, res) => {
+  try {
+    const { qbase64, fields, size, maxResults } = req.body;
+    
+    if (!qbase64) {
+      return res.status(400).json({ error: 'qbase64 is required' });
+    }
+
+    const pageSize = Math.min(size || 100, 10000);
+    const maxResultsLimit = maxResults || 100000;
+    const allResults: any[] = [];
+    let searchAfter: string | null = null;
+    let totalFetched = 0;
+    let pageCount = 0;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    const sendProgress = (progress: any) => {
+      res.write(JSON.stringify({ type: 'progress', ...progress }) + '\n');
+    };
+
+    try {
+      let firstResult = await searchFofa({
+        qbase64,
+        fields,
+        page: 1,
+        size: pageSize,
+        full: false,
+      });
+
+      if (firstResult.error) {
+        res.write(JSON.stringify({ type: 'error', ...firstResult }) + '\n');
+        res.end();
+        return;
+      }
+
+      const totalSize = firstResult.size || 0;
+      allResults.push(...(firstResult.results || []));
+      totalFetched += firstResult.results?.length || 0;
+      pageCount = 1;
+
+      sendProgress({
+        fetched: totalFetched,
+        total: totalSize,
+        pages: pageCount,
+        message: `Fetched page ${pageCount}, ${totalFetched} results`,
+      });
+
+      if (firstResult.results && firstResult.results.length > 0) {
+        const lastResult = firstResult.results[firstResult.results.length - 1];
+        if (Array.isArray(lastResult) && lastResult.length > 0) {
+          searchAfter = String(lastResult[0]);
+        } else if (typeof lastResult === 'object' && lastResult !== null) {
+          const keys = Object.keys(lastResult);
+          if (keys.length > 0) {
+            searchAfter = String((lastResult as any)[keys[0]]);
+          }
+        }
+      }
+
+      while (searchAfter && totalFetched < maxResultsLimit && totalFetched < totalSize) {
+        const nextResult = await searchAfterFofa(qbase64, searchAfter, pageSize);
+        
+        if (nextResult.error || !nextResult.results || nextResult.results.length === 0) {
+          break;
+        }
+
+        allResults.push(...nextResult.results);
+        totalFetched += nextResult.results.length;
+        pageCount++;
+
+        sendProgress({
+          fetched: totalFetched,
+          total: totalSize,
+          pages: pageCount,
+          message: `Fetched page ${pageCount}, ${totalFetched} results`,
+        });
+
+        if (nextResult.results.length < pageSize) {
+          break;
+        }
+
+        const lastResult = nextResult.results[nextResult.results.length - 1];
+        if (Array.isArray(lastResult) && lastResult.length > 0) {
+          searchAfter = String(lastResult[0]);
+        } else if (typeof lastResult === 'object' && lastResult !== null) {
+          const keys = Object.keys(lastResult);
+          if (keys.length > 0) {
+            searchAfter = String((lastResult as any)[keys[0]]);
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      const finalResult = {
+        error: false,
+        size: totalSize,
+        query: firstResult.query || '',
+        results: allResults,
+        fetched: totalFetched,
+        pages: pageCount,
+        message: `Successfully fetched ${totalFetched} results in ${pageCount} pages`,
+      };
+
+      res.write(JSON.stringify({ type: 'complete', ...finalResult }) + '\n');
+      res.end();
+    } catch (error: any) {
+      res.write(JSON.stringify({ 
+        type: 'error', 
+        error: true, 
+        errmsg: error.message || 'Failed to fetch all results',
+        fetched: totalFetched,
+        pages: pageCount,
+      }) + '\n');
+      res.end();
+    }
+  } catch (error: any) {
+    console.error('FOFA search all error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });

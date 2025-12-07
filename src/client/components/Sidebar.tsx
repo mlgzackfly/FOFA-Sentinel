@@ -1,6 +1,7 @@
+import { useTranslation } from '../hooks/useTranslation';
 import './Sidebar.css';
 
-type Page = 'query' | 'history' | 'settings';
+type Page = 'query' | 'history' | 'settings' | 'docs';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,10 +11,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarProps) {
-  const menuItems: { id: Page; label: string; icon: string }[] = [
-    { id: 'query', label: 'QUERY', icon: '>' },
-    { id: 'history', label: 'HISTORY', icon: '[' },
-    { id: 'settings', label: 'CONFIG', icon: '$' },
+  const { t } = useTranslation();
+  
+  const menuItems: { id: Page; labelKey: string; icon: string }[] = [
+    { id: 'query', labelKey: 'nav.query', icon: '>' },
+    { id: 'history', labelKey: 'nav.history', icon: '[' },
+    { id: 'docs', labelKey: 'nav.docs', icon: '?' },
+    { id: 'settings', labelKey: 'nav.config', icon: '$' },
   ];
 
   return (
@@ -21,7 +25,7 @@ export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarP
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
-          <span className="sidebar-title">NAVIGATION</span>
+          <span className="sidebar-title">{t('nav.navigation') || 'NAVIGATION'}</span>
         </div>
         <nav className="sidebar-nav">
           {menuItems.map((item) => (
@@ -32,9 +36,11 @@ export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarP
                 onPageChange(item.id);
                 onClose();
               }}
+              aria-label={`Navigate to ${t(item.labelKey)} page`}
+              aria-current={currentPage === item.id ? 'page' : undefined}
             >
               <span className="sidebar-item-icon">{item.icon}</span>
-              <span className="sidebar-item-label">{item.label}</span>
+              <span className="sidebar-item-label">{t(item.labelKey)}</span>
             </button>
           ))}
         </nav>

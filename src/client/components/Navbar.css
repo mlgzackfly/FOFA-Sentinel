@@ -59,6 +59,12 @@
   text-shadow: 0 0 10px var(--color-terminal-green);
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 .navbar-status {
   display: flex;
   align-items: center;

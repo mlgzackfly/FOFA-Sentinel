@@ -1,62 +1,58 @@
-export interface FofaSearchParams {
-  qbase64: string;
-  fields?: string;
-  page?: number;
+/**
+ * Shared types for FOFA API client
+ */
+
+export interface FofaSearchResult {
+  query?: string;
   size?: number;
-  full?: boolean;
+  page?: number;
+  results?: unknown[][];
+  error?: boolean;
+  errmsg?: string;
+  [key: string]: unknown;
 }
 
-export interface FofaSearchResponse {
-  error: boolean;
-  size: number;
-  page: number;
-  mode?: string;
-  query: string;
-  results: any[][];
+export interface FofaStatsResult {
+  [key: string]: unknown;
+  error?: boolean;
   errmsg?: string;
 }
 
-export interface FofaStatsParams {
-  qbase64: string;
-  fields?: string;
+export interface FofaHostResult {
+  [key: string]: unknown;
+  error?: boolean;
+  errmsg?: string;
 }
 
-export interface FofaHostParams {
-  qbase64: string;
-  size?: number;
-}
-
-export interface FofaAccountResponse {
-  error: boolean;
+export interface FofaAccountResult {
   email?: string;
   username?: string;
-  fcoin?: number;
   vip_level?: number;
   isvip?: boolean;
-  vip_level_name?: string;
   fcoin_balance?: number;
+  error?: boolean;
   errmsg?: string;
 }
 
-export interface QueryHistory {
+export type FofaQueryResult = FofaSearchResult | FofaStatsResult | FofaHostResult | FofaAccountResult;
+
+export interface HistoryItem {
   id: number;
+  task_id: string;
   query: string;
-  query_base64: string;
-  fields: string | null;
-  page: number;
-  size: number;
-  full: number;
+  tab: string;
+  fields?: string | null;
+  page?: number;
+  size?: number;
+  full?: number;
+  result_count: number;
   created_at: string;
-  updated_at: string;
-  result_count?: number;
 }
 
 export interface QueryResult {
   id: number;
-  history_id: number;
-  result_data: any;
-  total_size: number | null;
-  page: number | null;
+  result_data: unknown;
+  total_size: number;
+  page: number;
   created_at: string;
 }
-

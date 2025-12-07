@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { HistoryList } from '../components/HistoryList';
+import { useTranslation } from '../hooks/useTranslation';
+import { type HistoryItem } from '../../shared/types';
 import './HistoryPage.css';
 
 export function HistoryPage() {
-  const [history, setHistory] = useState<any[]>([]);
+  const { t } = useTranslation();
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadHistory();
@@ -13,10 +17,15 @@ export function HistoryPage() {
   const loadHistory = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch('/api/history?limit=100');
+      if (!response.ok) {
+        throw new Error(t('errors.failedToLoad'));
+      }
       const data = await response.json();
       setHistory(data.history || []);
-    } catch (error) {
+    } catch (error: any) {
+      setError(error.message || t('errors.failedToLoad'));
       console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
@@ -25,47 +34,42 @@ export function HistoryPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await fetch(`/api/history/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error(t('errors.failedToDelete'));
+      }
       loadHistory();
-    } catch (error) {
+    } catch (error: any) {
+      setError(error.message || t('errors.failedToDelete'));
       console.error('Failed to delete:', error);
     }
   };
 
-  const handleExport = async (id: number) => {
-    try {
-      const response = await fetch(`/api/history/${id}/export`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `fofa_export_${id}_${Date.now()}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to export:', error);
-    }
-  };
 
   return (
     <div className="history-page">
       <div className="history-page-header">
         <h1 className="history-page-title">
           <span className="history-page-title-prefix">[</span>
-          QUERY HISTORY
+          {t('history.title')}
         </h1>
-        <p className="history-page-subtitle">View and manage your search history</p>
+        <p className="history-page-subtitle">{t('history.subtitle')}</p>
       </div>
 
+      {error && (
+        <div className="history-error">
+          <span className="error-prefix">{t('common.error')}:</span> {error}
+          <button className="error-dismiss" onClick={() => setError(null)} aria-label="Dismiss error">
+            ×
+          </button>
+        </div>
+      )}
       {loading ? (
-        <div className="history-loading">LOADING...</div>
+        <div className="history-loading">{t('common.loading')}</div>
       ) : (
         <HistoryList
           history={history}
           onDelete={handleDelete}
-          onExport={handleExport}
           onRefresh={loadHistory}
         />
       )}

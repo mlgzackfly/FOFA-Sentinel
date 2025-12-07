@@ -2,32 +2,57 @@ import { useState, useEffect } from 'react';
 import { QueryPage } from './pages/QueryPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { Navbar } from './components/Navbar';
-import { Sidebar } from './components/Sidebar';
+import { DocsPage } from './pages/DocsPage';
+import { NavigationDrawer } from './components/NavigationDrawer';
+import { getLocale } from './i18n';
 import './App.css';
 
-type Page = 'query' | 'history' | 'settings';
+type Page = 'query' | 'history' | 'settings' | 'docs';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('query');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [, setLocale] = useState(getLocale());
+
+  useEffect(() => {
+    const handleLocaleChange = () => {
+      setLocale(getLocale());
+    };
+    
+    window.addEventListener('localechange', handleLocaleChange);
+    return () => {
+      window.removeEventListener('localechange', handleLocaleChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setDrawerOpen(true);
+      }
+    };
+
+    if (window.innerWidth >= 1024) {
+      setDrawerOpen(true);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="app">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="app-layout">
-        <Sidebar
-          isOpen={sidebarOpen}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          onClose={() => setSidebarOpen(false)}
-        />
-        <main className="app-main">
-          {currentPage === 'query' && <QueryPage />}
-          {currentPage === 'history' && <HistoryPage />}
-          {currentPage === 'settings' && <SettingsPage />}
-        </main>
-      </div>
+      <NavigationDrawer
+        isOpen={drawerOpen}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        onToggle={() => setDrawerOpen(!drawerOpen)}
+      />
+      <main className={`app-main ${drawerOpen ? 'drawer-open' : ''}`}>
+        {currentPage === 'query' && <QueryPage />}
+        {currentPage === 'history' && <HistoryPage />}
+        {currentPage === 'docs' && <DocsPage />}
+        {currentPage === 'settings' && <SettingsPage />}
+      </main>
     </div>
   );
 }

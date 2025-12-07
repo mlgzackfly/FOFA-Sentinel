@@ -1,13 +1,24 @@
-# FOFA API Client
+# FOFA Sentinel
 
-A modern, hacker-style web application for interacting with the FOFA API.
+<div align="center">
+
+![FOFA Sentinel](https://img.shields.io/badge/FOFA-Sentinel-d72638?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+
+A modern, hacker-style web application for proactive security reconnaissance using the FOFA API.
+
+[Features](#features) • [Installation](#getting-started) • [Documentation](#documentation) • [Contributing](./CONTRIBUTING.md)
+
+</div>
 
 ## Features
 
 - 🔍 **Complete FOFA API Integration** - All API endpoints supported
 - 💾 **Query History** - Save and manage your search queries
 - 📊 **Result Storage** - Store query results in SQLite database
-- 📄 **Export to TXT** - Export results in text format
+- 📄 **Export Results** - Export results in JSON, TXT, or CSV formats
 - 🔐 **API Key Management** - Secure API key storage
 - 🎨 **Hacker-Style UI** - Modern, professional interface with terminal aesthetics
 
@@ -39,16 +50,15 @@ npm run dev
 
 The application will be available at:
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
+- Backend API: http://localhost:3002 (default, configurable via `.env`)
 
 ### First Time Setup
 
 1. Start the application: `npm run dev`
 2. Navigate to the Settings page (CONFIG in sidebar)
-3. Enter your FOFA API credentials:
-   - FOFA Email: Your FOFA account email
-   - FOFA API Key: Your API key from https://fofa.info/user/personal
+3. Enter your FOFA API Key from https://fofa.info/user/personal
 4. Click "SAVE" to store your credentials
+   - Note: Your email will be automatically retrieved from your account info
 
 ### Build for Production
 
@@ -64,9 +74,16 @@ After building, you can run the production server:
 # Start the server
 npm run build:server
 
-# The server will run on port 3001 (or PORT from .env)
+# The server will run on port 3002 (or PORT from .env)
 # Serve the frontend build from dist/client using any static file server
 ```
+
+## Documentation
+
+- [Environment Variables](./docs/ENVIRONMENT.md) - Configuration guide
+- [Troubleshooting](./docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Contributing](./CONTRIBUTING.md) - How to contribute
+- [Changelog](./CHANGELOG.md) - Version history
 
 ## Project Structure
 
@@ -84,6 +101,8 @@ fofa/
 │   │   ├── hooks/       # Custom hooks
 │   │   └── utils/       # Utilities
 │   └── shared/          # Shared types
+├── docs/                # Documentation
+├── .github/             # GitHub templates and workflows
 ├── data/                # SQLite database files
 └── public/              # Static assets
 ```
@@ -106,7 +125,24 @@ fofa/
 - `POST /api/config/key` - Save API key
 - `GET /api/config/key` - Get API key (masked)
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## Acknowledgments
+
+- [FOFA](https://fofa.info/) - For providing the excellent security search engine API
+- Design inspiration from terminal and hacker aesthetics
+
+## Support
+
+If you find this project helpful, please consider giving it a ⭐ on GitHub!
+
+---
+
+Made with ❤️ by the FOFA Sentinel contributors
 

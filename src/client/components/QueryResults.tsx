@@ -1,12 +1,16 @@
 import { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
+import { ExportButton } from './ExportButton';
+import { type FofaQueryResult } from '../../shared/types';
 import './QueryResults.css';
 
 interface QueryResultsProps {
-  result: any;
+  result: FofaQueryResult;
   tab: string;
 }
 
 export function QueryResults({ result, tab }: QueryResultsProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   if (!result) return null;
@@ -15,15 +19,13 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     return (
       <div className="query-results">
         <div className="query-results-error">
-          <span className="error-prefix">ERROR:</span> {result.errmsg || 'Unknown error'}
+          <span className="error-prefix">{t('common.error')}:</span> {result.errmsg || t('errors.unknown')}
         </div>
       </div>
     );
   }
 
-  const handleExport = async () => {
-    // This would export the current result
-    // For now, we'll just copy to clipboard
+  const handleCopy = async () => {
     const text = JSON.stringify(result, null, 2);
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -38,42 +40,78 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
             <div className="query-results-header">
               <div className="query-results-meta">
                 <span className="meta-item">
-                  <span className="meta-label">QUERY:</span> {result.query || 'N/A'}
+                  <span className="meta-label">{t('query.results.query')}:</span> {('query' in result && result.query ? String(result.query) : 'N/A')}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">TOTAL:</span> {result.size || 0}
+                  <span className="meta-label">{t('query.results.total')}:</span> {'size' in result ? (result.size || 0) : 0}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">PAGE:</span> {result.page || 1}
+                  <span className="meta-label">{t('query.results.page')}:</span> {'page' in result ? (result.page || 1) : 1}
+                </span>
+                <span className="meta-item">
+                  <span className="meta-label">{t('query.results.displayed')}:</span> {'results' in result ? (result.results?.length || 0) : 0} {t('query.results.of')} {'size' in result ? (result.size || 0) : 0}
                 </span>
               </div>
-              <button className="btn-secondary" onClick={handleExport}>
-                {copied ? 'COPIED!' : 'COPY JSON'}
-              </button>
+              <div className="query-results-actions">
+                <button 
+                  className="btn-secondary" 
+                  onClick={handleCopy}
+                  aria-label="Copy results to clipboard"
+                >
+                  {copied ? t('common.copied') : t('query.results.copyJson')}
+                </button>
+                <ExportButton 
+                  data={result as ExportData} 
+                  filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
+                />
+              </div>
             </div>
-            {result.results && result.results.length > 0 ? (
+            {'results' in result && Array.isArray(result.results) && result.results.length > 0 ? (
               <div className="query-results-table">
                 <table>
                   <thead>
                     <tr>
-                      {result.results[0].map((_: any, idx: number) => (
-                        <th key={idx}>COL_{idx + 1}</th>
-                      ))}
+                      {(() => {
+                        const firstResult = result.results[0];
+                        if (Array.isArray(firstResult)) {
+                          return firstResult.map((_, idx: number) => (
+                            <th key={idx}>COL_{idx + 1}</th>
+                          ));
+                        } else if (typeof firstResult === 'object' && firstResult !== null) {
+                          return Object.keys(firstResult).map((key) => (
+                            <th key={key}>{key.toUpperCase()}</th>
+                          ));
+                        }
+                        return null;
+                      })()}
                     </tr>
                   </thead>
                   <tbody>
-                    {result.results.map((row: any[], rowIdx: number) => (
-                      <tr key={rowIdx}>
-                        {row.map((cell: any, cellIdx: number) => (
-                          <td key={cellIdx}>{cell || '-'}</td>
-                        ))}
-                      </tr>
-                    ))}
+                    {result.results.map((row: unknown, rowIdx: number) => {
+                      if (Array.isArray(row)) {
+                        return (
+                          <tr key={rowIdx}>
+                            {row.map((cell: unknown, cellIdx: number) => (
+                              <td key={cellIdx}>{String(cell ?? '-')}</td>
+                            ))}
+                          </tr>
+                        );
+                      } else if (typeof row === 'object' && row !== null) {
+                        return (
+                          <tr key={rowIdx}>
+                            {Object.values(row).map((cell: unknown, cellIdx: number) => (
+                              <td key={cellIdx}>{String(cell ?? '-')}</td>
+                            ))}
+                          </tr>
+                        );
+                      }
+                      return null;
+                    })}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <div className="query-results-empty">No results found</div>
+              <div className="query-results-empty">{t('common.noResults')}</div>
             )}
           </div>
         );
@@ -83,9 +121,19 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
         return (
           <div className="query-results-content">
             <pre className="query-results-json">{JSON.stringify(result, null, 2)}</pre>
-            <button className="btn-secondary" onClick={handleExport}>
-              {copied ? 'COPIED!' : 'COPY JSON'}
-            </button>
+            <div className="query-results-actions">
+              <button 
+                className="btn-secondary" 
+                onClick={handleCopy}
+                aria-label="Copy results to clipboard"
+              >
+                {copied ? t('common.copied') : t('query.results.copyJson')}
+              </button>
+              <ExportButton 
+                data={result} 
+                filename={`fofa_${tab}_${Date.now()}`}
+              />
+            </div>
           </div>
         );
       default:
@@ -97,7 +145,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     <div className="query-results">
       <div className="query-results-title">
         <span className="title-prefix">{'>'}</span>
-        RESULTS
+        {t('query.results.title')}
       </div>
       {renderContent()}
     </div>
