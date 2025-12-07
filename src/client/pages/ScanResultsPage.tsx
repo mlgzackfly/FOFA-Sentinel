@@ -344,9 +344,8 @@ export function ScanResultsPage() {
                   <table>
                     <thead>
                       <tr>
-                        <th>{t('scanResults.results.host')}</th>
-                        <th>{t('scanResults.results.status')}</th>
                         <th>{t('scanResults.results.testedUrl')}</th>
+                        <th>{t('scanResults.results.status')}</th>
                         <th>{t('scanResults.results.error')}</th>
                         <th>{t('scanResults.results.notes')}</th>
                         <th>{t('scanResults.results.tags')}</th>
