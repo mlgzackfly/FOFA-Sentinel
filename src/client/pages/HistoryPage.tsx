@@ -44,26 +44,6 @@ export function HistoryPage() {
     }
   };
 
-  const handleExport = async (id: number) => {
-    try {
-      const response = await fetch(`/api/history/${id}/export`);
-      if (!response.ok) {
-        throw new Error(t('errors.failedToExport'));
-      }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `fofa_export_${id}_${Date.now()}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error: any) {
-      setError(error.message || t('errors.failedToExport'));
-      console.error('Failed to export:', error);
-    }
-  };
 
   return (
     <div className="history-page">
@@ -89,7 +69,6 @@ export function HistoryPage() {
         <HistoryList
           history={history}
           onDelete={handleDelete}
-          onExport={handleExport}
           onRefresh={loadHistory}
         />
       )}

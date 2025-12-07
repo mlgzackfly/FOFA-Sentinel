@@ -21,7 +21,7 @@ historyRoutes.get('/', (req, res) => {
           full, 
           created_at, 
           updated_at,
-          (SELECT COUNT(*) FROM query_results WHERE history_id = query_history.id) as result_count
+          COALESCE((SELECT SUM(total_size) FROM query_results WHERE history_id = query_history.id), 0) as result_count
         FROM query_history 
         ORDER BY created_at DESC 
         LIMIT ? OFFSET ?`
@@ -193,6 +193,10 @@ historyRoutes.get('/:id/export', (req, res) => {
       )
       .all(historyId);
 
+    if (!results || results.length === 0) {
+      return res.status(404).json({ error: 'No results found for this query' });
+    }
+
     let txtContent = `FOFA Query Export\n`;
     txtContent += `==================\n\n`;
     txtContent += `Query: ${history.query}\n`;
@@ -200,17 +204,48 @@ historyRoutes.get('/:id/export', (req, res) => {
     txtContent += `\n${'='.repeat(50)}\n\n`;
 
     results.forEach((result: any, index: number) => {
-      const data = JSON.parse(result.result_data);
-      txtContent += `Result Set ${index + 1} (Page: ${result.page || 'N/A'}, Total: ${result.total_size || 'N/A'})\n`;
-      txtContent += `-`.repeat(50) + `\n`;
+      try {
+        let data;
+        if (typeof result.result_data === 'string') {
+          data = JSON.parse(result.result_data);
+        } else {
+          data = result.result_data;
+        }
 
-      if (data.results && Array.isArray(data.results)) {
-        data.results.forEach((row: any[], rowIndex: number) => {
-          txtContent += `${rowIndex + 1}. ${row.join(' | ')}\n`;
-        });
+        txtContent += `Result Set ${index + 1} (Page: ${result.page || 'N/A'}, Total: ${result.total_size || 'N/A'})\n`;
+        txtContent += `-`.repeat(50) + `\n`;
+
+        if (data && data.results && Array.isArray(data.results)) {
+          data.results.forEach((row: any, rowIndex: number) => {
+            if (Array.isArray(row)) {
+              txtContent += `${rowIndex + 1}. ${row.join(' | ')}\n`;
+            } else if (typeof row === 'object') {
+              const rowValues = Object.values(row).map(v => String(v || ''));
+              txtContent += `${rowIndex + 1}. ${rowValues.join(' | ')}\n`;
+            } else {
+              txtContent += `${rowIndex + 1}. ${String(row)}\n`;
+            }
+          });
+        } else if (data && Array.isArray(data)) {
+          data.forEach((row: any, rowIndex: number) => {
+            if (Array.isArray(row)) {
+              txtContent += `${rowIndex + 1}. ${row.join(' | ')}\n`;
+            } else if (typeof row === 'object') {
+              const rowValues = Object.values(row).map(v => String(v || ''));
+              txtContent += `${rowIndex + 1}. ${rowValues.join(' | ')}\n`;
+            } else {
+              txtContent += `${rowIndex + 1}. ${String(row)}\n`;
+            }
+          });
+        } else {
+          txtContent += `No results in this set\n`;
+        }
+
+        txtContent += `\n`;
+      } catch (parseError: any) {
+        console.error(`Error parsing result set ${index + 1}:`, parseError);
+        txtContent += `Error parsing result set ${index + 1}: ${parseError.message}\n\n`;
       }
-
-      txtContent += `\n`;
     });
 
     res.setHeader('Content-Type', 'text/plain');

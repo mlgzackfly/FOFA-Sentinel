@@ -17,6 +17,7 @@ export interface FofaSearchResponse {
   mode?: string;
   query: string;
   results: any[][];
+  search_after?: string;
 }
 
 export interface FofaStatsParams {

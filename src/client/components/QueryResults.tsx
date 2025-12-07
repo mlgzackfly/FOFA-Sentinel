@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { ExportButton } from './ExportButton';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -23,7 +24,7 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     );
   }
 
-  const handleExport = async () => {
+  const handleCopy = async () => {
     const text = JSON.stringify(result, null, 2);
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -46,14 +47,24 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 <span className="meta-item">
                   <span className="meta-label">{t('query.results.page')}:</span> {result.page || 1}
                 </span>
+                <span className="meta-item">
+                  <span className="meta-label">{t('query.results.displayed')}:</span> {result.results?.length || 0} {t('query.results.of')} {result.size || 0}
+                </span>
               </div>
-              <button 
-                className="btn-secondary" 
-                onClick={handleExport}
-                aria-label="Copy results to clipboard"
-              >
-                {copied ? t('common.copied') : t('query.results.copyJson')}
-              </button>
+              <div className="query-results-actions">
+                <button 
+                  className="btn-secondary" 
+                  onClick={handleCopy}
+                  aria-label="Copy results to clipboard"
+                >
+                  {copied ? t('common.copied') : t('query.results.copyJson')}
+                </button>
+                <ExportButton 
+                  data={result} 
+                  filename={`fofa_${result.query || 'query'}_${Date.now()}`}
+                  query={result.query}
+                />
+              </div>
             </div>
             {result.results && result.results.length > 0 ? (
               <div className="query-results-table">
@@ -110,13 +121,19 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
         return (
           <div className="query-results-content">
             <pre className="query-results-json">{JSON.stringify(result, null, 2)}</pre>
-            <button 
-              className="btn-secondary" 
-              onClick={handleExport}
-              aria-label="Copy results to clipboard"
-            >
-              {copied ? 'COPIED!' : 'COPY JSON'}
-            </button>
+            <div className="query-results-actions">
+              <button 
+                className="btn-secondary" 
+                onClick={handleCopy}
+                aria-label="Copy results to clipboard"
+              >
+                {copied ? t('common.copied') : t('query.results.copyJson')}
+              </button>
+              <ExportButton 
+                data={result} 
+                filename={`fofa_${tab}_${Date.now()}`}
+              />
+            </div>
           </div>
         );
       default:

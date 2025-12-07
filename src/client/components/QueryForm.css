@@ -85,6 +85,49 @@
   accent-color: var(--color-terminal-green);
 }
 
+.query-form-date-options {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.query-form-radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.query-form-radio input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-terminal-green);
+}
+
+.query-form-date-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.query-form-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.query-form-date-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+}
+
 .query-form-actions {
   display: flex;
   gap: var(--space-3);
@@ -135,5 +178,36 @@
   color: var(--color-terminal-red);
   font-family: var(--font-mono);
   font-size: 0.875rem;
+}
+
+.query-form-progress {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-terminal-green);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--color-terminal-green);
+}
+
+.progress-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
 }
 
