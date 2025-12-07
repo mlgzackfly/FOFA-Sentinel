@@ -1,8 +1,7 @@
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from './LanguageSelector';
+import { type Page } from '../types';
 import './NavigationDrawer.css';
-
-type Page = 'query' | 'history' | 'scan-results' | 'poc' | 'settings' | 'docs';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
@@ -78,7 +77,7 @@ export function NavigationDrawer({
 
         <div className="nav-drawer-footer">
           <div className="nav-drawer-footer-line">─</div>
-          <div className="nav-drawer-footer-text">v0.1.0</div>
+          <div className="nav-drawer-footer-text">v0.2.0</div>
         </div>
       </aside>
 

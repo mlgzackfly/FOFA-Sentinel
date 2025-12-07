@@ -57,7 +57,7 @@ export const t = (key: string): string => {
     if (value && typeof value === 'object' && k in value) {
       value = (value as Record<string, unknown>)[k];
     } else {
-      console.warn(`Translation key not found: ${key}`);
+      // Translation key not found - return key as fallback
       return key;
     }
   }

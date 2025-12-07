@@ -232,10 +232,12 @@ export const zhTW = {
     saving: '儲存中...',
     apiKeySaved: 'API 金鑰已成功儲存',
     about: '關於',
-    version: 'FOFA Sentinel v0.1.0',
+    version: 'FOFA Sentinel v0.2.0',
     description: '一個現代化、駭客風格的 FOFA API 介面。',
     getApiKey: '從以下位置取得您的 API 金鑰：',
     language: '語言',
+    testModals: '測試彈出視窗',
+    testModalsDescription: '測試不同類型的彈出式視窗',
   },
 
   // Docs Page
@@ -333,6 +335,42 @@ export const zhTW = {
     paramPage: '頁碼',
     paramSize: '每頁結果數（最多 10000）',
     paramFull: '搜尋所有結果（不限於最近一年）',
+  },
+
+  // Modal Test Page
+  modalTest: {
+    title: '彈出視窗測試',
+    description: '點擊下面的按鈕測試不同類型的彈出視窗',
+    buttons: {
+      error: '測試錯誤',
+      warning: '測試警告',
+      success: '測試成功',
+      info: '測試資訊',
+      default: '測試預設',
+      longText: '測試長文本',
+    },
+    types: {
+      error: '錯誤',
+      warning: '警告',
+      success: '成功',
+      info: '資訊',
+      longText: '長文本測試',
+    },
+    messages: {
+      error: '這是一個錯誤提示',
+      warning: '這是一個警告提示',
+      success: '操作成功完成！',
+      info: '這是一條資訊提示',
+      default: '這是預設的資訊提示',
+      long: '這是一條非常長的錯誤消息，用來測試彈出視窗如何處理長文本內容。這條消息應該能夠正確換行，並且不會超出視窗邊界。',
+    },
+    instructions: {
+      title: '測試說明：',
+      item1: '點擊按鈕後會顯示對應類型的彈出視窗',
+      item2: '可以點擊 "OK" 按鈕或按 ESC 鍵關閉',
+      item3: '可以點擊背景遮罩關閉',
+      item4: '不同類型的視窗有不同的左邊框顏色',
+    },
   },
 
   // Error Messages

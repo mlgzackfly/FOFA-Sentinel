@@ -233,10 +233,12 @@ export const en = {
     saving: 'SAVING...',
     apiKeySaved: 'API key saved successfully',
     about: 'ABOUT',
-    version: 'FOFA Sentinel v0.1.0',
+    version: 'FOFA Sentinel v0.2.0',
     description: 'A modern, hacker-style interface for the FOFA API.',
     getApiKey: 'Get your API key from:',
     language: 'LANGUAGE',
+    testModals: 'TEST MODALS',
+    testModalsDescription: 'Test different types of modal dialogs',
   },
 
   // Docs Page
@@ -338,6 +340,42 @@ export const en = {
     paramPage: 'Page number',
     paramSize: 'Results per page (max 10000)',
     paramFull: 'Search all results (not just last year)',
+  },
+
+  // Modal Test Page
+  modalTest: {
+    title: 'MODAL TEST',
+    description: 'Click the buttons below to test different types of modal dialogs',
+    buttons: {
+      error: 'Test Error',
+      warning: 'Test Warning',
+      success: 'Test Success',
+      info: 'Test Info',
+      default: 'Test Default',
+      longText: 'Test Long Text',
+    },
+    types: {
+      error: 'Error',
+      warning: 'Warning',
+      success: 'Success',
+      info: 'Info',
+      longText: 'Long Text Test',
+    },
+    messages: {
+      error: 'This is an error message',
+      warning: 'This is a warning message',
+      success: 'Operation completed successfully!',
+      info: 'This is an info message',
+      default: 'This is a default message',
+      long: 'This is a very long error message to test how the modal dialog handles long text content. This message should wrap correctly and not exceed the modal boundaries.',
+    },
+    instructions: {
+      title: 'Test Instructions:',
+      item1: 'Clicking a button will display the corresponding type of modal dialog',
+      item2: 'You can close by clicking the "OK" button or pressing ESC key',
+      item3: 'You can close by clicking the background overlay',
+      item4: 'Different types of modals have different left border colors',
+    },
   },
 
   // Error Messages

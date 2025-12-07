@@ -11,6 +11,7 @@ import {
 } from '../utils/poc-api';
 import { formatError, getFullError } from '../utils/error-format';
 import { convertToTXT, getMimeType, ensureFileExtension } from '../utils/export';
+import { alertError } from '../utils/modal';
 import './ScanResultsPage.css';
 
 export function ScanResultsPage() {
@@ -51,9 +52,6 @@ export function ScanResultsPage() {
 
   useEffect(() => {
     if (selectedSession) {
-      console.log(
-        `[Frontend] Loading results for session: ${selectedSession.sessionId}, filter: ${filter}`
-      );
       loadResults(selectedSession.sessionId);
     } else {
       // Clear results when no session is selected
@@ -68,7 +66,7 @@ export function ScanResultsPage() {
       setSessions(data.sessions || []);
     } catch (error) {
       console.error('Failed to load sessions:', error);
-      alert(t('scanResults.loadError') || 'Failed to load sessions');
+      await alertError(t('scanResults.loadError') || 'Failed to load sessions');
     } finally {
       setLoading(false);
     }
@@ -85,7 +83,6 @@ export function ScanResultsPage() {
 
   const loadResults = async (sessionId: string) => {
     if (!sessionId) {
-      console.warn('[Frontend] loadResults called with empty sessionId');
       setResults([]);
       return;
     }
@@ -100,17 +97,7 @@ export function ScanResultsPage() {
         filterParams.status = 'error';
       }
       // When filter is 'all', filterParams will be empty, which should return all results
-
-      console.log(
-        `[Frontend] Calling getPocResults for session ${sessionId} with filterParams:`,
-        filterParams
-      );
       const data = await getPocResults(sessionId, filterParams);
-      console.log(
-        `[Frontend] Loaded ${data.results?.length || 0} results for session ${sessionId} with filter:`,
-        filter,
-        filterParams
-      );
       setResults(data.results || []);
     } catch (error) {
       console.error('[Frontend] Failed to load results:', error);
@@ -123,7 +110,7 @@ export function ScanResultsPage() {
   const handleDeleteSession = async (sessionId: string) => {
     if (!sessionId) {
       console.error('Cannot delete session: sessionId is missing');
-      alert(t('scanResults.deleteError') + ': Invalid session ID');
+      await alertError(t('scanResults.deleteError') + ': Invalid session ID');
       return;
     }
 
@@ -132,7 +119,6 @@ export function ScanResultsPage() {
     }
 
     try {
-      console.log('Attempting to delete session:', sessionId);
       await deletePocSession(sessionId);
       if (selectedSession?.sessionId === sessionId) {
         setSelectedSession(null);
@@ -143,7 +129,7 @@ export function ScanResultsPage() {
     } catch (error) {
       console.error('Failed to delete session:', error);
       const errorMessage = error instanceof Error ? error.message : t('scanResults.deleteError');
-      alert(`${t('scanResults.deleteError')}: ${errorMessage}`);
+      await alertError(`${t('scanResults.deleteError')}: ${errorMessage}`);
     }
   };
 
@@ -176,9 +162,9 @@ export function ScanResultsPage() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (results.length === 0) {
-      alert(t('scanResults.export.noResults') || 'No results to export');
+      await alertError(t('scanResults.export.noResults') || 'No results to export');
       return;
     }
 
@@ -188,7 +174,7 @@ export function ScanResultsPage() {
       .filter((url): url is string => Boolean(url));
 
     if (urls.length === 0) {
-      alert(t('scanResults.export.noUrls') || 'No URLs to export');
+      await alertError(t('scanResults.export.noUrls') || 'No URLs to export');
       return;
     }
 
@@ -321,14 +307,14 @@ export function ScanResultsPage() {
                   <div className="session-actions">
                     <button
                       className="btn-delete"
-                      onClick={e => {
+                      onClick={async e => {
                         e.stopPropagation();
                         // Always use sessionId (UUID), never use numeric id
                         if (session.sessionId) {
                           handleDeleteSession(session.sessionId);
                         } else {
                           console.error('Session ID is missing:', session);
-                          alert(t('scanResults.deleteError') + ': Session ID not found');
+                          await alertError(t('scanResults.deleteError') + ': Session ID not found');
                         }
                       }}
                       aria-label={t('common.delete')}
@@ -505,7 +491,7 @@ export function ScanResultsPage() {
                                         setEditingResult(null);
                                       } catch (error) {
                                         console.error('Failed to update result:', error);
-                                        alert(t('scanResults.updateError'));
+                                        await alertError(t('scanResults.updateError'));
                                       }
                                     }
                                   }}

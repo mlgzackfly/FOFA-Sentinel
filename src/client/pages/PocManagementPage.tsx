@@ -7,6 +7,8 @@ import {
   deletePocScript,
   type PocScript,
 } from '../utils/poc-api';
+import { alertError } from '../utils/modal';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import './PocManagementPage.css';
 
 export function PocManagementPage() {
@@ -28,7 +30,7 @@ export function PocManagementPage() {
       setPocs(data.scripts);
     } catch (error) {
       console.error('Failed to load PoCs:', error);
-      alert(t('poc.loadError') || 'Failed to load PoC scripts');
+      await alertError(t('poc.loadError') || 'Failed to load PoC scripts');
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,7 @@ export function PocManagementPage() {
   const handleSave = async () => {
     try {
       if (!formData.name || !formData.type || !formData.language || !formData.script) {
-        alert(t('poc.requiredFields') || 'Name, type, language, and script are required');
+        await alertError(t('poc.requiredFields') || 'Name, type, language, and script are required');
         return;
       }
 
@@ -79,7 +81,7 @@ export function PocManagementPage() {
       setFormData({});
     } catch (error) {
       console.error('Failed to save PoC:', error);
-      alert(t('poc.saveError') || 'Failed to save PoC script');
+      await alertError(t('poc.saveError') || 'Failed to save PoC script');
     }
   };
 
@@ -97,7 +99,7 @@ export function PocManagementPage() {
       await loadPocs();
     } catch (error) {
       console.error('Failed to delete PoC:', error);
-      alert(t('poc.deleteError') || 'Failed to delete PoC script');
+      await alertError(t('poc.deleteError') || 'Failed to delete PoC script');
     }
   };
 
@@ -154,7 +156,11 @@ export function PocManagementPage() {
                       {poc.enabled && <span className="badge badge-enabled">✓</span>}
                     </div>
                   </div>
-                  {poc.description && <div className="script-description">{poc.description}</div>}
+                  {poc.description && (
+                    <div className="script-description">
+                      <MarkdownRenderer content={poc.description} className="compact" />
+                    </div>
+                  )}
                   <div className="script-actions">
                     <button
                       className="btn-edit"
@@ -326,7 +332,11 @@ export function PocManagementPage() {
               <div className="viewer-content">
                 <div className="viewer-section">
                   <h3>{t('poc.viewer.description')}</h3>
-                  <p>{selectedPoc.description || t('poc.viewer.noDescription')}</p>
+                  {selectedPoc.description ? (
+                    <MarkdownRenderer content={selectedPoc.description} />
+                  ) : (
+                    <p>{t('poc.viewer.noDescription')}</p>
+                  )}
                 </div>
 
                 <div className="viewer-section">

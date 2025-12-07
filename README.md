@@ -33,12 +33,15 @@ A modern, hacker-style web application for proactive security reconnaissance usi
 - 📄 **Export Results** - Export results in JSON, TXT, or CSV formats
 - 🔐 **API Key Management** - Secure API key storage
 - 🎨 **Hacker-Style UI** - Modern, professional interface with terminal aesthetics
+- 📝 **Markdown Support** - PoC script descriptions support Markdown syntax
+- 🎯 **PoC Management** - Create and manage Proof of Concept scripts for vulnerability scanning
 
 ## Tech Stack
 
 - **Frontend**: React + TypeScript + Vite
 - **Backend**: Node.js + Express + TypeScript
 - **Database**: SQLite (better-sqlite3)
+- **Markdown**: react-markdown for content rendering
 
 ## Getting Started
 

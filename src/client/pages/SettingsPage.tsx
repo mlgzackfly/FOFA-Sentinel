@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { type Page } from '../types';
 import './SettingsPage.css';
 
-export function SettingsPage() {
+interface SettingsPageProps {
+  onPageChange?: (page: Page) => void;
+}
+
+export function SettingsPage({ onPageChange }: SettingsPageProps = {}) {
   const { t } = useTranslation();
   const [apiKey, setApiKey] = useState('');
   const [maskedKey, setMaskedKey] = useState<string | null>(null);
@@ -119,6 +124,24 @@ export function SettingsPage() {
                 https://fofa.info/user/personal
               </a>
             </p>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h2 className="settings-section-title">{t('settings.testModals')}</h2>
+          <div className="settings-about">
+            <p className="about-text">{t('settings.testModalsDescription')}</p>
+            {onPageChange && (
+              <div className="settings-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => onPageChange('modal-test')}
+                >
+                  {t('settings.testModals')}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

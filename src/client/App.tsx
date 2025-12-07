@@ -5,11 +5,11 @@ import { SettingsPage } from './pages/SettingsPage';
 import { DocsPage } from './pages/DocsPage';
 import { ScanResultsPage } from './pages/ScanResultsPage';
 import { PocManagementPage } from './pages/PocManagementPage';
+import { ModalTestPage } from './pages/ModalTestPage';
 import { NavigationDrawer } from './components/NavigationDrawer';
 import { getLocale } from './i18n';
+import { type Page } from './types';
 import './App.css';
-
-type Page = 'query' | 'history' | 'scan-results' | 'poc' | 'settings' | 'docs';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('query');
@@ -41,6 +41,13 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Allow access to modal test page via URL hash
+  useEffect(() => {
+    if (window.location.hash === '#modal-test') {
+      setCurrentPage('modal-test');
+    }
+  }, []);
+
   return (
     <div className="app">
       <NavigationDrawer
@@ -55,7 +62,8 @@ function App() {
         {currentPage === 'scan-results' && <ScanResultsPage />}
         {currentPage === 'poc' && <PocManagementPage />}
         {currentPage === 'docs' && <DocsPage />}
-        {currentPage === 'settings' && <SettingsPage />}
+        {currentPage === 'settings' && <SettingsPage onPageChange={setCurrentPage} />}
+        {currentPage === 'modal-test' && <ModalTestPage />}
       </main>
     </div>
   );

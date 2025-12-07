@@ -19,6 +19,7 @@ import {
   type RSCScanResult,
 } from '../utils/api';
 import { createPocSession, getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
+import { alert, alertError } from '../utils/modal';
 import './HistoryList.css';
 
 interface HistoryExportButtonWrapperProps {
@@ -364,7 +365,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
 
     const pocScriptId = selectedPocScript[historyId];
     if (!pocScriptId) {
-      alert(t('query.results.selectPoc') || 'Please select a PoC script');
+      await alert(t('query.results.selectPoc') || 'Please select a PoC script', { type: 'warning' });
       return;
     }
 
@@ -440,7 +441,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
       }
     } catch (error) {
       console.error('Failed to scan all hosts:', error);
-      alert(t('query.results.scanError') || 'Failed to start scan');
+      await alertError(t('query.results.scanError') || 'Failed to start scan');
       setScanningAll(prev => ({ ...prev, [historyId]: false }));
     }
   };

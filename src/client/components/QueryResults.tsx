@@ -19,6 +19,7 @@ import {
   getPocResults,
   type PocResult,
 } from '../utils/poc-api';
+import { alert, alertError, alertSuccess } from '../utils/modal';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -144,13 +145,6 @@ export function QueryResults({
           const newProgress = { current: scanned, total: total };
           setPocProgress(newProgress);
 
-          // Log for debugging
-          console.log(
-            `[QueryResults] PoC scan progress: ${scanned}/${total} (session: ${pocSessionId})`
-          );
-          console.log(
-            `[QueryResults] Session status: ${session.status}, scannedHosts: ${session.scannedHosts}, totalHosts: ${session.totalHosts}`
-          );
 
           // Update parent component
           if (onPocProgressUpdate) {
@@ -369,13 +363,13 @@ export function QueryResults({
         setScanningAll(false); // Don't show scanning state since it's in background
 
         // Show success message
-        alert(
+        await alertSuccess(
           t('query.results.scanStarted') ||
             'Scan started in background. Check Scan Results page for progress.'
         );
       } catch (error) {
         console.error('Failed to start background scan:', error);
-        alert(t('query.results.scanError') || 'Failed to start scan');
+        await alertError(t('query.results.scanError') || 'Failed to start scan');
       }
       return;
     }

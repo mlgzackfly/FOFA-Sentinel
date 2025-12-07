@@ -46,7 +46,7 @@ export function Sidebar({ isOpen, currentPage, onPageChange, onClose }: SidebarP
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-footer-line">─</div>
-          <div className="sidebar-footer-text">v0.1.0</div>
+          <div className="sidebar-footer-text">v0.2.0</div>
         </div>
       </aside>
     </>
