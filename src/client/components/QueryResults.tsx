@@ -20,29 +20,9 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
   const [checkResults, setCheckResults] = useState<Record<string, HealthCheckResult>>({});
   const [checkSummary, setCheckSummary] = useState<{ total: number; alive: number; dead: number } | null>(null);
 
-  if (!result) return null;
-
-  if (result.error) {
-    return (
-      <div className="query-results">
-        <div className="query-results-error">
-          <span className="error-prefix">{t('common.error')}:</span>{' '}
-          {result.errmsg || t('errors.unknown')}
-        </div>
-      </div>
-    );
-  }
-
-  const handleCopy = async () => {
-    const text = JSON.stringify(result, null, 2);
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Extract all hosts from results
+  // Extract all hosts from results - must be before early returns
   const extractHosts = useCallback((): string[] => {
-    if (!('results' in result) || !Array.isArray(result.results)) {
+    if (!result || !('results' in result) || !Array.isArray(result.results)) {
       return [];
     }
 
@@ -63,6 +43,28 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     });
     return hosts;
   }, [result]);
+
+  const handleCopy = async () => {
+    if (!result) return;
+    const text = JSON.stringify(result, null, 2);
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Early returns after all hooks
+  if (!result) return null;
+
+  if (result.error) {
+    return (
+      <div className="query-results">
+        <div className="query-results-error">
+          <span className="error-prefix">{t('common.error')}:</span>{' '}
+          {result.errmsg || t('errors.unknown')}
+        </div>
+      </div>
+    );
+  }
 
   // Batch check all hosts
   const handleCheckAll = async () => {
