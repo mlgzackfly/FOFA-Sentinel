@@ -135,6 +135,7 @@ export const zhTW = {
       edit: '編輯',
       notesPlaceholder: '添加筆記...',
       tagsPlaceholder: '標籤1, 標籤2, 標籤3',
+      noTagsAvailable: '無可用標籤',
     },
     filter: {
       all: '全部',
