@@ -38,10 +38,7 @@ RUN npm ci
 COPY src/server ./src/server
 COPY src/shared ./src/shared
 
-# Build backend (TypeScript compilation)
-RUN npm run build:server || true
-
-# Note: build:server runs the server, so we just compile TypeScript
+# Build backend (TypeScript compilation only)
 RUN npx tsc -p tsconfig.server.json
 
 # Stage 3: Production image
