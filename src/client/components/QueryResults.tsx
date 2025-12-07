@@ -145,9 +145,12 @@ export function QueryResults({
           setPocProgress(newProgress);
 
           // Log for debugging
-          if (total > 0 && scanned !== total) {
-            console.log(`PoC scan progress: ${scanned}/${total}`);
-          }
+          console.log(
+            `[QueryResults] PoC scan progress: ${scanned}/${total} (session: ${pocSessionId})`
+          );
+          console.log(
+            `[QueryResults] Session status: ${session.status}, scannedHosts: ${session.scannedHosts}, totalHosts: ${session.totalHosts}`
+          );
 
           // Update parent component
           if (onPocProgressUpdate) {

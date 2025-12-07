@@ -106,10 +106,14 @@ pocRoutes.post('/scan-batch', async (req, res) => {
 
     // Create session immediately
     const session = createScanSession(name, description, query);
+    console.log(`[scan-batch] Created session ${session.sessionId} for ${hosts.length} hosts`);
     updateScanSession(session.sessionId, {
       totalHosts: hosts.length,
       status: 'scanning',
     });
+    console.log(
+      `[scan-batch] Updated session ${session.sessionId} with totalHosts: ${hosts.length}`
+    );
 
     // Return session ID immediately, scan will continue in background
     res.json({
