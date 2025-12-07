@@ -139,7 +139,7 @@ export const en = {
     },
     export: {
       title: 'Export filtered results to TXT',
-      export: 'Export TXT',
+      export: 'Export',
       noResults: 'No results to export',
       noUrls: 'No URLs to export',
     },

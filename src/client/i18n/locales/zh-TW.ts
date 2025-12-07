@@ -139,7 +139,7 @@ export const zhTW = {
     },
     export: {
       title: '匯出篩選結果為 TXT',
-      export: '匯出 TXT',
+      export: '匯出',
       noResults: '無結果可匯出',
       noUrls: '無 URL 可匯出',
     },

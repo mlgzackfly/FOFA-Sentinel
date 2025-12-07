@@ -139,7 +139,7 @@ export const zhCN = {
     },
     export: {
       title: '导出筛选结果为 TXT',
-      export: '导出 TXT',
+      export: '导出',
       noResults: '无结果可导出',
       noUrls: '无 URL 可导出',
     },
