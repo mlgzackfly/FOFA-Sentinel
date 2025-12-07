@@ -61,6 +61,13 @@ export const en = {
       displayed: 'DISPLAYED',
       of: 'of',
       copyJson: 'COPY JSON',
+      checkAll: 'CHECK ALL',
+      checking: 'CHECKING',
+      summary: {
+        total: 'Total',
+        alive: 'Alive',
+        dead: 'Dead',
+      },
     },
   },
 

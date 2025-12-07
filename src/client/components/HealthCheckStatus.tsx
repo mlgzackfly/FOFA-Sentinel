@@ -5,13 +5,26 @@ import './HealthCheckStatus.css';
 interface HealthCheckStatusProps {
   host: string;
   autoCheck?: boolean;
+  externalResult?: HealthCheckResult;
 }
 
 type Status = 'idle' | 'checking' | 'alive' | 'dead';
 
-export function HealthCheckStatus({ host, autoCheck = false }: HealthCheckStatusProps) {
+export function HealthCheckStatus({
+  host,
+  autoCheck = false,
+  externalResult,
+}: HealthCheckStatusProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<HealthCheckResult | null>(null);
+
+  // Update status when external result is provided
+  useEffect(() => {
+    if (externalResult) {
+      setResult(externalResult);
+      setStatus(externalResult.alive ? 'alive' : 'dead');
+    }
+  }, [externalResult]);
 
   const performCheck = async () => {
     if (!host) return;

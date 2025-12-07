@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
 import { HealthCheckStatus } from './HealthCheckStatus';
 import { type FofaQueryResult } from '../../shared/types';
 import { type ExportData } from '../utils/export';
+import { checkHostsHealth, type HealthCheckResult } from '../utils/api';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -14,6 +15,10 @@ interface QueryResultsProps {
 export function QueryResults({ result, tab }: QueryResultsProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const [checkingAll, setCheckingAll] = useState(false);
+  const [checkProgress, setCheckProgress] = useState({ current: 0, total: 0 });
+  const [checkResults, setCheckResults] = useState<Record<string, HealthCheckResult>>({});
+  const [checkSummary, setCheckSummary] = useState<{ total: number; alive: number; dead: number } | null>(null);
 
   if (!result) return null;
 
@@ -33,6 +38,77 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Extract all hosts from results
+  const extractHosts = useCallback((): string[] => {
+    if (!('results' in result) || !Array.isArray(result.results)) {
+      return [];
+    }
+
+    const hosts: string[] = [];
+    result.results.forEach((row: unknown) => {
+      let hostValue = '';
+      if (Array.isArray(row) && row.length > 0) {
+        hostValue = String(row[0] ?? '').trim();
+      } else if (typeof row === 'object' && row !== null) {
+        const rowObj = row as Record<string, unknown>;
+        hostValue = String(
+          rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? ''
+        ).trim();
+      }
+      if (hostValue && !hosts.includes(hostValue)) {
+        hosts.push(hostValue);
+      }
+    });
+    return hosts;
+  }, [result]);
+
+  // Batch check all hosts
+  const handleCheckAll = async () => {
+    const hosts = extractHosts();
+    if (hosts.length === 0) {
+      return;
+    }
+
+    setCheckingAll(true);
+    setCheckProgress({ current: 0, total: hosts.length });
+    setCheckSummary(null);
+
+    try {
+      // Check hosts in batches to avoid overwhelming the server
+      const batchSize = 10;
+      const resultsMap: Record<string, HealthCheckResult> = {};
+      let aliveCount = 0;
+      let deadCount = 0;
+
+      for (let i = 0; i < hosts.length; i += batchSize) {
+        const batch = hosts.slice(i, i + batchSize);
+        const batchResults = await checkHostsHealth(batch, { timeout: 5000 });
+
+        batchResults.forEach((checkResult) => {
+          resultsMap[checkResult.host] = checkResult;
+          if (checkResult.alive) {
+            aliveCount++;
+          } else {
+            deadCount++;
+          }
+        });
+
+        setCheckResults({ ...resultsMap });
+        setCheckProgress({ current: Math.min(i + batchSize, hosts.length), total: hosts.length });
+      }
+
+      setCheckSummary({
+        total: hosts.length,
+        alive: aliveCount,
+        dead: deadCount,
+      });
+    } catch (error) {
+      console.error('Failed to check all hosts:', error);
+    } finally {
+      setCheckingAll(false);
+    }
   };
 
   const renderContent = () => {
@@ -69,6 +145,18 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 >
                   {copied ? t('common.copied') : t('query.results.copyJson')}
                 </button>
+                {'results' in result && Array.isArray(result.results) && result.results.length > 0 ? (
+                  <button
+                    className="btn-secondary btn-check-all"
+                    onClick={handleCheckAll}
+                    disabled={checkingAll}
+                    aria-label="Check all hosts"
+                  >
+                    {checkingAll
+                      ? `${t('query.results.checking')} (${checkProgress.current}/${checkProgress.total})`
+                      : t('query.results.checkAll')}
+                  </button>
+                ) : null}
                 {'results' in result ? (
                   <ExportButton
                     data={
@@ -79,6 +167,22 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 ) : null}
               </div>
             </div>
+            {checkSummary && (
+              <div className="query-results-summary">
+                <div className="summary-item summary-total">
+                  <span className="summary-label">{t('query.results.summary.total')}:</span>
+                  <span className="summary-value">{checkSummary.total}</span>
+                </div>
+                <div className="summary-item summary-alive">
+                  <span className="summary-label">{t('query.results.summary.alive')}:</span>
+                  <span className="summary-value">{checkSummary.alive}</span>
+                </div>
+                <div className="summary-item summary-dead">
+                  <span className="summary-label">{t('query.results.summary.dead')}:</span>
+                  <span className="summary-value">{checkSummary.dead}</span>
+                </div>
+              </div>
+            )}
             {'results' in result && Array.isArray(result.results) && result.results.length > 0 ? (
               <div className="query-results-table">
                 <table>
@@ -118,7 +222,14 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                               <td key={cellIdx}>{String(cell ?? '-')}</td>
                             ))}
                             <td className="health-check-cell">
-                              {hostValue ? <HealthCheckStatus host={hostValue} /> : '-'}
+                              {hostValue ? (
+                                <HealthCheckStatus
+                                  host={hostValue}
+                                  externalResult={checkResults[hostValue]}
+                                />
+                              ) : (
+                                '-'
+                              )}
                             </td>
                           </tr>
                         );
@@ -129,7 +240,14 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                               <td key={cellIdx}>{String(cell ?? '-')}</td>
                             ))}
                             <td className="health-check-cell">
-                              {hostValue ? <HealthCheckStatus host={hostValue} /> : '-'}
+                              {hostValue ? (
+                                <HealthCheckStatus
+                                  host={hostValue}
+                                  externalResult={checkResults[hostValue]}
+                                />
+                              ) : (
+                                '-'
+                              )}
                             </td>
                           </tr>
                         );
