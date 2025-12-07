@@ -13,6 +13,16 @@ A modern, hacker-style web application for proactive security reconnaissance usi
 
 </div>
 
+## Screenshot
+
+<div align="center">
+
+![Query Interface](./docs/screenshots/query-interface.png)
+
+*FOFA Sentinel Query Interface*
+
+</div>
+
 ## Features
 
 - 🔍 **Complete FOFA API Integration** - All API endpoints supported
