@@ -87,8 +87,61 @@ After building, you can run the production server:
 npm run build:server
 
 # The server will run on port 3002 (or PORT from .env)
-# Serve the frontend build from dist/client using any static file server
+# The server will automatically serve the frontend build from dist/client
 ```
+
+### Docker Deployment
+
+#### Using Docker Compose (Recommended)
+
+```bash
+# Build and start the container
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the container
+docker-compose down
+```
+
+The application will be available at http://localhost:3002
+
+#### Using Docker directly
+
+```bash
+# Build the image
+docker build -t fofa-sentinel .
+
+# Run the container
+docker run -d \
+  --name fofa-sentinel \
+  -p 3002:3002 \
+  -v $(pwd)/data:/app/data \
+  fofa-sentinel
+
+# View logs
+docker logs -f fofa-sentinel
+
+# Stop the container
+docker stop fofa-sentinel
+docker rm fofa-sentinel
+```
+
+#### Environment Variables
+
+You can set environment variables in `docker-compose.yml` or pass them when running:
+
+```bash
+docker run -d \
+  --name fofa-sentinel \
+  -p 3002:3002 \
+  -e PORT=3002 \
+  -v $(pwd)/data:/app/data \
+  fofa-sentinel
+```
+
+**Note**: The database will be persisted in the `./data` directory. Make sure this directory exists and has proper permissions.
 
 ## Documentation
 
