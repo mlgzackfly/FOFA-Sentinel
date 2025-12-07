@@ -77,6 +77,7 @@ export const zhCN = {
     exportToTxt: '导出为 TXT',
     deleteQuery: '删除查询',
     resultSet: '结果集',
+    query: '查询',
     noResultsSaved: '未保存结果',
   },
   

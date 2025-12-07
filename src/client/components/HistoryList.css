@@ -201,3 +201,38 @@
   font-size: 0.75rem;
 }
 
+.history-item-title {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-terminal-green);
+  text-align: left;
+  letter-spacing: 0.05em;
+}
+
+.history-item-query-section {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  background: rgba(0, 255, 136, 0.05);
+  border-left: 2px solid var(--color-terminal-green);
+  border-radius: 4px;
+}
+
+.query-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.query-section-content {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+  line-height: 1.6;
+}
+

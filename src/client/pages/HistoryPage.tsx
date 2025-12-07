@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { HistoryList } from '../components/HistoryList';
 import { useTranslation } from '../hooks/useTranslation';
+import { type HistoryItem } from '../../shared/types';
 import './HistoryPage.css';
 
 export function HistoryPage() {
   const { t } = useTranslation();
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -5,9 +5,11 @@ import './QueryForm.css';
 
 type QueryTab = 'search' | 'stats' | 'host' | 'account';
 
+import { type FofaQueryResult } from '../../shared/types';
+
 interface QueryFormProps {
   tab: QueryTab;
-  onResult: (result: any) => void;
+  onResult: (result: FofaQueryResult) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
 }
@@ -35,7 +37,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
 
   const buildQueryWithDateFilter = (baseQuery: string): string => {
     // Remove any existing date-related syntax from the query
-    let cleanedQuery = baseQuery
+    const cleanedQuery = baseQuery
       .replace(/\s*&&\s*after="[^"]*"/gi, '')
       .replace(/\s*&&\s*before="[^"]*"/gi, '')
       .replace(/after="[^"]*"\s*&&\s*/gi, '')
@@ -150,9 +152,9 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       }
 
       onResult(result);
-    } catch (err: any) {
-      setError(err.message || t('errors.unknown'));
-      onResult(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errors.unknown'));
+      onResult({ error: true, errmsg: err instanceof Error ? err.message : t('errors.unknown') });
     } finally {
       setLoading(false);
     }

@@ -21,13 +21,6 @@
   z-index: 0;
 }
 
-.app-layout {
-  display: flex;
-  flex: 1;
-  position: relative;
-  z-index: 1;
-  min-height: 0;
-}
 
 .app-main {
   flex: 1;
@@ -35,12 +28,21 @@
   overflow-y: auto;
   margin-left: 0;
   transition: margin-left var(--transition-normal);
+  min-height: 100vh;
+  position: relative;
 }
 
 @media (min-width: 1024px) {
   .app-main {
-    margin-left: 280px;
+    margin-left: 0;
     padding: var(--space-8);
+    padding-top: calc(var(--space-8) + 60px);
+    transition: margin-left var(--transition-normal), padding-top var(--transition-normal);
+  }
+  
+  .app-main.drawer-open {
+    margin-left: 280px;
+    padding-top: var(--space-8);
   }
 }
 

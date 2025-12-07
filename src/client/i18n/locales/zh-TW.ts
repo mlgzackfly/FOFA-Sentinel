@@ -77,6 +77,7 @@ export const zhTW = {
     exportToTxt: '匯出為 TXT',
     deleteQuery: '刪除查詢',
     resultSet: '結果集',
+    query: '查詢',
     noResultsSaved: '未儲存結果',
   },
   

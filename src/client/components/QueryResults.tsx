@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
+import { type FofaQueryResult } from '../../shared/types';
 import './QueryResults.css';
 
 interface QueryResultsProps {
-  result: any;
+  result: FofaQueryResult;
   tab: string;
 }
 
@@ -39,16 +40,16 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
             <div className="query-results-header">
               <div className="query-results-meta">
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.query')}:</span> {result.query || 'N/A'}
+                  <span className="meta-label">{t('query.results.query')}:</span> {('query' in result && result.query ? String(result.query) : 'N/A')}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.total')}:</span> {result.size || 0}
+                  <span className="meta-label">{t('query.results.total')}:</span> {'size' in result ? (result.size || 0) : 0}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.page')}:</span> {result.page || 1}
+                  <span className="meta-label">{t('query.results.page')}:</span> {'page' in result ? (result.page || 1) : 1}
                 </span>
                 <span className="meta-item">
-                  <span className="meta-label">{t('query.results.displayed')}:</span> {result.results?.length || 0} {t('query.results.of')} {result.size || 0}
+                  <span className="meta-label">{t('query.results.displayed')}:</span> {'results' in result ? (result.results?.length || 0) : 0} {t('query.results.of')} {'size' in result ? (result.size || 0) : 0}
                 </span>
               </div>
               <div className="query-results-actions">
@@ -60,13 +61,12 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                   {copied ? t('common.copied') : t('query.results.copyJson')}
                 </button>
                 <ExportButton 
-                  data={result} 
-                  filename={`fofa_${result.query || 'query'}_${Date.now()}`}
-                  query={result.query}
+                  data={result as ExportData} 
+                  filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
                 />
               </div>
             </div>
-            {result.results && result.results.length > 0 ? (
+            {'results' in result && Array.isArray(result.results) && result.results.length > 0 ? (
               <div className="query-results-table">
                 <table>
                   <thead>
@@ -74,10 +74,10 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                       {(() => {
                         const firstResult = result.results[0];
                         if (Array.isArray(firstResult)) {
-                          return firstResult.map((_: any, idx: number) => (
+                          return firstResult.map((_, idx: number) => (
                             <th key={idx}>COL_{idx + 1}</th>
                           ));
-                        } else if (typeof firstResult === 'object') {
+                        } else if (typeof firstResult === 'object' && firstResult !== null) {
                           return Object.keys(firstResult).map((key) => (
                             <th key={key}>{key.toUpperCase()}</th>
                           ));
@@ -87,20 +87,20 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {result.results.map((row: any, rowIdx: number) => {
+                    {result.results.map((row: unknown, rowIdx: number) => {
                       if (Array.isArray(row)) {
                         return (
                           <tr key={rowIdx}>
-                            {row.map((cell: any, cellIdx: number) => (
-                              <td key={cellIdx}>{cell || '-'}</td>
+                            {row.map((cell: unknown, cellIdx: number) => (
+                              <td key={cellIdx}>{String(cell ?? '-')}</td>
                             ))}
                           </tr>
                         );
-                      } else if (typeof row === 'object') {
+                      } else if (typeof row === 'object' && row !== null) {
                         return (
                           <tr key={rowIdx}>
-                            {Object.values(row).map((cell: any, cellIdx: number) => (
-                              <td key={cellIdx}>{cell || '-'}</td>
+                            {Object.values(row).map((cell: unknown, cellIdx: number) => (
+                              <td key={cellIdx}>{String(cell ?? '-')}</td>
                             ))}
                           </tr>
                         );

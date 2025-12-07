@@ -24,14 +24,14 @@ export function DocsPage() {
             <h3 className="docs-subtitle">{t('docs.basicSyntax')}</h3>
             <p className="docs-text">{t('docs.basicSyntaxDesc')}</p>
             <div className="docs-code-block">
-              <code>field="value"</code>
+              <code>field=&quot;value&quot;</code>
             </div>
             <div className="docs-example">
               <div className="docs-example-label">{t('docs.examples')}</div>
-              <code>title="admin"</code>
-              <code>ip="192.168.1.1"</code>
-              <code>port="80"</code>
-              <code>domain="example.com"</code>
+              <code>title=&quot;admin&quot;</code>
+              <code>ip=&quot;192.168.1.1&quot;</code>
+              <code>port=&quot;80&quot;</code>
+              <code>domain=&quot;example.com&quot;</code>
             </div>
 
             <h3 className="docs-subtitle">{t('docs.logicalOperators')}</h3>
@@ -44,7 +44,7 @@ export function DocsPage() {
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>&&</code></div>
                 <div className="docs-table-cell">{t('docs.operatorAnd')}</div>
-                <div className="docs-table-cell"><code>title="login" && body="password"</code></div>
+                <div className="docs-table-cell"><code>title=&quot;login&quot; && body=&quot;password&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>||</code></div>
@@ -54,7 +54,7 @@ export function DocsPage() {
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>!=</code></div>
                 <div className="docs-table-cell">{t('docs.operatorNotEqual')}</div>
-                <div className="docs-table-cell"><code>country!="CN"</code></div>
+                <div className="docs-table-cell"><code>country!=&quot;CN&quot;</code></div>
               </div>
             </div>
 

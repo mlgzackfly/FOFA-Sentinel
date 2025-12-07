@@ -1,79 +1,20 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { convertToCSV, convertToTXT, type ExportData, type ExportFormat, getMimeType, getFileExtension, ensureFileExtension } from '../utils/export';
 import './ExportButton.css';
 
-type ExportFormat = 'json' | 'txt' | 'csv';
-
 interface ExportButtonProps {
-  data: any;
+  data: ExportData;
   filename?: string;
-  query?: string;
-  onExportClick?: (format: 'json' | 'txt' | 'csv') => void;
+  onExportClick?: (format: ExportFormat) => void;
   isLoading?: boolean;
 }
 
-export function ExportButton({ data, filename, query, onExportClick, isLoading = false }: ExportButtonProps) {
+export function ExportButton({ data, filename, onExportClick, isLoading = false }: ExportButtonProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const buttonRef = useRef<HTMLDivElement>(null);
-
-  const convertToCSV = (data: any): string => {
-    if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
-      return '';
-    }
-
-    const firstRow = data.results[0];
-    let headers: string[] = [];
-    let rows: any[][] = [];
-
-    if (Array.isArray(firstRow)) {
-      headers = firstRow.map((_, idx) => `COL_${idx + 1}`);
-      rows = data.results.map((row: any[]) => row);
-    } else if (typeof firstRow === 'object') {
-      headers = Object.keys(firstRow);
-      rows = data.results.map((row: any) => Object.values(row));
-    }
-
-    const csvRows = [
-      headers.join(','),
-      ...rows.map((row) =>
-        row.map((cell: any) => {
-          const value = cell?.toString() || '';
-          if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-            return `"${value.replace(/"/g, '""')}"`;
-          }
-          return value;
-        }).join(',')
-      ),
-    ];
-
-    return csvRows.join('\n');
-  };
-
-  const convertToTXT = (data: any): string => {
-    if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-      const hosts: string[] = [];
-      
-      data.results.forEach((row: any) => {
-        if (Array.isArray(row)) {
-          const host = row[0];
-          if (host && typeof host === 'string') {
-            hosts.push(host);
-          }
-        } else if (typeof row === 'object') {
-          const host = row.host || row.HOST || row[0];
-          if (host && typeof host === 'string') {
-            hosts.push(host);
-          }
-        }
-      });
-
-      return hosts.join('\n');
-    }
-
-    return '';
-  };
 
   const handleExport = async (format: ExportFormat) => {
     if (onExportClick) {
@@ -87,36 +28,30 @@ export function ExportButton({ data, filename, query, onExportClick, isLoading =
 
     try {
       let content = '';
-      let mimeType = '';
-      let extension = '';
-
       switch (format) {
         case 'json':
           content = JSON.stringify(data, null, 2);
-          mimeType = 'application/json';
-          extension = 'json';
           break;
         case 'txt':
           content = convertToTXT(data);
-          mimeType = 'text/plain';
-          extension = 'txt';
           break;
         case 'csv':
           content = convertToCSV(data);
-          mimeType = 'text/csv';
-          extension = 'csv';
           break;
       }
+
+      const mimeType = getMimeType(format);
+      const fileExtension = getFileExtension(format);
 
       const blob = new Blob([content], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       
-      let downloadFilename = filename || `fofa_export_${Date.now()}`;
-      if (!downloadFilename.endsWith(`.${extension}`)) {
-        downloadFilename = `${downloadFilename}.${extension}`;
-      }
+      const downloadFilename = ensureFileExtension(
+        filename || `fofa_export_${Date.now()}`,
+        fileExtension
+      );
       a.download = downloadFilename;
       
       document.body.appendChild(a);

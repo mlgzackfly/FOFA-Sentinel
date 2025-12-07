@@ -3,6 +3,7 @@ import { QueryForm } from '../components/QueryForm';
 import { QueryResults } from '../components/QueryResults';
 import { TabSelector } from '../components/TabSelector';
 import { useTranslation } from '../hooks/useTranslation';
+import { type FofaQueryResult } from '../../shared/types';
 import './QueryPage.css';
 
 type QueryTab = 'search' | 'stats' | 'host' | 'account';
@@ -10,7 +11,7 @@ type QueryTab = 'search' | 'stats' | 'host' | 'account';
 export function QueryPage() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<QueryTab>('search');
-  const [queryResult, setQueryResult] = useState<any>(null);
+  const [queryResult, setQueryResult] = useState<FofaQueryResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

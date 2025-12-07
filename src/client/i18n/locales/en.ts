@@ -77,6 +77,7 @@ export const en = {
     exportToTxt: 'Export to TXT',
     deleteQuery: 'Delete query',
     resultSet: 'Result Set',
+    query: 'QUERY',
     noResultsSaved: 'No results saved',
   },
   

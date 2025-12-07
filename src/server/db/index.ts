@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { randomUUID } from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,7 @@ export function initDatabase(): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS query_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_id TEXT,
       query TEXT NOT NULL,
       query_base64 TEXT NOT NULL,
       fields TEXT,
@@ -39,6 +41,29 @@ export function initDatabase(): void {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  try {
+    const hasTaskIdColumn = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM pragma_table_info('query_history') 
+      WHERE name = 'task_id'
+    `).get() as { count: number };
+
+    if (hasTaskIdColumn.count === 0) {
+      db.exec(`ALTER TABLE query_history ADD COLUMN task_id TEXT`);
+      
+      const existingRecords = db.prepare('SELECT id FROM query_history WHERE task_id IS NULL').all() as { id: number }[];
+      const updateStmt = db.prepare('UPDATE query_history SET task_id = ? WHERE id = ?');
+      
+      for (const record of existingRecords) {
+        updateStmt.run(randomUUID(), record.id);
+      }
+
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_task_id ON query_history(task_id)`);
+    }
+  } catch (error) {
+    console.error('Error migrating task_id column:', error);
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS query_results (

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { LanguageSelector } from './LanguageSelector';
 import { useTranslation } from '../hooks/useTranslation';
 import './Navbar.css';

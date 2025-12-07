@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { getDatabase } from '../db/index.js';
 
 export const historyRoutes = Router();
@@ -13,6 +14,7 @@ historyRoutes.get('/', (req, res) => {
       .prepare(
         `SELECT 
           id, 
+          task_id,
           query, 
           query_base64, 
           fields, 
@@ -84,14 +86,15 @@ historyRoutes.post('/', (req, res) => {
       return res.status(400).json({ error: 'query and query_base64 are required' });
     }
 
+    const taskId = randomUUID();
     const result = db
       .prepare(
-        `INSERT INTO query_history (query, query_base64, fields, page, size, full)
-         VALUES (?, ?, ?, ?, ?, ?)`
+        `INSERT INTO query_history (task_id, query, query_base64, fields, page, size, full)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(query, query_base64, fields || null, page || 1, size || 100, full ? 1 : 0);
+      .run(taskId, query, query_base64, fields || null, page || 1, size || 100, full ? 1 : 0);
 
-    res.json({ id: result.lastInsertRowid });
+    res.json({ id: result.lastInsertRowid, task_id: taskId });
   } catch (error: any) {
     console.error('Save history error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });

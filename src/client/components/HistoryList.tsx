@@ -1,124 +1,60 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
+import { type ExportData, type ExportFormat, convertToCSV, convertToTXT, getMimeType, getFileExtension, ensureFileExtension } from '../utils/export';
+import { type HistoryItem as SharedHistoryItem } from '../../shared/types';
 import './HistoryList.css';
 
 interface HistoryExportButtonWrapperProps {
   historyId: number;
   query: string;
-  exportData: any;
+  exportData: ExportData | null;
   onLoadResults: () => Promise<void>;
 }
 
 function HistoryExportButtonWrapper({ historyId, query, exportData, onLoadResults }: HistoryExportButtonWrapperProps) {
-  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleExportClick = async (format: 'json' | 'txt' | 'csv') => {
-    if (!exportData && !isLoading) {
-      setIsLoading(true);
-      try {
-        await onLoadResults();
-      } catch (error) {
-        console.error('Failed to load results:', error);
-        setIsLoading(false);
-        return;
-      }
-    }
-
+  const handleExportClick = async (format: ExportFormat) => {
     if (!exportData) {
-      setIsLoading(false);
+      if (!isLoading) {
+        setIsLoading(true);
+        try {
+          await onLoadResults();
+        } catch (error) {
+          console.error('Failed to load results:', error);
+          setIsLoading(false);
+          return;
+        }
+      }
       return;
     }
 
-    const convertToCSV = (data: any): string => {
-      if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
-        return '';
-      }
-
-      const firstRow = data.results[0];
-      let headers: string[] = [];
-      let rows: any[][] = [];
-
-      if (Array.isArray(firstRow)) {
-        headers = firstRow.map((_, idx) => `COL_${idx + 1}`);
-        rows = data.results.map((row: any[]) => row);
-      } else if (typeof firstRow === 'object') {
-        headers = Object.keys(firstRow);
-        rows = data.results.map((row: any) => Object.values(row));
-      }
-
-      const csvRows = [
-        headers.join(','),
-        ...rows.map((row) =>
-          row.map((cell: any) => {
-            const value = cell?.toString() || '';
-            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-              return `"${value.replace(/"/g, '""')}"`;
-            }
-            return value;
-          }).join(',')
-        ),
-      ];
-
-      return csvRows.join('\n');
-    };
-
-    const convertToTXT = (data: any): string => {
-      if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-        const hosts: string[] = [];
-        
-        data.results.forEach((row: any) => {
-          if (Array.isArray(row)) {
-            const host = row[0];
-            if (host && typeof host === 'string') {
-              hosts.push(host);
-            }
-          } else if (typeof row === 'object') {
-            const host = row.host || row.HOST || row[0];
-            if (host && typeof host === 'string') {
-              hosts.push(host);
-            }
-          }
-        });
-
-        return hosts.join('\n');
-      }
-
-      return '';
-    };
-
     let content = '';
-    let mimeType = '';
-    let extension = '';
-
     switch (format) {
       case 'json':
         content = JSON.stringify(exportData, null, 2);
-        mimeType = 'application/json';
-        extension = 'json';
         break;
       case 'txt':
         content = convertToTXT(exportData);
-        mimeType = 'text/plain';
-        extension = 'txt';
         break;
       case 'csv':
         content = convertToCSV(exportData);
-        mimeType = 'text/csv';
-        extension = 'csv';
         break;
     }
+
+    const mimeType = getMimeType(format);
+    const extension = getFileExtension(format);
 
     const blob = new Blob([content], { type: mimeType });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     
-    let downloadFilename = `fofa_${historyId}_${Date.now()}`;
-    if (!downloadFilename.endsWith(`.${extension}`)) {
-      downloadFilename = `${downloadFilename}.${extension}`;
-    }
+    const downloadFilename = ensureFileExtension(
+      `fofa_${historyId}_${Date.now()}`,
+      extension
+    );
     a.download = downloadFilename;
     
     document.body.appendChild(a);
@@ -128,11 +64,14 @@ function HistoryExportButtonWrapper({ historyId, query, exportData, onLoadResult
     setIsLoading(false);
   };
 
+  if (!exportData) {
+    return null;
+  }
+
   return (
     <ExportButton
       data={exportData}
       filename={`fofa_${historyId}_${Date.now()}`}
-      query={query}
       onExportClick={handleExportClick}
       isLoading={isLoading}
     />
@@ -141,6 +80,7 @@ function HistoryExportButtonWrapper({ historyId, query, exportData, onLoadResult
 
 interface HistoryItem {
   id: number;
+  task_id: string;
   query: string;
   fields: string | null;
   page: number;
@@ -151,7 +91,7 @@ interface HistoryItem {
 }
 
 interface HistoryListProps {
-  history: HistoryItem[];
+  history: SharedHistoryItem[];
   onDelete: (id: number) => void;
   onRefresh: () => void;
 }
@@ -159,9 +99,9 @@ interface HistoryListProps {
 export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [results, setResults] = useState<Record<number, any[]>>({});
+  const [results, setResults] = useState<Record<number, Array<ExportData & { total_size?: number; result_data?: unknown }>>>({});
   const [loadingResults, setLoadingResults] = useState<number | null>(null);
-  const [exportData, setExportData] = useState<Record<number, any>>({});
+  const [exportData, setExportData] = useState<Record<number, ExportData | null>>({});
 
   const loadResults = async (id: number, expand: boolean = true) => {
     if (results[id] && exportData[id]) {
@@ -180,12 +120,15 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
         setExpandedId(id);
       }
       
-      const allResults: any[] = [];
-      data.forEach((result: any) => {
-        if (result.result_data && result.result_data.results && Array.isArray(result.result_data.results)) {
-          allResults.push(...result.result_data.results);
-        } else if (result.result_data && Array.isArray(result.result_data)) {
-          allResults.push(...result.result_data);
+      const allResults: unknown[] = [];
+      data.forEach((result: { result_data?: unknown }) => {
+        const resultData = result.result_data;
+        if (resultData && typeof resultData === 'object' && resultData !== null) {
+          if ('results' in resultData && Array.isArray(resultData.results)) {
+            allResults.push(...resultData.results);
+          } else if (Array.isArray(resultData)) {
+            allResults.push(...resultData);
+          }
         }
       });
       
@@ -223,12 +166,12 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                 className="history-item-toggle"
                 onClick={() => loadResults(item.id)}
                 aria-expanded={expandedId === item.id}
-                aria-label={`${expandedId === item.id ? t('history.collapse') : t('history.expand')} query results for ${item.query}`}
+                aria-label={`${expandedId === item.id ? t('history.collapse') : t('history.expand')} task ${item.id}`}
               >
                 <span className="toggle-icon">
                   {expandedId === item.id ? '▼' : '▶'}
                 </span>
-                <span className="history-item-query">{item.query}</span>
+                <span className="history-item-title">{item.task_id || `TASK-${item.id.toString().padStart(6, '0')}`}</span>
               </button>
               <div className="history-item-meta">
                 <span className="meta-badge">{t('history.page')}: {item.page}</span>
@@ -262,11 +205,15 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
           </div>
           {expandedId === item.id && (
             <div className="history-item-results">
+              <div className="history-item-query-section">
+                <div className="query-section-label">{t('history.query')}:</div>
+                <div className="query-section-content">{item.query}</div>
+              </div>
               {loadingResults === item.id ? (
                 <div className="results-loading">{t('common.loading')}</div>
               ) : results[item.id] && results[item.id].length > 0 ? (
                 <div className="results-content">
-                  {results[item.id].map((result: any, idx: number) => (
+                  {results[item.id].map((result, idx: number) => (
                     <div key={idx} className="result-item">
                       <div className="result-header">
                         <span>{t('history.resultSet')} {idx + 1}</span>
@@ -279,7 +226,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                   ))}
                 </div>
               ) : (
-                <div className="results-empty">{t('history.noResultsSaved')}</div>
+                <div className="results-empty">{t('history.noResultsSaved') || 'No results saved'}</div>
               )}
             </div>
           )}
