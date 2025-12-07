@@ -135,6 +135,7 @@ export const zhCN = {
       edit: '编辑',
       notesPlaceholder: '添加笔记...',
       tagsPlaceholder: '标签1, 标签2, 标签3',
+      noTagsAvailable: '无可用标签',
     },
     filter: {
       all: '全部',

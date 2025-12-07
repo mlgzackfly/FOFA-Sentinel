@@ -135,6 +135,7 @@ export const en = {
       edit: 'Edit',
       notesPlaceholder: 'Add notes...',
       tagsPlaceholder: 'tag1, tag2, tag3',
+      noTagsAvailable: 'No tags available',
     },
     filter: {
       all: 'All',

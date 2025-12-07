@@ -28,9 +28,15 @@ export function ScanResultsPage() {
   const [filter, setFilter] = useState<'all' | 'vulnerable' | 'safe' | 'error'>('all');
   const [editingResult, setEditingResult] = useState<{
     host: string;
-    notes: string;
     tags: string[];
   } | null>(null);
+
+  // Collect all available tags from all results
+  const availableTags = Array.from(
+    new Set(
+      results.flatMap(result => result.tags || []).filter((tag): tag is string => Boolean(tag))
+    )
+  ).sort();
 
   useEffect(() => {
     loadSessions();
@@ -347,7 +353,6 @@ export function ScanResultsPage() {
                         <th>{t('scanResults.results.testedUrl')}</th>
                         <th>{t('scanResults.results.status')}</th>
                         <th>{t('scanResults.results.error')}</th>
-                        <th>{t('scanResults.results.notes')}</th>
                         <th>{t('scanResults.results.tags')}</th>
                         <th>{t('scanResults.results.scannedAt')}</th>
                         <th>{t('scanResults.results.actions')}</th>
@@ -364,43 +369,38 @@ export function ScanResultsPage() {
                           >
                             {result.error ? formatError(result.error) : '-'}
                           </td>
-                          <td className="notes-cell">
-                            {editingResult?.host === result.host ? (
-                              <textarea
-                                className="notes-input"
-                                value={editingResult.notes}
-                                onChange={e =>
-                                  setEditingResult({
-                                    ...editingResult,
-                                    notes: e.target.value,
-                                  })
-                                }
-                                rows={2}
-                                placeholder={t('scanResults.results.notesPlaceholder')}
-                              />
-                            ) : (
-                              <span className="notes-display" title={result.notes || undefined}>
-                                {result.notes || '-'}
-                              </span>
-                            )}
-                          </td>
                           <td className="tags-cell">
                             {editingResult?.host === result.host ? (
-                              <input
-                                type="text"
-                                className="tags-input"
-                                value={editingResult.tags.join(', ')}
-                                onChange={e =>
-                                  setEditingResult({
-                                    ...editingResult,
-                                    tags: e.target.value
-                                      .split(',')
-                                      .map(t => t.trim())
-                                      .filter(Boolean),
-                                  })
-                                }
-                                placeholder={t('scanResults.results.tagsPlaceholder')}
-                              />
+                              <div className="tags-checkbox-group">
+                                {availableTags.length > 0 ? (
+                                  availableTags.map(tag => (
+                                    <label key={tag} className="tag-checkbox-label">
+                                      <input
+                                        type="checkbox"
+                                        checked={editingResult.tags.includes(tag)}
+                                        onChange={e => {
+                                          if (e.target.checked) {
+                                            setEditingResult({
+                                              ...editingResult,
+                                              tags: [...editingResult.tags, tag],
+                                            });
+                                          } else {
+                                            setEditingResult({
+                                              ...editingResult,
+                                              tags: editingResult.tags.filter(t => t !== tag),
+                                            });
+                                          }
+                                        }}
+                                      />
+                                      <span>{tag}</span>
+                                    </label>
+                                  ))
+                                ) : (
+                                  <span className="no-tags-hint">
+                                    {t('scanResults.results.noTagsAvailable')}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
                               <div className="tags-display">
                                 {result.tags && result.tags.length > 0
@@ -428,7 +428,6 @@ export function ScanResultsPage() {
                                           selectedSession.sessionId,
                                           result.host,
                                           {
-                                            notes: editingResult.notes,
                                             tags: editingResult.tags,
                                           }
                                         );
@@ -456,7 +455,6 @@ export function ScanResultsPage() {
                                 onClick={() =>
                                   setEditingResult({
                                     host: result.host,
-                                    notes: result.notes || '',
                                     tags: result.tags || [],
                                   })
                                 }
