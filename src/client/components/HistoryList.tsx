@@ -18,7 +18,7 @@ import {
   scanRSCs,
   type RSCScanResult,
 } from '../utils/api';
-import { createPocSession } from '../utils/poc-api';
+import { createPocSession, getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
 import './HistoryList.css';
 
 interface HistoryExportButtonWrapperProps {
@@ -512,9 +512,6 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                       <div key={idx} className="result-item">
                         <div className="result-header">
                           <span>
-                            {t('history.resultSet')} {idx + 1}
-                          </span>
-                          <span>
                             {t('query.results.total')}: {result.total_size || 'N/A'}
                           </span>
                           {hasResults && (
@@ -529,24 +526,30 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                                   : t('query.results.checkAll')}
                               </button>
                               <div className="scan-actions-group">
-                                <label className="save-to-poc-checkbox">
-                                  <input
-                                    type="checkbox"
-                                    checked={saveToPoc[item.id] || false}
-                                    onChange={e =>
-                                      setSaveToPoc(prev => ({
-                                        ...prev,
-                                        [item.id]: e.target.checked,
-                                      }))
-                                    }
-                                    disabled={scanningAll[item.id] || false}
-                                  />
-                                  <span>{t('query.results.saveToPoc')}</span>
-                                </label>
+                                <select
+                                  className="poc-select"
+                                  value={selectedPocScript[item.id] || ''}
+                                  onChange={e =>
+                                    setSelectedPocScript(prev => ({
+                                      ...prev,
+                                      [item.id]: e.target.value,
+                                    }))
+                                  }
+                                  disabled={scanningAll[item.id] || false}
+                                >
+                                  <option value="">{t('query.results.selectPoc')}</option>
+                                  {pocScripts.map(script => (
+                                    <option key={script.scriptId} value={script.scriptId}>
+                                      {script.name}
+                                    </option>
+                                  ))}
+                                </select>
                                 <button
                                   className="btn-secondary btn-scan-all"
                                   onClick={() => handleScanAll(item.id)}
-                                  disabled={scanningAll[item.id] || false}
+                                  disabled={
+                                    scanningAll[item.id] || !selectedPocScript[item.id] || false
+                                  }
                                 >
                                   {scanningAll[item.id]
                                     ? `${t('query.results.scanning')} (${scanProgress[item.id]?.current || 0}/${scanProgress[item.id]?.total || 0})`
