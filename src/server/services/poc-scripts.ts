@@ -12,7 +12,7 @@ export interface PocScript {
   name: string;
   description?: string;
   type: 'rsc' | 'xss' | 'sqli' | 'rce' | 'ssrf' | 'other';
-  language: 'python' | 'javascript' | 'bash' | 'other';
+  language: 'python' | 'http' | 'javascript' | 'bash' | 'other';
   script: string;
   parameters?: Record<string, any>;
   enabled: boolean;
