@@ -405,7 +405,7 @@ export function ScanResultsPage() {
                       onClick={handleExport}
                       title={t('scanResults.export.title')}
                     >
-                      ⬇ {t('scanResults.export.export')}
+                      ⬇
                     </button>
                   )}
                 </div>
