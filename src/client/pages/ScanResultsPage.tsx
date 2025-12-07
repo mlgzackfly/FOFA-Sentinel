@@ -44,7 +44,11 @@ export function ScanResultsPage() {
 
   useEffect(() => {
     if (selectedSession) {
+      console.log(`[Frontend] Loading results for session: ${selectedSession.sessionId}, filter: ${filter}`);
       loadResults(selectedSession.sessionId);
+    } else {
+      // Clear results when no session is selected
+      setResults([]);
     }
   }, [selectedSession, filter]);
 
