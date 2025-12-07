@@ -275,15 +275,28 @@ export function getScanResults(
     }
   }
   if (filter?.status) {
-    query += ' AND status = ?';
-    params.push(filter.status);
+    if (filter.status === 'error') {
+      // When filtering for errors, check multiple conditions to catch all error cases:
+      // 1. status = 'error'
+      // 2. vulnerable IS NULL (which indicates an error)
+      // 3. error IS NOT NULL (has an error message)
+      query += ' AND (status = ? OR vulnerable IS NULL OR error IS NOT NULL)';
+      params.push(filter.status);
+    } else {
+      query += ' AND status = ?';
+      params.push(filter.status);
+    }
   }
+  // If no filter is specified, include all results (including errors)
+  // This ensures that when filter is 'all', we get all results
 
   query += ' ORDER BY scanned_at DESC';
 
+  console.log(`[DB] Executing query: ${query} with params:`, params);
   const results = db.prepare(query).all(...params) as Array<
     Omit<PocScanResult, 'tags'> & { tags?: string | string[] }
   >;
+  console.log(`[DB] Query returned ${results.length} results for session ${sessionId}`);
 
   // Parse tags from JSON string
   return results.map(result => ({

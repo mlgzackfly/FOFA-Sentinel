@@ -246,6 +246,11 @@ pocRoutes.get('/sessions/:sessionId/results', (req, res) => {
     }
 
     const results = getScanResults(sessionId, filter);
+    console.log(
+      `[API] getScanResults for session ${sessionId} with filter:`,
+      filter,
+      `returned ${results.length} results`
+    );
     res.json({ results });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';

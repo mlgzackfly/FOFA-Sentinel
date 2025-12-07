@@ -83,9 +83,15 @@ export function ScanResultsPage() {
       }
 
       const data = await getPocResults(sessionId, filterParams);
-      setResults(data.results);
+      console.log(
+        `Loaded ${data.results.length} results for session ${sessionId} with filter:`,
+        filter,
+        filterParams
+      );
+      setResults(data.results || []);
     } catch (error) {
       console.error('Failed to load results:', error);
+      setResults([]); // Ensure results is set to empty array on error
     } finally {
       setLoading(false);
     }
