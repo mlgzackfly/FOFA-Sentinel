@@ -375,9 +375,21 @@ export function getScanResults(
   query += ' ORDER BY scanned_at DESC';
 
   console.log(`[DB] Executing query: ${query} with params:`, params);
-  const results = db.prepare(query).all(...params) as Array<
-    Omit<PocScanResult, 'tags'> & { tags?: string | string[] }
-  >;
+  // Database returns snake_case fields, so we need to map them to camelCase
+  const results = db.prepare(query).all(...params) as Array<{
+    id?: number;
+    session_id: string;
+    host: string;
+    vulnerable: number | null; // SQLite stores as INTEGER (0, 1, or NULL)
+    status_code?: number | null;
+    error?: string | null;
+    final_url?: string | null;
+    tested_url?: string | null;
+    notes?: string | null;
+    tags?: string | string[];
+    status: string;
+    scanned_at: string;
+  }>;
   console.log(`[DB] Query returned ${results.length} results for session ${sessionId}`);
 
   // Parse tags from JSON string and map snake_case to camelCase
