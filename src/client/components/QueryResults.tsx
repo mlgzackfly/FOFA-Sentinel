@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
 import { HealthCheckStatus } from './HealthCheckStatus';
@@ -13,16 +13,32 @@ import {
   scanWithPoc,
   type PocScanResult,
 } from '../utils/api';
-import { createPocSession, getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
+import { createPocSession, getAllPocScripts, startBackgroundScan, getPocResults, type PocResult } from '../utils/poc-api';
 import './QueryResults.css';
 
 interface QueryResultsProps {
   result: FofaQueryResult;
   tab: string;
   selectedPocScriptId?: string;
+  pocScanning?: boolean;
+  pocProgress?: { current: number; total: number };
+  pocSessionId?: string | null;
+  onPocProgressUpdate?: (
+    progress: { current: number; total: number },
+    scanning: boolean,
+    sessionId: string | null
+  ) => void;
 }
 
-export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsProps) {
+export function QueryResults({
+  result,
+  tab,
+  selectedPocScriptId,
+  pocScanning: externalPocScanning,
+  pocProgress: externalPocProgress,
+  pocSessionId: externalPocSessionId,
+  onPocProgressUpdate,
+}: QueryResultsProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [checkingAll, setCheckingAll] = useState(false);
@@ -42,9 +58,36 @@ export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsP
     safe: number;
   } | null>(null);
   const [saveToPoc, setSaveToPoc] = useState(false);
-  const [pocSessionId, setPocSessionId] = useState<string | null>(null);
+  const [pocSessionId, setPocSessionId] = useState<string | null>(externalPocSessionId || null);
   const [selectedPocScript, setSelectedPocScript] = useState<string>(selectedPocScriptId || '');
-  const [pocScripts, setPocScripts] = useState<Array<{ scriptId: string; name: string; enabled: boolean }>>([]);
+  const [pocScripts, setPocScripts] = useState<
+    Array<{ scriptId: string; name: string; enabled: boolean }>
+  >([]);
+  const [pocScanning, setPocScanning] = useState(externalPocScanning || false);
+  const [pocProgress, setPocProgress] = useState(
+    externalPocProgress || { current: 0, total: 0 }
+  );
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update pocScanning and pocProgress when props change
+  useEffect(() => {
+    if (externalPocScanning !== undefined) {
+      setPocScanning(externalPocScanning);
+    }
+  }, [externalPocScanning]);
+
+  useEffect(() => {
+    if (externalPocProgress !== undefined) {
+      setPocProgress(externalPocProgress);
+    }
+  }, [externalPocProgress]);
+
+  // Update pocSessionId when prop changes
+  useEffect(() => {
+    if (externalPocSessionId !== undefined) {
+      setPocSessionId(externalPocSessionId);
+    }
+  }, [externalPocSessionId]);
 
   // Update selectedPocScript when prop changes
   useEffect(() => {
@@ -58,17 +101,138 @@ export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsP
     const loadPocScripts = async () => {
       try {
         const data = await getAllPocScripts();
-        setPocScripts(data.scripts.filter(s => s.enabled).map(s => ({
-          scriptId: s.scriptId,
-          name: s.name,
-          enabled: s.enabled,
-        })));
+        setPocScripts(
+          data.scripts
+            .filter(s => s.enabled)
+            .map(s => ({
+              scriptId: s.scriptId,
+              name: s.name,
+              enabled: s.enabled,
+            }))
+        );
       } catch (error) {
         console.error('Failed to load PoC scripts:', error);
       }
     };
     loadPocScripts();
   }, []);
+
+  // Poll session progress when pocSessionId is available and scanning
+  useEffect(() => {
+    if (!selectedPocScriptId || !pocSessionId || !pocScanning) {
+      return;
+    }
+
+    // Clear any existing poll interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+
+    // Poll session status to update progress
+    const pollInterval = setInterval(async () => {
+      try {
+        const { getPocSession } = await import('../utils/poc-api');
+        const session = await getPocSession(pocSessionId);
+        if (session) {
+          const scanned = session.scannedHosts || 0;
+          // Always use session.totalHosts as the source of truth
+          const total = session.totalHosts || 0;
+          const newProgress = { current: scanned, total: total };
+          setPocProgress(newProgress);
+          
+          // Log for debugging
+          if (total > 0 && scanned !== total) {
+            console.log(`PoC scan progress: ${scanned}/${total}`);
+          }
+
+          // Update parent component
+          if (onPocProgressUpdate) {
+            onPocProgressUpdate(newProgress, true, pocSessionId);
+          }
+
+          // If scan is completed or failed, stop polling and load results
+          if (session.status === 'completed' || session.status === 'failed') {
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+            setPocScanning(false);
+            
+            // Load scan results from database
+            try {
+              const resultsData = await getPocResults(pocSessionId);
+              
+              // Convert PocResult[] to scanResults format
+              const resultsMap: Record<string, PocScanResult> = {};
+              let vulnerableCount = 0;
+              let safeCount = 0;
+              
+              resultsData.results.forEach((result: PocResult) => {
+                resultsMap[result.host] = {
+                  host: result.host,
+                  vulnerable: result.vulnerable,
+                  statusCode: result.statusCode,
+                  error: result.error,
+                  finalUrl: result.finalUrl,
+                  testedUrl: result.testedUrl,
+                };
+                
+                if (result.vulnerable === true) {
+                  vulnerableCount++;
+                } else if (result.vulnerable === false) {
+                  safeCount++;
+                }
+              });
+              
+              setScanResults(resultsMap);
+              setScanSummary({
+                total: resultsData.results.length,
+                vulnerable: vulnerableCount,
+                safe: safeCount,
+              });
+            } catch (loadError) {
+              console.error('Failed to load scan results:', loadError);
+            }
+            
+            // Keep progress for a moment to show completion
+            setTimeout(() => {
+              setPocProgress({ current: 0, total: 0 });
+              if (onPocProgressUpdate) {
+                onPocProgressUpdate({ current: 0, total: 0 }, false, pocSessionId);
+              }
+            }, 2000);
+          }
+        }
+      } catch (pollError) {
+        console.error('Failed to poll session status:', pollError);
+        // Continue polling even if one request fails
+      }
+    }, 2000); // Poll every 2 seconds
+
+    pollIntervalRef.current = pollInterval;
+
+    // Stop polling after 5 minutes (safety timeout)
+    const timeoutId = setTimeout(() => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      setPocScanning(false);
+      setPocProgress({ current: 0, total: 0 });
+      if (onPocProgressUpdate) {
+        onPocProgressUpdate({ current: 0, total: 0 }, false, pocSessionId);
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [selectedPocScriptId, pocSessionId, pocScanning, pocProgress.total, onPocProgressUpdate]);
 
   // Extract all hosts from results - must be before early returns
   const extractHosts = useCallback((): string[] => {
@@ -196,7 +360,10 @@ export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsP
         setScanningAll(false); // Don't show scanning state since it's in background
 
         // Show success message
-        alert(t('query.results.scanStarted') || 'Scan started in background. Check Scan Results page for progress.');
+        alert(
+          t('query.results.scanStarted') ||
+            'Scan started in background. Check Scan Results page for progress.'
+        );
       } catch (error) {
         console.error('Failed to start background scan:', error);
         alert(t('query.results.scanError') || 'Failed to start scan');
@@ -318,8 +485,8 @@ export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsP
                         ? `${t('query.results.checking')} (${checkProgress.current}/${checkProgress.total})`
                         : t('query.results.checkAll')}
                     </button>
-                    <div className="scan-actions-group">
-                      {!selectedPocScriptId && (
+                    {!selectedPocScriptId && (
+                      <div className="scan-actions-group">
                         <label className="poc-select-label">
                           <span>{t('query.results.selectPoc')}:</span>
                           <select
@@ -336,36 +503,34 @@ export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsP
                             ))}
                           </select>
                         </label>
-                      )}
-                      {selectedPocScriptId && (
-                        <div className="poc-selected-info">
-                          <span>
-                            {t('query.results.selectedPoc')}:{' '}
-                            {pocScripts.find(s => s.scriptId === selectedPocScriptId)?.name ||
-                              selectedPocScriptId}
-                          </span>
-                        </div>
-                      )}
-                      <label className="save-to-poc-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={saveToPoc}
-                          onChange={e => setSaveToPoc(e.target.checked)}
+                        <label className="save-to-poc-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={saveToPoc}
+                            onChange={e => setSaveToPoc(e.target.checked)}
+                            disabled={scanningAll}
+                          />
+                          <span>{t('query.results.saveToPoc')}</span>
+                        </label>
+                        <button
+                          className="btn-secondary btn-scan-all"
+                          onClick={handleScanAll}
                           disabled={scanningAll}
-                        />
-                        <span>{t('query.results.saveToPoc')}</span>
-                      </label>
-                      <button
-                        className="btn-secondary btn-scan-all"
-                        onClick={handleScanAll}
-                        disabled={scanningAll}
-                        aria-label="Scan all hosts"
-                      >
-                        {scanningAll
-                          ? `${t('query.results.scanning')} (${scanProgress.current}/${scanProgress.total})`
-                          : t('query.results.scanAll')}
-                      </button>
-                    </div>
+                          aria-label="Scan all hosts"
+                        >
+                          {scanningAll
+                            ? `${t('query.results.scanning')} (${scanProgress.current}/${scanProgress.total})`
+                            : t('query.results.scanAll')}
+                        </button>
+                      </div>
+                    )}
+                    {selectedPocScriptId && pocScanning && (
+                      <div className="poc-scan-progress-display">
+                        <div className="poc-scan-progress">
+                          {t('query.pocScanning')} ({pocProgress.current}/{pocProgress.total})
+                        </div>
+                      </div>
+                    )}
                     {pocSessionId && !scanningAll && scanSummary && (
                       <div className="poc-session-link">
                         <a

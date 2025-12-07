@@ -39,7 +39,10 @@ export interface PocStatistics {
   totalErrors: number;
 }
 
-export async function getAllPocSessions(limit = 50, offset = 0): Promise<{ sessions: PocSession[] }> {
+export async function getAllPocSessions(
+  limit = 50,
+  offset = 0
+): Promise<{ sessions: PocSession[] }> {
   const response = await fetch(`${API_BASE}/poc/sessions?limit=${limit}&offset=${offset}`);
   if (!response.ok) {
     const error = await response.json();
@@ -128,11 +131,14 @@ export async function updatePocResult(
   host: string,
   updates: { notes?: string; tags?: string[] }
 ): Promise<void> {
-  const response = await fetch(`${API_BASE}/poc/sessions/${sessionId}/results/${encodeURIComponent(host)}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updates),
-  });
+  const response = await fetch(
+    `${API_BASE}/poc/sessions/${sessionId}/results/${encodeURIComponent(host)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }
+  );
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Failed to update result');
@@ -182,7 +188,9 @@ export async function getPocScriptById(scriptId: string): Promise<PocScript> {
   return response.json();
 }
 
-export async function createPocScript(data: Omit<PocScript, 'id' | 'scriptId' | 'createdAt' | 'updatedAt'>): Promise<PocScript> {
+export async function createPocScript(
+  data: Omit<PocScript, 'id' | 'scriptId' | 'createdAt' | 'updatedAt'>
+): Promise<PocScript> {
   const response = await fetch(`${API_BASE}/poc/scripts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -253,4 +261,3 @@ export async function startBackgroundScan(
   }
   return response.json();
 }
-

@@ -119,4 +119,3 @@ export function ensureFileExtension(filename: string, extension: string): string
   }
   return filename;
 }
-

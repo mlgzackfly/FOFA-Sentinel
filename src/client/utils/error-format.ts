@@ -13,7 +13,7 @@ export function formatError(error: string | undefined | null): string {
 
   // SSL Certificate errors
   if (error.includes('SSL') || error.includes('certificate')) {
-    if (error.includes("hostname") && error.includes("doesn't match")) {
+    if (error.includes('hostname') && error.includes("doesn't match")) {
       // Extract hostname mismatch info
       const match = error.match(/hostname '([^']+)' doesn't match (?:either of )?['"]([^'"]+)['"]/);
       if (match) {
@@ -94,4 +94,3 @@ export function getFullError(error: string | undefined | null): string {
   }
   return error;
 }
-

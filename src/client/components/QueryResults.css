@@ -68,8 +68,8 @@
 
 /* Query Results Meta */
 .query-results-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   padding: var(--space-3);
   background: var(--bg-surface);
@@ -85,6 +85,8 @@
   align-items: center;
   gap: var(--space-2);
   white-space: nowrap;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .meta-label {
@@ -186,14 +188,14 @@
   cursor: pointer;
 }
 
-.save-to-poc-checkbox input[type="checkbox"] {
+.save-to-poc-checkbox input[type='checkbox'] {
   cursor: pointer;
   accent-color: var(--color-terminal-green);
   width: 16px;
   height: 16px;
 }
 
-.save-to-poc-checkbox input[type="checkbox"]:disabled {
+.save-to-poc-checkbox input[type='checkbox']:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -399,12 +401,13 @@
 
   .query-results-meta {
     font-size: 0.75rem;
+    flex-direction: column;
   }
 
   .meta-item {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: var(--space-1);
+    width: 100%;
   }
 }
-

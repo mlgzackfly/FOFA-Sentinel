@@ -373,4 +373,3 @@ pocRoutes.delete('/scripts/:scriptId', (req, res) => {
     res.status(500).json({ error: errorMessage });
   }
 });
-

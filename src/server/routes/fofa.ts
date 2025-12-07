@@ -303,7 +303,7 @@ fofaRoutes.post('/rsc-scan', async (req, res) => {
       const session = createScanSession(pocName, pocDescription, pocQuery);
       pocSessionId = session.sessionId;
       updateScanSession(session.sessionId, {
-        totalHosts: host ? 1 : (hosts?.length || 0),
+        totalHosts: host ? 1 : hosts?.length || 0,
         status: 'scanning',
       });
     } else if (sessionId) {
@@ -312,7 +312,7 @@ fofaRoutes.post('/rsc-scan', async (req, res) => {
         const currentSession = getScanSession(sessionId);
         updateScanSession(sessionId, {
           status: 'scanning',
-          totalHosts: host ? 1 : (hosts?.length || 0),
+          totalHosts: host ? 1 : hosts?.length || 0,
         });
       } catch (error) {
         // Session doesn't exist, ignore
@@ -450,7 +450,7 @@ fofaRoutes.post('/poc-scan', async (req, res) => {
         testedUrl: r.testedUrl,
       }));
       saveScanResults(pocSessionId, scanResults);
-      
+
       // Update session status and counts after scan
       const vulnerableCount = results.filter(r => r.vulnerable === true).length;
       const safeCount = results.filter(r => r.vulnerable === false).length;

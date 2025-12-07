@@ -183,11 +183,7 @@ export function saveScanResults(
 
     for (const result of results) {
       const status =
-        result.vulnerable === true
-          ? 'scanned'
-          : result.vulnerable === false
-          ? 'scanned'
-          : 'error';
+        result.vulnerable === true ? 'scanned' : result.vulnerable === false ? 'scanned' : 'error';
 
       insertStmt.run(
         sessionId,
@@ -228,9 +224,7 @@ export function saveScanResults(
 export function getAllScanSessions(limit = 50, offset = 0): PocScanSession[] {
   const db = getDatabase();
   const sessions = db
-    .prepare(
-      'SELECT * FROM poc_scan_sessions ORDER BY created_at DESC LIMIT ? OFFSET ?'
-    )
+    .prepare('SELECT * FROM poc_scan_sessions ORDER BY created_at DESC LIMIT ? OFFSET ?')
     .all(limit, offset) as Array<
     Omit<PocScanSession, 'sessionId' | 'createdAt' | 'updatedAt'> & {
       session_id: string;
@@ -272,8 +266,13 @@ export function getScanResults(
   const params: unknown[] = [sessionId];
 
   if (filter?.vulnerable !== undefined) {
-    query += ' AND vulnerable = ?';
-    params.push(filter.vulnerable);
+    if (filter.vulnerable === null) {
+      // Handle null case (errors)
+      query += ' AND vulnerable IS NULL';
+    } else {
+      query += ' AND vulnerable = ?';
+      params.push(filter.vulnerable);
+    }
   }
   if (filter?.status) {
     query += ' AND status = ?';
@@ -334,50 +333,50 @@ export function updateScanResult(
  */
 export function deleteScanSession(sessionId: string): void {
   const db = getDatabase();
-  
+
   // Ensure foreign keys are enabled (must be set per connection)
   db.pragma('foreign_keys = ON');
-  
+
   // First check if session exists
   const session = db
     .prepare('SELECT session_id FROM poc_scan_sessions WHERE session_id = ?')
     .get(sessionId) as { session_id: string } | undefined;
-  
+
   if (!session) {
     throw new Error('Scan session not found');
   }
-  
+
   // Check how many results are associated with this session (for logging)
   const resultCount = db
     .prepare('SELECT COUNT(*) as count FROM poc_scan_results WHERE session_id = ?')
     .get(sessionId) as { count: number } | undefined;
-  
+
   console.log(`Deleting session ${sessionId} with ${resultCount?.count || 0} associated results`);
-  
+
   // Use a transaction to ensure atomicity
   const transaction = db.transaction(() => {
     // Ensure foreign keys are enabled within transaction
     db.pragma('foreign_keys = ON');
-    
+
     // Prepare statements for deletion
     const deleteResults = db.prepare('DELETE FROM poc_scan_results WHERE session_id = ?');
     const deleteSession = db.prepare('DELETE FROM poc_scan_sessions WHERE session_id = ?');
-    
+
     // First delete all related results (explicit deletion for safety)
     // This should work even if foreign keys are disabled
     const resultsDeleted = deleteResults.run(sessionId);
     console.log(`Deleted ${resultsDeleted.changes} scan results`);
-    
+
     // Then delete the session
     const sessionDeleted = deleteSession.run(sessionId);
-    
+
     if (sessionDeleted.changes === 0) {
       throw new Error('Failed to delete scan session - no rows affected');
     }
-    
+
     console.log(`Successfully deleted session ${sessionId}`);
   });
-  
+
   try {
     transaction();
   } catch (error) {
@@ -417,11 +416,11 @@ export function getPocStatistics(): {
   `
     )
     .get() as {
-      total_scanned: number;
-      total_vulnerable: number;
-      total_safe: number;
-      total_errors: number;
-    };
+    total_scanned: number;
+    total_vulnerable: number;
+    total_safe: number;
+    total_errors: number;
+  };
 
   return {
     totalSessions: totalSessions.count || 0,
@@ -431,4 +430,3 @@ export function getPocStatistics(): {
     totalErrors: stats.total_errors || 0,
   };
 }
-

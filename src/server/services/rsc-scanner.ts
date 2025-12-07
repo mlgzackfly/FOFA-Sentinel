@@ -37,10 +37,7 @@ export interface RSCScanResult {
 /**
  * Check if a single host is vulnerable to RSC RCE
  */
-export async function scanHost(
-  host: string,
-  options: RSCScanOptions = {}
-): Promise<RSCScanResult> {
+export async function scanHost(host: string, options: RSCScanOptions = {}): Promise<RSCScanResult> {
   const {
     timeout = 10,
     safeCheck = false,
@@ -54,7 +51,7 @@ export async function scanHost(
     followRedirects = true,
   } = options;
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const input = JSON.stringify({
       host,
       timeout,
@@ -79,11 +76,11 @@ export async function scanHost(
     let stdout = '';
     let stderr = '';
 
-    pythonProcess.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', data => {
       stdout += data.toString();
     });
 
-    pythonProcess.stderr.on('data', (data) => {
+    pythonProcess.stderr.on('data', data => {
       stderr += data.toString();
     });
 
@@ -98,29 +95,32 @@ export async function scanHost(
     };
 
     // Set timeout first
-    const timeoutId = setTimeout(() => {
-      if (!resolved) {
-        pythonProcess.kill('SIGTERM');
-        // Give it a moment to clean up, then force kill
-        setTimeout(() => {
-          if (!resolved) {
-            try {
-              pythonProcess.kill('SIGKILL');
-            } catch {
-              // Process already dead
+    const timeoutId = setTimeout(
+      () => {
+        if (!resolved) {
+          pythonProcess.kill('SIGTERM');
+          // Give it a moment to clean up, then force kill
+          setTimeout(() => {
+            if (!resolved) {
+              try {
+                pythonProcess.kill('SIGKILL');
+              } catch {
+                // Process already dead
+              }
+              resolveOnce({
+                host,
+                vulnerable: null,
+                error: 'Scanner timeout',
+                timestamp: new Date().toISOString(),
+              });
             }
-            resolveOnce({
-              host,
-              vulnerable: null,
-              error: 'Scanner timeout',
-              timestamp: new Date().toISOString(),
-            });
-          }
-        }, 1000);
-      }
-    }, (timeout + 5) * 1000);
+          }, 1000);
+        }
+      },
+      (timeout + 5) * 1000
+    );
 
-    pythonProcess.on('close', (code) => {
+    pythonProcess.on('close', code => {
       if (resolved) return;
 
       try {
@@ -149,8 +149,8 @@ export async function scanHost(
           const errorMsg = stderr
             ? stderr.trim().split('\n').pop() || 'No output from scanner'
             : code !== 0
-            ? `Process exited with code ${code}`
-            : 'No output from scanner';
+              ? `Process exited with code ${code}`
+              : 'No output from scanner';
           resolveOnce({
             host,
             vulnerable: null,
@@ -162,16 +162,13 @@ export async function scanHost(
         resolveOnce({
           host,
           vulnerable: null,
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Failed to parse scanner output',
+          error: error instanceof Error ? error.message : 'Failed to parse scanner output',
           timestamp: new Date().toISOString(),
         });
       }
     });
 
-    pythonProcess.on('error', (error) => {
+    pythonProcess.on('error', error => {
       if (!resolved) {
         resolveOnce({
           host,
@@ -210,4 +207,3 @@ export async function scanHosts(
 
   return results;
 }
-

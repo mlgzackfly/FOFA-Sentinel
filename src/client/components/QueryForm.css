@@ -108,14 +108,14 @@
   background: var(--bg-elevated);
 }
 
-.fields-checkbox-item input[type="checkbox"] {
+.fields-checkbox-item input[type='checkbox'] {
   cursor: pointer;
   accent-color: var(--color-terminal-green);
   width: 16px;
   height: 16px;
 }
 
-.fields-checkbox-item input[type="checkbox"]:disabled {
+.fields-checkbox-item input[type='checkbox']:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }

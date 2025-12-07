@@ -14,15 +14,30 @@ export function QueryPage() {
   const [queryResult, setQueryResult] = useState<FofaQueryResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedPocScriptId, setSelectedPocScriptId] = useState<string | undefined>(undefined);
+  const [pocScanning, setPocScanning] = useState(false);
+  const [pocProgress, setPocProgress] = useState({ current: 0, total: 0 });
+  const [pocSessionId, setPocSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     setQueryResult(null);
     setSelectedPocScriptId(undefined);
+    setPocScanning(false);
+    setPocProgress({ current: 0, total: 0 });
+    setPocSessionId(null);
   }, [activeTab]);
 
-  const handleResult = (result: FofaQueryResult, pocScriptId?: string) => {
+  const handleResult = (
+    result: FofaQueryResult,
+    pocScriptId?: string,
+    pocScanState?: { scanning: boolean; progress: { current: number; total: number }; sessionId: string | null }
+  ) => {
     setQueryResult(result);
     setSelectedPocScriptId(pocScriptId);
+    if (pocScanState) {
+      setPocScanning(pocScanState.scanning);
+      setPocProgress(pocScanState.progress);
+      setPocSessionId(pocScanState.sessionId);
+    }
   };
 
   const tabs = [
@@ -56,7 +71,19 @@ export function QueryPage() {
           setLoading={setLoading}
         />
         {queryResult && (
-          <QueryResults result={queryResult} tab={activeTab} selectedPocScriptId={selectedPocScriptId} />
+          <QueryResults
+            result={queryResult}
+            tab={activeTab}
+            selectedPocScriptId={selectedPocScriptId}
+            pocScanning={pocScanning}
+            pocProgress={pocProgress}
+            pocSessionId={pocSessionId}
+            onPocProgressUpdate={(progress, scanning, sessionId) => {
+              setPocProgress(progress);
+              setPocScanning(scanning);
+              setPocSessionId(sessionId);
+            }}
+          />
         )}
       </div>
     </div>

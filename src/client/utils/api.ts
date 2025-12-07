@@ -246,10 +246,7 @@ export interface RSCScanResult {
   timestamp?: string;
 }
 
-export async function scanRSC(
-  host: string,
-  options: RSCScanOptions = {}
-): Promise<RSCScanResult> {
+export async function scanRSC(host: string, options: RSCScanOptions = {}): Promise<RSCScanResult> {
   const timeout = options.timeout || 15;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), (timeout + 10) * 1000);

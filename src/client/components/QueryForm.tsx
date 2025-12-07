@@ -17,7 +17,11 @@ import { type FofaQueryResult } from '../../shared/types';
 
 interface QueryFormProps {
   tab: QueryTab;
-  onResult: (result: FofaQueryResult, pocScriptId?: string) => void;
+  onResult: (
+    result: FofaQueryResult,
+    pocScriptId?: string,
+    pocScanState?: { scanning: boolean; progress: { current: number; total: number }; sessionId: string | null }
+  ) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
 }
@@ -26,7 +30,9 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [fields, setFields] = useState('host,ip,port');
-  const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(['host', 'ip', 'port']));
+  const [selectedFields, setSelectedFields] = useState<Set<string>>(
+    new Set(['host', 'ip', 'port'])
+  );
 
   // Common FOFA fields options
   const commonFields = [
@@ -70,7 +76,10 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
   // Initialize selectedFields from fields string on mount
   useEffect(() => {
     if (fields) {
-      const fieldsArray = fields.split(',').map(f => f.trim()).filter(Boolean);
+      const fieldsArray = fields
+        .split(',')
+        .map(f => f.trim())
+        .filter(Boolean);
       setSelectedFields(new Set(fieldsArray));
     }
     // Only run on mount
@@ -257,11 +266,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
           break;
       }
 
-      // Pass selectedPocScript to QueryResults
-      onResult(result, selectedPocScript || undefined);
-
       // Auto-execute PoC scan if selected and result has hosts (only for search tab)
-      // Run this asynchronously to avoid blocking the UI
       if (
         selectedPocScript &&
         tab === 'search' &&
@@ -271,13 +276,32 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         Array.isArray(result.results) &&
         result.results.length > 0
       ) {
+        // Pass result with PoC script ID - scan will start automatically
+        const hosts = extractHostsFromResult(result);
+        onResult(result, selectedPocScript, {
+          scanning: true,
+          progress: { current: 0, total: hosts.length },
+          sessionId: null, // Will be updated when scan starts
+        });
+
         // Execute in background without blocking
-        executeAutoPocScan(result, finalQuery).catch(err => {
+        // The sessionId will be updated via the executeAutoPocScan callback
+        executeAutoPocScan(result, finalQuery, (sessionId: string) => {
+          // Callback to update parent with sessionId
+          const hosts = extractHostsFromResult(result);
+          onResult(result, selectedPocScript, {
+            scanning: true,
+            progress: { current: 0, total: hosts.length },
+            sessionId: sessionId,
+          });
+        }).catch(err => {
           console.error('Auto PoC scan failed:', err);
           setPocScanning(false);
           setPocProgress({ current: 0, total: 0 });
         });
       } else {
+        // Pass result without PoC if no PoC selected
+        onResult(result);
         // Reset PoC scanning state if no scan is needed
         setPocScanning(false);
         setPocProgress({ current: 0, total: 0 });
@@ -296,24 +320,53 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       return [];
     }
 
-    const hosts: string[] = [];
+    const hostsSet = new Set<string>();
     result.results.forEach((row: unknown) => {
       let hostValue = '';
       if (Array.isArray(row) && row.length > 0) {
-        hostValue = String(row[0] ?? '').trim();
+        // Try to find host in the array - check common positions
+        const firstItem = String(row[0] ?? '').trim();
+        // If first item looks like a host (contains . or :), use it
+        if (firstItem && (firstItem.includes('.') || firstItem.includes(':'))) {
+          hostValue = firstItem;
+        } else if (row.length > 1) {
+          // Try second item if first doesn't look like a host
+          const secondItem = String(row[1] ?? '').trim();
+          if (secondItem && (secondItem.includes('.') || secondItem.includes(':'))) {
+            hostValue = secondItem;
+          }
+        }
       } else if (typeof row === 'object' && row !== null) {
         const rowObj = row as Record<string, unknown>;
-        hostValue = String(rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? '').trim();
+        // Try multiple possible field names
+        hostValue = String(
+          rowObj.host ?? 
+          rowObj.HOST ?? 
+          rowObj.Host ?? 
+          rowObj.ip ?? 
+          rowObj.IP ?? 
+          rowObj.Ip ??
+          rowObj[0] ?? 
+          ''
+        ).trim();
       }
-      if (hostValue && !hosts.includes(hostValue)) {
-        hosts.push(hostValue);
+      
+      // Only add if it looks like a valid host (contains . or :)
+      if (hostValue && (hostValue.includes('.') || hostValue.includes(':'))) {
+        // Remove protocol if present
+        hostValue = hostValue.replace(/^https?:\/\//i, '').split('/')[0].split('?')[0];
+        hostsSet.add(hostValue);
       }
     });
-    return hosts;
+    return Array.from(hostsSet);
   };
 
   // Auto-execute PoC scan after query completes
-  const executeAutoPocScan = async (result: FofaQueryResult, query: string) => {
+  const executeAutoPocScan = async (
+    result: FofaQueryResult,
+    query: string,
+    onSessionCreated?: (sessionId: string) => void
+  ) => {
     const hosts = extractHostsFromResult(result);
     if (hosts.length === 0) {
       return;
@@ -349,53 +402,14 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       // Update progress to show scan started (0/hosts.length means started but not yet scanned)
       setPocProgress({ current: 0, total: hosts.length });
 
-      // Clear any existing poll interval
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
+      // Notify parent component about the session ID immediately
+      if (onSessionCreated) {
+        onSessionCreated(response.sessionId);
       }
 
-      // Poll session status to update progress
-      const pollInterval = setInterval(async () => {
-        try {
-          const session = await getPocSession(response.sessionId);
-          if (session) {
-            const scanned = session.scannedHosts || 0;
-            const total = session.totalHosts || hosts.length;
-            setPocProgress({ current: scanned, total: total });
-
-            // If scan is completed or failed, stop polling
-            if (session.status === 'completed' || session.status === 'failed') {
-              if (pollIntervalRef.current) {
-                clearInterval(pollIntervalRef.current);
-                pollIntervalRef.current = null;
-              }
-              // Keep scanning state for a moment to show completion, then reset
-              setTimeout(() => {
-                setPocScanning(false);
-                setPocProgress({ current: 0, total: 0 });
-              }, 2000);
-            }
-          }
-        } catch (pollError) {
-          console.error('Failed to poll session status:', pollError);
-          // Continue polling even if one request fails
-        }
-      }, 2000); // Poll every 2 seconds
-
-      pollIntervalRef.current = pollInterval;
-
-      // Stop polling after 5 minutes (safety timeout)
-      setTimeout(() => {
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = null;
-        }
-        setPocScanning(false);
-        setPocProgress({ current: 0, total: 0 });
-      }, 5 * 60 * 1000);
-
-      console.log(`Background PoC scan started for ${hosts.length} hosts, session: ${response.sessionId}`);
+      console.log(
+        `Background PoC scan started for ${hosts.length} hosts, session: ${response.sessionId}`
+      );
     } catch (error) {
       console.error('Failed to start auto PoC scan:', error);
       if (pollIntervalRef.current) {
@@ -483,14 +497,18 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                     value={fields}
                     onChange={e => {
                       setFields(e.target.value);
-                      const fieldsArray = e.target.value.split(',').map(f => f.trim()).filter(Boolean);
+                      const fieldsArray = e.target.value
+                        .split(',')
+                        .map(f => f.trim())
+                        .filter(Boolean);
                       setSelectedFields(new Set(fieldsArray));
                     }}
                     placeholder="host,ip,port (or use checkboxes above)"
                     disabled={loading}
                   />
                   <small className="fields-hint">
-                    {t('query.fieldsHint') || 'Select fields above or enter custom fields separated by commas'}
+                    {t('query.fieldsHint') ||
+                      'Select fields above or enter custom fields separated by commas'}
                   </small>
                 </div>
               </div>
@@ -626,11 +644,6 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                 </option>
               ))}
             </select>
-            {pocScanning && (
-              <div className="poc-scan-progress">
-                {t('query.pocScanning')} ({pocProgress.current}/{pocProgress.total})
-              </div>
-            )}
           </div>
         )}
 

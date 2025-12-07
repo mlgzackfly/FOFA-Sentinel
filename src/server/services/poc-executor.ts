@@ -91,14 +91,14 @@ async function executePythonPoc(
   options: PocScanOptions,
   timeout: number
 ): Promise<PocScanResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     // Create temporary Python file
     const tempFile = path.join(TEMP_DIR, `poc_${randomUUID()}.py`);
     fs.writeFileSync(tempFile, script.script);
 
     // Prepare command arguments
     const args = [tempFile, targetUrl];
-    
+
     // Add additional parameters if needed
     if (script.parameters) {
       Object.entries(script.parameters).forEach(([key, value]) => {
@@ -120,13 +120,13 @@ async function executePythonPoc(
     let stderr = '';
     let output = '';
 
-    proc.stdout?.on('data', (data) => {
+    proc.stdout?.on('data', data => {
       const text = data.toString();
       stdout += text;
       output += text;
     });
 
-    proc.stderr?.on('data', (data) => {
+    proc.stderr?.on('data', data => {
       const text = data.toString();
       stderr += text;
       output += text;
@@ -142,9 +142,9 @@ async function executePythonPoc(
       });
     }, timeout * 1000);
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       clearTimeout(timeoutId);
-      
+
       // Clean up temp file
       try {
         fs.unlinkSync(tempFile);
@@ -167,9 +167,10 @@ async function executePythonPoc(
         });
       } catch (e) {
         // If not JSON, check for vulnerability indicators in output
-        const isVulnerable = output.toLowerCase().includes('vulnerable') || 
-                           output.toLowerCase().includes('exploit') ||
-                           code === 0 && !stderr.includes('error');
+        const isVulnerable =
+          output.toLowerCase().includes('vulnerable') ||
+          output.toLowerCase().includes('exploit') ||
+          (code === 0 && !stderr.includes('error'));
 
         resolve({
           host: targetUrl,
@@ -182,7 +183,7 @@ async function executePythonPoc(
       }
     });
 
-    proc.on('error', (error) => {
+    proc.on('error', error => {
       clearTimeout(timeoutId);
       try {
         fs.unlinkSync(tempFile);
@@ -222,7 +223,7 @@ async function executeBashPoc(
   options: PocScanOptions,
   timeout: number
 ): Promise<PocScanResult> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const tempFile = path.join(TEMP_DIR, `poc_${randomUUID()}.sh`);
     fs.writeFileSync(tempFile, script.script);
     fs.chmodSync(tempFile, 0o755);
@@ -234,11 +235,11 @@ async function executeBashPoc(
     let stdout = '';
     let stderr = '';
 
-    proc.stdout?.on('data', (data) => {
+    proc.stdout?.on('data', data => {
       stdout += data.toString();
     });
 
-    proc.stderr?.on('data', (data) => {
+    proc.stderr?.on('data', data => {
       stderr += data.toString();
     });
 
@@ -257,7 +258,7 @@ async function executeBashPoc(
       });
     }, timeout * 1000);
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       clearTimeout(timeoutId);
       try {
         fs.unlinkSync(tempFile);
@@ -275,7 +276,7 @@ async function executeBashPoc(
       });
     });
 
-    proc.on('error', (error) => {
+    proc.on('error', error => {
       clearTimeout(timeoutId);
       try {
         fs.unlinkSync(tempFile);
@@ -301,12 +302,11 @@ export async function executePocScriptForHosts(
   options: PocScanOptions = {}
 ): Promise<PocScanResult[]> {
   const results: PocScanResult[] = [];
-  
+
   for (const host of hosts) {
     const result = await executePocScript(scriptId, host, options);
     results.push(result);
   }
-  
+
   return results;
 }
-

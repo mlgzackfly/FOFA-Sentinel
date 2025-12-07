@@ -154,9 +154,7 @@ export function PocManagementPage() {
                       {poc.enabled && <span className="badge badge-enabled">✓</span>}
                     </div>
                   </div>
-                  {poc.description && (
-                    <div className="script-description">{poc.description}</div>
-                  )}
+                  {poc.description && <div className="script-description">{poc.description}</div>}
                   <div className="script-actions">
                     <button
                       className="btn-edit"
@@ -188,9 +186,7 @@ export function PocManagementPage() {
           {isEditing ? (
             <div className="poc-editor">
               <div className="editor-header">
-                <h2>
-                  {selectedPoc ? t('poc.editor.edit') : t('poc.editor.create')}
-                </h2>
+                <h2>{selectedPoc ? t('poc.editor.edit') : t('poc.editor.create')}</h2>
                 <div className="editor-actions">
                   <button className="btn-save" onClick={handleSave}>
                     {t('common.save')}

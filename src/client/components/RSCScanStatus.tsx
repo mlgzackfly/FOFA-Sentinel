@@ -11,11 +11,7 @@ interface RSCScanStatusProps {
 
 type Status = 'idle' | 'scanning' | 'vulnerable' | 'safe' | 'error';
 
-export function RSCScanStatus({
-  host,
-  autoScan = false,
-  externalResult,
-}: RSCScanStatusProps) {
+export function RSCScanStatus({ host, autoScan = false, externalResult }: RSCScanStatusProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<RSCScanResult | null>(null);
 
@@ -125,4 +121,3 @@ export function RSCScanStatus({
     </span>
   );
 }
-

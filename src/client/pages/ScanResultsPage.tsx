@@ -27,7 +27,11 @@ export function ScanResultsPage() {
   });
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'vulnerable' | 'safe' | 'error'>('all');
-  const [editingResult, setEditingResult] = useState<{ host: string; notes: string; tags: string[] } | null>(null);
+  const [editingResult, setEditingResult] = useState<{
+    host: string;
+    notes: string;
+    tags: string[];
+  } | null>(null);
 
   useEffect(() => {
     loadSessions();
@@ -118,13 +122,19 @@ export function ScanResultsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <span className="status-badge status-completed">{t('scanResults.status.completed')}</span>;
+        return (
+          <span className="status-badge status-completed">{t('scanResults.status.completed')}</span>
+        );
       case 'scanning':
-        return <span className="status-badge status-scanning">{t('scanResults.status.scanning')}</span>;
+        return (
+          <span className="status-badge status-scanning">{t('scanResults.status.scanning')}</span>
+        );
       case 'failed':
         return <span className="status-badge status-failed">{t('scanResults.status.failed')}</span>;
       default:
-        return <span className="status-badge status-pending">{t('scanResults.status.pending')}</span>;
+        return (
+          <span className="status-badge status-pending">{t('scanResults.status.pending')}</span>
+        );
     }
   };
 
@@ -195,7 +205,23 @@ export function ScanResultsPage() {
                   onClick={() => setSelectedSession(session)}
                 >
                   <div className="session-header">
-                    <div className="session-name">{session.name || session.sessionId}</div>
+                    <div className="session-name">
+                      {(() => {
+                        // Extract PoC name from session name if it follows the pattern "Auto Scan: [PoC Name] - ..." or "PoC Scan: [PoC Name]"
+                        const name = session.name || session.sessionId;
+                        const autoScanMatch = name.match(
+                          /^(?:Auto Scan|PoC Scan):\s*(.+?)(?:\s*-\s*|$)/
+                        );
+                        if (autoScanMatch) {
+                          return autoScanMatch[1];
+                        }
+                        // If it's a simple PoC scan name, return as is
+                        if (name.includes('PoC Scan:') || name.includes('Auto Scan:')) {
+                          return name.replace(/^(?:Auto Scan|PoC Scan):\s*/, '').split(' - ')[0];
+                        }
+                        return name;
+                      })()}
+                    </div>
                     {getStatusBadge(session.status)}
                   </div>
                   {session.description && (
@@ -203,7 +229,8 @@ export function ScanResultsPage() {
                   )}
                   <div className="session-stats">
                     <span>
-                      {t('scanResults.sessions.scanned')}: {session.scannedHosts}/{session.totalHosts}
+                      {t('scanResults.sessions.scanned')}: {session.scannedHosts}/
+                      {session.totalHosts}
                     </span>
                     <span className="stat-vuln">
                       ⚠️ {session.vulnerableCount} | ✓ {session.safeCount} | ✗ {session.errorCount}
@@ -239,7 +266,21 @@ export function ScanResultsPage() {
             <>
               <div className="poc-panel-header">
                 <h2>
-                  {t('scanResults.results.title')} - {selectedSession.name || selectedSession.sessionId}
+                  {t('scanResults.results.title')} -{' '}
+                  {(() => {
+                    // Extract PoC name from session name if it follows the pattern
+                    const name = selectedSession.name || selectedSession.sessionId;
+                    const autoScanMatch = name.match(
+                      /^(?:Auto Scan|PoC Scan):\s*(.+?)(?:\s*-\s*|$)/
+                    );
+                    if (autoScanMatch) {
+                      return autoScanMatch[1];
+                    }
+                    if (name.includes('PoC Scan:') || name.includes('Auto Scan:')) {
+                      return name.replace(/^(?:Auto Scan|PoC Scan):\s*/, '').split(' - ')[0];
+                    }
+                    return name;
+                  })()}
                 </h2>
                 <div className="filter-buttons">
                   <button
@@ -321,10 +362,7 @@ export function ScanResultsPage() {
                                 placeholder={t('scanResults.results.notesPlaceholder')}
                               />
                             ) : (
-                              <span
-                                className="notes-display"
-                                title={result.notes || undefined}
-                              >
+                              <span className="notes-display" title={result.notes || undefined}>
                                 {result.notes || '-'}
                               </span>
                             )}
@@ -338,22 +376,23 @@ export function ScanResultsPage() {
                                 onChange={e =>
                                   setEditingResult({
                                     ...editingResult,
-                                    tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean),
+                                    tags: e.target.value
+                                      .split(',')
+                                      .map(t => t.trim())
+                                      .filter(Boolean),
                                   })
                                 }
                                 placeholder={t('scanResults.results.tagsPlaceholder')}
                               />
                             ) : (
                               <div className="tags-display">
-                                {result.tags && result.tags.length > 0 ? (
-                                  result.tags.map((tag, tagIdx) => (
-                                    <span key={tagIdx} className="tag-badge">
-                                      {tag}
-                                    </span>
-                                  ))
-                                ) : (
-                                  '-'
-                                )}
+                                {result.tags && result.tags.length > 0
+                                  ? result.tags.map((tag, tagIdx) => (
+                                      <span key={tagIdx} className="tag-badge">
+                                        {tag}
+                                      </span>
+                                    ))
+                                  : '-'}
                               </div>
                             )}
                           </td>
@@ -368,10 +407,14 @@ export function ScanResultsPage() {
                                   onClick={async () => {
                                     if (selectedSession) {
                                       try {
-                                        await updatePocResult(selectedSession.sessionId, result.host, {
-                                          notes: editingResult.notes,
-                                          tags: editingResult.tags,
-                                        });
+                                        await updatePocResult(
+                                          selectedSession.sessionId,
+                                          result.host,
+                                          {
+                                            notes: editingResult.notes,
+                                            tags: editingResult.tags,
+                                          }
+                                        );
                                         await loadResults(selectedSession.sessionId);
                                         setEditingResult(null);
                                       } catch (error) {
@@ -423,4 +466,3 @@ export function ScanResultsPage() {
     </div>
   );
 }
-

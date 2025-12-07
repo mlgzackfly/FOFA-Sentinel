@@ -23,7 +23,9 @@ export interface PocScript {
 /**
  * Create a new PoC script
  */
-export function createPocScript(data: Omit<PocScript, 'id' | 'scriptId' | 'createdAt' | 'updatedAt'>): PocScript {
+export function createPocScript(
+  data: Omit<PocScript, 'id' | 'scriptId' | 'createdAt' | 'updatedAt'>
+): PocScript {
   const db = getDatabase();
   const scriptId = randomUUID();
 
@@ -51,9 +53,7 @@ export function createPocScript(data: Omit<PocScript, 'id' | 'scriptId' | 'creat
  */
 export function getPocScript(scriptId: string): PocScript {
   const db = getDatabase();
-  const script = db
-    .prepare('SELECT * FROM poc_scripts WHERE script_id = ?')
-    .get(scriptId) as
+  const script = db.prepare('SELECT * FROM poc_scripts WHERE script_id = ?').get(scriptId) as
     | (Omit<PocScript, 'parameters' | 'enabled' | 'scriptId' | 'createdAt' | 'updatedAt'> & {
         script_id: string;
         parameters?: string | null;
@@ -67,6 +67,16 @@ export function getPocScript(scriptId: string): PocScript {
     throw new Error('PoC script not found');
   }
 
+  let parameters: Record<string, any> | undefined = undefined;
+  if (script.parameters) {
+    try {
+      parameters = JSON.parse(script.parameters);
+    } catch (parseError) {
+      console.error(`Failed to parse parameters for script ${script.script_id}:`, parseError);
+      // Continue with undefined parameters if parsing fails
+    }
+  }
+
   return {
     id: script.id,
     scriptId: script.script_id,
@@ -75,7 +85,7 @@ export function getPocScript(scriptId: string): PocScript {
     type: script.type,
     language: script.language,
     script: script.script,
-    parameters: script.parameters ? JSON.parse(script.parameters) : undefined,
+    parameters,
     enabled: script.enabled === 1,
     createdAt: script.created_at,
     updatedAt: script.updated_at,
@@ -99,19 +109,31 @@ export function getAllPocScripts(limit = 100, offset = 0): PocScript[] {
     }
   >;
 
-  return scripts.map(script => ({
-    id: script.id,
-    scriptId: script.script_id,
-    name: script.name,
-    description: script.description,
-    type: script.type,
-    language: script.language,
-    script: script.script,
-    parameters: script.parameters ? JSON.parse(script.parameters) : undefined,
-    enabled: script.enabled === 1,
-    createdAt: script.created_at,
-    updatedAt: script.updated_at,
-  }));
+  return scripts.map(script => {
+    let parameters: Record<string, any> | undefined = undefined;
+    if (script.parameters) {
+      try {
+        parameters = JSON.parse(script.parameters);
+      } catch (parseError) {
+        console.error(`Failed to parse parameters for script ${script.script_id}:`, parseError);
+        // Continue with undefined parameters if parsing fails
+      }
+    }
+    
+    return {
+      id: script.id,
+      scriptId: script.script_id,
+      name: script.name,
+      description: script.description,
+      type: script.type,
+      language: script.language,
+      script: script.script,
+      parameters,
+      enabled: script.enabled === 1,
+      createdAt: script.created_at,
+      updatedAt: script.updated_at,
+    };
+  });
 }
 
 /**
@@ -170,9 +192,8 @@ export function updatePocScript(
 export function deletePocScript(scriptId: string): void {
   const db = getDatabase();
   const result = db.prepare('DELETE FROM poc_scripts WHERE script_id = ?').run(scriptId);
-  
+
   if (result.changes === 0) {
     throw new Error('PoC script not found');
   }
 }
-
