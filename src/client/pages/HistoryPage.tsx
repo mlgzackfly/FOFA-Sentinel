@@ -15,15 +15,20 @@ export function HistoryPage() {
       setLoading(true);
       setError(null);
       const response = await fetch('/api/history?limit=100');
+      
       if (!response.ok) {
-        throw new Error(t('errors.failedToLoad'));
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || t('errors.failedToLoad'));
       }
+      
       const data = await response.json();
       setHistory(data.history || []);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('errors.failedToLoad');
       setError(errorMessage);
       console.error('Failed to load history:', error);
+      // Ensure loading is set to false even on error
+      setLoading(false);
     } finally {
       setLoading(false);
     }
