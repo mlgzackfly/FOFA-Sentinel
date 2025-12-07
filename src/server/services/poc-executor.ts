@@ -232,6 +232,190 @@ async function executePythonPoc(
 }
 
 /**
+ * Execute HTTP Request PoC
+ * Parses raw HTTP request text and sends it to target host
+ */
+async function executeHttpRequestPoc(
+  script: { script: string },
+  targetUrl: string,
+  options: PocScanOptions,
+  timeout: number
+): Promise<PocScanResult> {
+  try {
+    // Parse the raw HTTP request
+    const lines = script.script.split(/\r?\n/);
+    if (lines.length === 0) {
+      throw new Error('Empty HTTP request');
+    }
+
+    // Parse request line: METHOD PATH HTTP/VERSION
+    const requestLine = lines[0].trim();
+    const requestLineMatch = requestLine.match(/^(\w+)\s+(.+?)\s+(HTTP\/[\d.]+)$/i);
+    if (!requestLineMatch) {
+      throw new Error(`Invalid HTTP request line: ${requestLine}`);
+    }
+
+    const method = requestLineMatch[1].toUpperCase();
+    let path = requestLineMatch[2];
+    const httpVersion = requestLineMatch[3];
+
+    // Parse headers
+    const headers: Record<string, string> = {};
+    let bodyStartIndex = 1;
+    let body = '';
+
+    // Find where headers end (empty line)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line === '') {
+        // Empty line marks end of headers
+        bodyStartIndex = i + 1;
+        break;
+      }
+
+      // Parse header: Key: Value
+      const colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        const key = line.substring(0, colonIndex).trim();
+        const value = line.substring(colonIndex + 1).trim();
+        headers[key] = value;
+      }
+    }
+
+    // Extract body (everything after empty line)
+    if (bodyStartIndex < lines.length) {
+      body = lines.slice(bodyStartIndex).join('\n');
+    }
+
+    // Parse target URL to extract host and port
+    let targetHost: string;
+    let targetPort: number;
+    let targetProtocol: string;
+
+    try {
+      const url = new URL(targetUrl);
+      targetHost = url.hostname;
+      targetPort = url.port ? parseInt(url.port, 10) : url.protocol === 'https:' ? 443 : 80;
+      targetProtocol = url.protocol.replace(':', '');
+    } catch {
+      // If targetUrl is not a full URL, try to parse it
+      if (targetUrl.includes('://')) {
+        throw new Error(`Invalid target URL: ${targetUrl}`);
+      }
+      // Assume it's a hostname
+      targetHost = targetUrl;
+      targetPort = 80;
+      targetProtocol = 'http';
+    }
+
+    // Replace Host header with target host
+    headers['Host'] =
+      targetPort === 80 || targetPort === 443 ? targetHost : `${targetHost}:${targetPort}`;
+
+    // Build full URL from path
+    // If path is absolute (starts with /), use it as is
+    // Otherwise, treat it as relative to root
+    if (!path.startsWith('/')) {
+      path = '/' + path;
+    }
+
+    const fullUrl = `${targetProtocol}://${targetHost}${targetPort !== 80 && targetPort !== 443 ? `:${targetPort}` : ''}${path}`;
+
+    console.log(`[http-poc] Sending ${method} request to ${fullUrl}`);
+
+    // Prepare fetch options
+    const fetchOptions: RequestInit = {
+      method: method,
+      headers: headers,
+      signal: AbortSignal.timeout(timeout * 1000),
+    };
+
+    // Add body for methods that support it
+    if (['POST', 'PUT', 'PATCH'].includes(method) && body) {
+      fetchOptions.body = body;
+    }
+
+    // Send HTTP request
+    const startTime = Date.now();
+    const response = await fetch(fullUrl, fetchOptions);
+    const responseTime = Date.now() - startTime;
+
+    // Read response body
+    let responseBody = '';
+    try {
+      responseBody = await response.text();
+    } catch (e) {
+      // Ignore body read errors
+    }
+
+    // Determine vulnerability based on response
+    // This is a simple heuristic - can be enhanced based on specific PoC requirements
+    let vulnerable: boolean | null = null;
+    let error: string | undefined = undefined;
+
+    // Check response status
+    if (response.status >= 200 && response.status < 300) {
+      // Success response - check if it indicates vulnerability
+      // Common indicators: command execution results, error messages, etc.
+      const bodyLower = responseBody.toLowerCase();
+      const hasVulnerabilityIndicators =
+        bodyLower.includes('uid=') ||
+        bodyLower.includes('gid=') ||
+        bodyLower.includes('whoami') ||
+        bodyLower.includes('root') ||
+        bodyLower.includes('administrator') ||
+        bodyLower.includes('command') ||
+        bodyLower.includes('exec') ||
+        responseBody.length > 0; // Non-empty response might indicate success
+
+      vulnerable = hasVulnerabilityIndicators ? true : false;
+    } else if (response.status >= 400 && response.status < 500) {
+      // Client error - likely not vulnerable or wrong endpoint
+      vulnerable = false;
+      error = `HTTP ${response.status}: ${response.statusText}`;
+    } else if (response.status >= 500) {
+      // Server error - might indicate vulnerability or server issue
+      vulnerable = null;
+      error = `HTTP ${response.status}: ${response.statusText}`;
+    } else {
+      // Other status codes
+      vulnerable = null;
+    }
+
+    // If vulnerable is false, clear error (it's informational)
+    if (vulnerable === false) {
+      error = undefined;
+    }
+
+    return {
+      host: targetUrl,
+      vulnerable: vulnerable,
+      statusCode: response.status,
+      error: error,
+      finalUrl: fullUrl,
+      testedUrl: fullUrl,
+      pocOutput: `Response Status: ${response.status} ${response.statusText}\nResponse Time: ${responseTime}ms\n\nResponse Headers:\n${Array.from(
+        response.headers.entries()
+      )
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(
+          '\n'
+        )}\n\nResponse Body:\n${responseBody.substring(0, 1000)}${responseBody.length > 1000 ? '...' : ''}`,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[http-poc] Error executing HTTP request:`, errorMessage);
+    return {
+      host: targetUrl,
+      vulnerable: null,
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+/**
  * Execute JavaScript PoC script
  */
 async function executeJavaScriptPoc(
