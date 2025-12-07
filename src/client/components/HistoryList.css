@@ -289,6 +289,14 @@
   color: var(--text-primary);
 }
 
+.result-header > span {
+  flex-shrink: 0;
+}
+
+.result-header .scan-actions-group {
+  margin-left: auto;
+}
+
 /* Scan Actions Group */
 
 .scan-actions-group {
