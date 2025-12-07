@@ -157,7 +157,12 @@ pocRoutes.post('/scan-batch', async (req, res) => {
             }
 
             // Save results to database
+            console.log(
+              `[scan-batch] Saving ${batchResults.length} batch results for session ${session.sessionId}`
+            );
+            console.log(`[scan-batch] Batch results sample:`, batchResults.slice(0, 2));
             saveScanResults(session.sessionId, batchResults);
+            console.log(`[scan-batch] saveScanResults completed for session ${session.sessionId}`);
 
             // Update counts
             batchResults.forEach(result => {
