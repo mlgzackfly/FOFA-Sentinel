@@ -84,11 +84,18 @@ export function ScanResultsPage() {
   };
 
   const handleDeleteSession = async (sessionId: string) => {
+    if (!sessionId) {
+      console.error('Cannot delete session: sessionId is missing');
+      alert(t('scanResults.deleteError') + ': Invalid session ID');
+      return;
+    }
+
     if (!confirm(t('scanResults.confirmDelete'))) {
       return;
     }
 
     try {
+      console.log('Attempting to delete session:', sessionId);
       await deletePocSession(sessionId);
       if (selectedSession?.sessionId === sessionId) {
         setSelectedSession(null);
@@ -98,7 +105,8 @@ export function ScanResultsPage() {
       await loadStatistics();
     } catch (error) {
       console.error('Failed to delete session:', error);
-      alert(t('scanResults.deleteError'));
+      const errorMessage = error instanceof Error ? error.message : t('scanResults.deleteError');
+      alert(`${t('scanResults.deleteError')}: ${errorMessage}`);
     }
   };
 
@@ -201,7 +209,13 @@ export function ScanResultsPage() {
                       className="btn-delete"
                       onClick={e => {
                         e.stopPropagation();
-                        handleDeleteSession(session.sessionId);
+                        // Always use sessionId (UUID), never use numeric id
+                        if (session.sessionId) {
+                          handleDeleteSession(session.sessionId);
+                        } else {
+                          console.error('Session ID is missing:', session);
+                          alert(t('scanResults.deleteError') + ': Session ID not found');
+                        }
                       }}
                       aria-label={t('common.delete')}
                     >

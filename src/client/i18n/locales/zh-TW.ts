@@ -39,6 +39,7 @@ export const zhTW = {
     subtitle: '執行 FOFA API 查詢並分析結果',
     queryLabel: '查詢',
     fieldsLabel: '欄位',
+    fieldsHint: '選擇上方欄位或輸入自訂欄位（以逗號分隔）',
     pageLabel: '頁碼',
     sizeLabel: '數量',
     fullLabel: '搜尋所有結果（不限於最近一年）',

@@ -271,6 +271,14 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 >
                   {copied ? t('common.copied') : t('query.results.copyJson')}
                 </button>
+                {'results' in result ? (
+                  <ExportButton
+                    data={
+                      { results: Array.isArray(result.results) ? result.results : [] } as ExportData
+                    }
+                    filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
+                  />
+                ) : null}
                 {'results' in result &&
                 Array.isArray(result.results) &&
                 result.results.length > 0 ? (
@@ -326,25 +334,17 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                       <div className="poc-session-link">
                         <a
                           href="#"
-                      onClick={e => {
-                        e.preventDefault();
-                        // Navigate to Scan Results page
-                        window.location.hash = '#scan-results';
-                      }}
+                          onClick={e => {
+                            e.preventDefault();
+                            // Navigate to Scan Results page
+                            window.location.hash = '#scan-results';
+                          }}
                         >
                           {t('query.results.viewInPoc')}
                         </a>
                       </div>
                     )}
                   </>
-                ) : null}
-                {'results' in result ? (
-                  <ExportButton
-                    data={
-                      { results: Array.isArray(result.results) ? result.results : [] } as ExportData
-                    }
-                    filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
-                  />
                 ) : null}
               </div>
             </div>

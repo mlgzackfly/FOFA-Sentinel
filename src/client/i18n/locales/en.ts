@@ -39,6 +39,7 @@ export const en = {
     subtitle: 'Execute FOFA API queries and analyze results',
     queryLabel: 'QUERY',
     fieldsLabel: 'FIELDS',
+    fieldsHint: 'Select fields above or enter custom fields separated by commas',
     pageLabel: 'PAGE',
     sizeLabel: 'SIZE',
     fullLabel: 'Search all results (not just last year)',

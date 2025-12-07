@@ -72,6 +72,67 @@
   border-color: var(--border-default);
 }
 
+/* Fields checkbox group */
+.fields-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fields-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.fields-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: 2px;
+  transition: background-color var(--transition-fast);
+}
+
+.fields-checkbox-item:hover {
+  background: var(--bg-elevated);
+}
+
+.fields-checkbox-item input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--color-terminal-green);
+  width: 16px;
+  height: 16px;
+}
+
+.fields-checkbox-item input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fields-custom-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fields-hint {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+}
+
 .query-form-select {
   cursor: pointer;
   appearance: none;

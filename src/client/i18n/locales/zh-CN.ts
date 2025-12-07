@@ -39,6 +39,7 @@ export const zhCN = {
     subtitle: '执行 FOFA API 查询并分析结果',
     queryLabel: '查询',
     fieldsLabel: '字段',
+    fieldsHint: '选择上方字段或输入自定义字段（以逗号分隔）',
     pageLabel: '页码',
     sizeLabel: '数量',
     fullLabel: '搜索所有结果（不限于最近一年）',

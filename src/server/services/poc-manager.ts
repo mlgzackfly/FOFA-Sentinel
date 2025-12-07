@@ -65,13 +65,34 @@ export function getScanSession(sessionId: string): PocScanSession {
   const db = getDatabase();
   const session = db
     .prepare('SELECT * FROM poc_scan_sessions WHERE session_id = ?')
-    .get(sessionId) as PocScanSession | undefined;
+    .get(sessionId) as
+    | (Omit<PocScanSession, 'sessionId' | 'createdAt' | 'updatedAt'> & {
+        session_id: string;
+        created_at: string;
+        updated_at: string;
+      })
+    | undefined;
 
   if (!session) {
     throw new Error('Scan session not found');
   }
 
-  return session;
+  // Map database fields to TypeScript interface
+  return {
+    id: session.id,
+    sessionId: session.session_id, // Map session_id to sessionId
+    name: session.name,
+    description: session.description,
+    query: session.query,
+    totalHosts: session.totalHosts,
+    scannedHosts: session.scannedHosts,
+    vulnerableCount: session.vulnerableCount,
+    safeCount: session.safeCount,
+    errorCount: session.errorCount,
+    status: session.status,
+    createdAt: session.created_at,
+    updatedAt: session.updated_at,
+  };
 }
 
 /**
@@ -206,11 +227,34 @@ export function saveScanResults(
  */
 export function getAllScanSessions(limit = 50, offset = 0): PocScanSession[] {
   const db = getDatabase();
-  return db
+  const sessions = db
     .prepare(
       'SELECT * FROM poc_scan_sessions ORDER BY created_at DESC LIMIT ? OFFSET ?'
     )
-    .all(limit, offset) as PocScanSession[];
+    .all(limit, offset) as Array<
+    Omit<PocScanSession, 'sessionId' | 'createdAt' | 'updatedAt'> & {
+      session_id: string;
+      created_at: string;
+      updated_at: string;
+    }
+  >;
+
+  // Map database fields to TypeScript interface
+  return sessions.map(session => ({
+    id: session.id,
+    sessionId: session.session_id, // Map session_id to sessionId
+    name: session.name,
+    description: session.description,
+    query: session.query,
+    totalHosts: session.totalHosts,
+    scannedHosts: session.scannedHosts,
+    vulnerableCount: session.vulnerableCount,
+    safeCount: session.safeCount,
+    errorCount: session.errorCount,
+    status: session.status,
+    createdAt: session.created_at,
+    updatedAt: session.updated_at,
+  }));
 }
 
 /**
@@ -303,20 +347,45 @@ export function deleteScanSession(sessionId: string): void {
     throw new Error('Scan session not found');
   }
   
+  // Check how many results are associated with this session (for logging)
+  const resultCount = db
+    .prepare('SELECT COUNT(*) as count FROM poc_scan_results WHERE session_id = ?')
+    .get(sessionId) as { count: number } | undefined;
+  
+  console.log(`Deleting session ${sessionId} with ${resultCount?.count || 0} associated results`);
+  
   // Use a transaction to ensure atomicity
   const transaction = db.transaction(() => {
+    // Ensure foreign keys are enabled within transaction
+    db.pragma('foreign_keys = ON');
+    
+    // Prepare statements for deletion
+    const deleteResults = db.prepare('DELETE FROM poc_scan_results WHERE session_id = ?');
+    const deleteSession = db.prepare('DELETE FROM poc_scan_sessions WHERE session_id = ?');
+    
     // First delete all related results (explicit deletion for safety)
-    db.prepare('DELETE FROM poc_scan_results WHERE session_id = ?').run(sessionId);
+    // This should work even if foreign keys are disabled
+    const resultsDeleted = deleteResults.run(sessionId);
+    console.log(`Deleted ${resultsDeleted.changes} scan results`);
     
     // Then delete the session
-    const result = db.prepare('DELETE FROM poc_scan_sessions WHERE session_id = ?').run(sessionId);
+    const sessionDeleted = deleteSession.run(sessionId);
     
-    if (result.changes === 0) {
-      throw new Error('Failed to delete scan session');
+    if (sessionDeleted.changes === 0) {
+      throw new Error('Failed to delete scan session - no rows affected');
     }
+    
+    console.log(`Successfully deleted session ${sessionId}`);
   });
   
-  transaction();
+  try {
+    transaction();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Transaction failed during session deletion:', errorMessage);
+    console.error('Error details:', error);
+    throw new Error(`Failed to delete scan session: ${errorMessage}`);
+  }
 }
 
 /**

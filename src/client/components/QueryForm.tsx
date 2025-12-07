@@ -26,6 +26,66 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [fields, setFields] = useState('host,ip,port');
+  const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(['host', 'ip', 'port']));
+
+  // Common FOFA fields options
+  const commonFields = [
+    { value: 'host', label: 'Host' },
+    { value: 'ip', label: 'IP' },
+    { value: 'port', label: 'Port' },
+    { value: 'protocol', label: 'Protocol' },
+    { value: 'country', label: 'Country' },
+    { value: 'title', label: 'Title' },
+    { value: 'domain', label: 'Domain' },
+    { value: 'os', label: 'OS' },
+    { value: 'server', label: 'Server' },
+    { value: 'icp', label: 'ICP' },
+    { value: 'link', label: 'Link' },
+    { value: 'header', label: 'Header' },
+    { value: 'banner', label: 'Banner' },
+    { value: 'cert', label: 'Cert' },
+    { value: 'body', label: 'Body' },
+    { value: 'icon', label: 'Icon' },
+    { value: 'fid', label: 'FID' },
+    { value: 'cidr', label: 'CIDR' },
+    { value: 'city', label: 'City' },
+    { value: 'asn', label: 'ASN' },
+    { value: 'latitude', label: 'Latitude' },
+    { value: 'longitude', label: 'Longitude' },
+    { value: 'product', label: 'Product' },
+    { value: 'version', label: 'Version' },
+    { value: 'lastupdatetime', label: 'Last Update Time' },
+    { value: 'jarm', label: 'JARM' },
+  ];
+
+  // Update fields string when selectedFields changes
+  useEffect(() => {
+    const fieldsArray = Array.from(selectedFields).filter(Boolean);
+    const newFieldsString = fieldsArray.join(',') || '';
+    if (newFieldsString !== fields) {
+      setFields(newFieldsString);
+    }
+  }, [selectedFields]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Initialize selectedFields from fields string on mount
+  useEffect(() => {
+    if (fields) {
+      const fieldsArray = fields.split(',').map(f => f.trim()).filter(Boolean);
+      setSelectedFields(new Set(fieldsArray));
+    }
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFieldToggle = (fieldValue: string) => {
+    const newSelected = new Set(selectedFields);
+    if (newSelected.has(fieldValue)) {
+      newSelected.delete(fieldValue);
+    } else {
+      newSelected.add(fieldValue);
+    }
+    setSelectedFields(newSelected);
+  };
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(100);
   const [fetchAll, setFetchAll] = useState(false);
@@ -338,13 +398,38 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
                 <span className="label-prefix">#</span>
                 {t('query.fieldsLabel')}
               </label>
-              <input
-                type="text"
-                className="query-form-input"
-                value={fields}
-                onChange={e => setFields(e.target.value)}
-                placeholder="host,ip,port"
-              />
+              <div className="fields-checkbox-group">
+                <div className="fields-checkbox-grid">
+                  {commonFields.map(field => (
+                    <label key={field.value} className="fields-checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={selectedFields.has(field.value)}
+                        onChange={() => handleFieldToggle(field.value)}
+                        disabled={loading}
+                      />
+                      <span>{field.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="fields-custom-input">
+                  <input
+                    type="text"
+                    className="query-form-input"
+                    value={fields}
+                    onChange={e => {
+                      setFields(e.target.value);
+                      const fieldsArray = e.target.value.split(',').map(f => f.trim()).filter(Boolean);
+                      setSelectedFields(new Set(fieldsArray));
+                    }}
+                    placeholder="host,ip,port (or use checkboxes above)"
+                    disabled={loading}
+                  />
+                  <small className="fields-hint">
+                    {t('query.fieldsHint') || 'Select fields above or enter custom fields separated by commas'}
+                  </small>
+                </div>
+              </div>
             </div>
 
             <div className="query-form-row">
