@@ -165,14 +165,30 @@ async function executePythonPoc(
         } else {
           vulnerableValue = null;
         }
+        // If vulnerable is false, it means the target is safe (not vulnerable)
+        // In this case, error messages like "No vulnerable endpoint found" are informational, not actual errors
+        // Only set error if vulnerable is null (actual error occurred) or if vulnerable is true but there's a real error
+        let errorValue: string | undefined = undefined;
+        if (vulnerableValue === null) {
+          // Actual error - keep the error message
+          errorValue = jsonOutput.error;
+        } else if (vulnerableValue === false) {
+          // Safe (not vulnerable) - clear error message as it's not an error
+          // Messages like "No vulnerable endpoint found" are expected and not errors
+          errorValue = undefined;
+        } else if (vulnerableValue === true && jsonOutput.error) {
+          // Vulnerable but has error - might be a warning, keep it
+          errorValue = jsonOutput.error;
+        }
+
         console.log(
-          `[poc-executor] PoC result for ${targetUrl}: vulnerable=${vulnerableValue}, jsonOutput.vulnerable=${jsonOutput.vulnerable}`
+          `[poc-executor] PoC result for ${targetUrl}: vulnerable=${vulnerableValue}, error=${errorValue || 'none'}`
         );
         resolve({
           host: targetUrl,
           vulnerable: vulnerableValue,
           statusCode: jsonOutput.status_code,
-          error: jsonOutput.error,
+          error: errorValue,
           finalUrl: jsonOutput.final_url,
           testedUrl: jsonOutput.tested_url || targetUrl,
           pocOutput: output,
