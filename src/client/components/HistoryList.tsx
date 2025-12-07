@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
+import { HealthCheckStatus } from './HealthCheckStatus';
 import {
   type ExportData,
   type ExportFormat,
@@ -11,6 +12,7 @@ import {
   ensureFileExtension,
 } from '../utils/export';
 import { type HistoryItem as SharedHistoryItem } from '../../shared/types';
+import { checkHostsHealth, type HealthCheckResult } from '../utils/api';
 import './HistoryList.css';
 
 interface HistoryExportButtonWrapperProps {
@@ -100,6 +102,16 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
   >({});
   const [loadingResults, setLoadingResults] = useState<number | null>(null);
   const [exportData, setExportData] = useState<Record<number, ExportData | null>>({});
+  const [checkingAll, setCheckingAll] = useState<Record<number, boolean>>({});
+  const [checkProgress, setCheckProgress] = useState<
+    Record<number, { current: number; total: number }>
+  >({});
+  const [checkResults, setCheckResults] = useState<
+    Record<number, Record<string, HealthCheckResult>>
+  >({});
+  const [checkSummary, setCheckSummary] = useState<
+    Record<number, { total: number; alive: number; dead: number }>
+  >({});
 
   const loadResults = async (id: number, expand: boolean = true) => {
     if (results[id] && exportData[id]) {
@@ -137,6 +149,96 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
       console.error('Failed to load results:', error);
     } finally {
       setLoadingResults(null);
+    }
+  };
+
+  // Extract hosts from result data
+  const extractHostsFromResult = useCallback((resultData: unknown): string[] => {
+    const hosts: string[] = [];
+    
+    if (resultData && typeof resultData === 'object' && resultData !== null) {
+      if ('results' in resultData && Array.isArray(resultData.results)) {
+        resultData.results.forEach((row: unknown) => {
+          let hostValue = '';
+          if (Array.isArray(row) && row.length > 0) {
+            hostValue = String(row[0] ?? '').trim();
+          } else if (typeof row === 'object' && row !== null) {
+            const rowObj = row as Record<string, unknown>;
+            hostValue = String(
+              rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? ''
+            ).trim();
+          }
+          if (hostValue && !hosts.includes(hostValue)) {
+            hosts.push(hostValue);
+          }
+        });
+      }
+    }
+    
+    return hosts;
+  }, []);
+
+  // Batch check all hosts for a history item
+  const handleCheckAll = async (historyId: number) => {
+    const resultData = exportData[historyId];
+    if (!resultData) {
+      return;
+    }
+
+    const hosts = extractHostsFromResult(resultData);
+    if (hosts.length === 0) {
+      return;
+    }
+
+    setCheckingAll(prev => ({ ...prev, [historyId]: true }));
+    setCheckProgress(prev => ({ ...prev, [historyId]: { current: 0, total: hosts.length } }));
+    setCheckSummary(prev => {
+      const newSummary = { ...prev };
+      delete newSummary[historyId];
+      return newSummary;
+    });
+
+    try {
+      const batchSize = 10;
+      const resultsMap: Record<string, HealthCheckResult> = {};
+      let aliveCount = 0;
+      let deadCount = 0;
+
+      for (let i = 0; i < hosts.length; i += batchSize) {
+        const batch = hosts.slice(i, i + batchSize);
+        const batchResults = await checkHostsHealth(batch, { timeout: 5000 });
+
+        batchResults.forEach((checkResult) => {
+          resultsMap[checkResult.host] = checkResult;
+          if (checkResult.alive) {
+            aliveCount++;
+          } else {
+            deadCount++;
+          }
+        });
+
+        setCheckResults(prev => ({
+          ...prev,
+          [historyId]: { ...prev[historyId], ...resultsMap },
+        }));
+        setCheckProgress(prev => ({
+          ...prev,
+          [historyId]: { current: Math.min(i + batchSize, hosts.length), total: hosts.length },
+        }));
+      }
+
+      setCheckSummary(prev => ({
+        ...prev,
+        [historyId]: {
+          total: hosts.length,
+          alive: aliveCount,
+          dead: deadCount,
+        },
+      }));
+    } catch (error) {
+      console.error('Failed to check all hosts:', error);
+    } finally {
+      setCheckingAll(prev => ({ ...prev, [historyId]: false }));
     }
   };
 
@@ -214,21 +316,149 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                 <div className="results-loading">{t('common.loading')}</div>
               ) : results[item.id] && results[item.id].length > 0 ? (
                 <div className="results-content">
-                  {results[item.id].map((result, idx: number) => (
-                    <div key={idx} className="result-item">
-                      <div className="result-header">
-                        <span>
-                          {t('history.resultSet')} {idx + 1}
-                        </span>
-                        <span>
-                          {t('query.results.total')}: {result.total_size || 'N/A'}
-                        </span>
+                  {results[item.id].map((result, idx: number) => {
+                    const resultData = result.result_data;
+                    const hasResults =
+                      resultData &&
+                      typeof resultData === 'object' &&
+                      resultData !== null &&
+                      'results' in resultData &&
+                      Array.isArray((resultData as { results: unknown }).results) &&
+                      (resultData as { results: unknown[] }).results.length > 0;
+
+                    return (
+                      <div key={idx} className="result-item">
+                        <div className="result-header">
+                          <span>
+                            {t('history.resultSet')} {idx + 1}
+                          </span>
+                          <span>
+                            {t('query.results.total')}: {result.total_size || 'N/A'}
+                          </span>
+                          {hasResults && (
+                            <button
+                              className="btn-secondary btn-check-all"
+                              onClick={() => handleCheckAll(item.id)}
+                              disabled={checkingAll[item.id]}
+                            >
+                              {checkingAll[item.id]
+                                ? `${t('query.results.checking')} (${checkProgress[item.id]?.current || 0}/${checkProgress[item.id]?.total || 0})`
+                                : t('query.results.checkAll')}
+                            </button>
+                          )}
+                        </div>
+                        {checkSummary[item.id] && (
+                          <div className="query-results-summary">
+                            <div className="summary-item summary-total">
+                              <span className="summary-label">{t('query.results.summary.total')}:</span>
+                              <span className="summary-value">{checkSummary[item.id].total}</span>
+                            </div>
+                            <div className="summary-item summary-alive">
+                              <span className="summary-label">{t('query.results.summary.alive')}:</span>
+                              <span className="summary-value">{checkSummary[item.id].alive}</span>
+                            </div>
+                            <div className="summary-item summary-dead">
+                              <span className="summary-label">{t('query.results.summary.dead')}:</span>
+                              <span className="summary-value">{checkSummary[item.id].dead}</span>
+                            </div>
+                          </div>
+                        )}
+                        {hasResults ? (
+                          <div className="history-results-table">
+                            <table>
+                              <thead>
+                                <tr>
+                                  {(() => {
+                                    const resultsArray = (resultData as { results: unknown[] }).results;
+                                    const firstResult = resultsArray[0];
+                                    if (Array.isArray(firstResult)) {
+                                      return (
+                                        <>
+                                          {firstResult.map((_, colIdx: number) => (
+                                            <th key={colIdx}>COL_{colIdx + 1}</th>
+                                          ))}
+                                          <th className="health-check-header">STATUS</th>
+                                        </>
+                                      );
+                                    } else if (
+                                      typeof firstResult === 'object' &&
+                                      firstResult !== null
+                                    ) {
+                                      return (
+                                        <>
+                                          {Object.keys(firstResult).map(key => (
+                                            <th key={key}>{key.toUpperCase()}</th>
+                                          ))}
+                                          <th className="health-check-header">STATUS</th>
+                                        </>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(resultData as { results: unknown[] }).results.map((row: unknown, rowIdx: number) => {
+                                  let hostValue = '';
+                                  if (Array.isArray(row) && row.length > 0) {
+                                    hostValue = String(row[0] ?? '').trim();
+                                  } else if (typeof row === 'object' && row !== null) {
+                                    const rowObj = row as Record<string, unknown>;
+                                    hostValue = String(
+                                      rowObj.host ?? rowObj.HOST ?? rowObj.Host ?? rowObj[0] ?? ''
+                                    ).trim();
+                                  }
+
+                                  if (Array.isArray(row)) {
+                                    return (
+                                      <tr key={rowIdx}>
+                                        {row.map((cell: unknown, cellIdx: number) => (
+                                          <td key={cellIdx}>{String(cell ?? '-')}</td>
+                                        ))}
+                                        <td className="health-check-cell">
+                                          {hostValue ? (
+                                            <HealthCheckStatus
+                                              host={hostValue}
+                                              externalResult={checkResults[item.id]?.[hostValue]}
+                                            />
+                                          ) : (
+                                            '-'
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  } else if (typeof row === 'object' && row !== null) {
+                                    return (
+                                      <tr key={rowIdx}>
+                                        {Object.values(row).map((cell: unknown, cellIdx: number) => (
+                                          <td key={cellIdx}>{String(cell ?? '-')}</td>
+                                        ))}
+                                        <td className="health-check-cell">
+                                          {hostValue ? (
+                                            <HealthCheckStatus
+                                              host={hostValue}
+                                              externalResult={checkResults[item.id]?.[hostValue]}
+                                            />
+                                          ) : (
+                                            '-'
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <pre className="result-data">
+                            {JSON.stringify(result.result_data, null, 2)}
+                          </pre>
+                        )}
                       </div>
-                      <pre className="result-data">
-                        {JSON.stringify(result.result_data, null, 2)}
-                      </pre>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="results-empty">
