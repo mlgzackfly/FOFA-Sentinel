@@ -350,16 +350,20 @@ export function ScanResultsPage() {
                 <h2>
                   {t('scanResults.results.title')} -{' '}
                   {(() => {
-                    // Extract PoC name from session name if it follows the pattern
+                    // Extract PoC name from session name if it follows the pattern "Auto Scan: [PoC Name] - [Query]" or "PoC Scan: [PoC Name] - [Query]"
                     const name = selectedSession.name || selectedSession.sessionId;
-                    const autoScanMatch = name.match(
-                      /^(?:Auto Scan|PoC Scan):\s*(.+?)(?:\s*-\s*|$)/
-                    );
-                    if (autoScanMatch) {
-                      return autoScanMatch[1];
-                    }
                     if (name.includes('PoC Scan:') || name.includes('Auto Scan:')) {
-                      return name.replace(/^(?:Auto Scan|PoC Scan):\s*/, '').split(' - ')[0];
+                      // Remove prefix "Auto Scan: " or "PoC Scan: "
+                      let pocName = name.replace(/^(?:Auto Scan|PoC Scan):\s*/, '');
+                      // The format is: "[PoC Name] - [Query]"
+                      // We want to extract everything before the last " - " (space-dash-space)
+                      // This handles cases like "CVE-2025-55182 - React Server Components RCE - query"
+                      const lastDashIndex = pocName.lastIndexOf(' - ');
+                      if (lastDashIndex > 0) {
+                        // Extract everything before the last " - "
+                        pocName = pocName.substring(0, lastDashIndex);
+                      }
+                      return pocName;
                     }
                     return name;
                   })()}
