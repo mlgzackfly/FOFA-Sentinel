@@ -359,7 +359,6 @@ export function ScanResultsPage() {
                         <tr key={idx}>
                           <td className="host-cell">{result.host}</td>
                           <td>{getVulnerabilityBadge(result.vulnerable)}</td>
-                          <td>{result.statusCode || '-'}</td>
                           <td className="url-cell">{result.testedUrl || '-'}</td>
                           <td
                             className="error-cell"
