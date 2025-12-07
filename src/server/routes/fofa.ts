@@ -155,10 +155,11 @@ fofaRoutes.post('/search-all', async (req, res) => {
         const lastResult = firstResult.results[firstResult.results.length - 1];
         if (Array.isArray(lastResult) && lastResult.length > 0) {
           searchAfter = String(lastResult[0]);
-        } else if (typeof lastResult === 'object' && lastResult !== null) {
+        } else if (typeof lastResult === 'object' && lastResult !== null && !Array.isArray(lastResult)) {
           const keys = Object.keys(lastResult);
           if (keys.length > 0) {
-            searchAfter = String((lastResult as Record<string, unknown>)[keys[0]]);
+            const record = lastResult as Record<string, unknown>;
+            searchAfter = String(record[keys[0]]);
           }
         }
       }
@@ -188,10 +189,11 @@ fofaRoutes.post('/search-all', async (req, res) => {
         const lastResult = nextResult.results[nextResult.results.length - 1];
         if (Array.isArray(lastResult) && lastResult.length > 0) {
           searchAfter = String(lastResult[0]);
-        } else if (typeof lastResult === 'object' && lastResult !== null) {
+        } else if (typeof lastResult === 'object' && lastResult !== null && !Array.isArray(lastResult)) {
           const keys = Object.keys(lastResult);
           if (keys.length > 0) {
-            searchAfter = String((lastResult as Record<string, unknown>)[keys[0]]);
+            const record = lastResult as Record<string, unknown>;
+            searchAfter = String(record[keys[0]]);
           } else {
             break;
           }

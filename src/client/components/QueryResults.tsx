@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ExportButton } from './ExportButton';
 import { type FofaQueryResult } from '../../shared/types';
+import { type ExportData } from '../utils/export';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -46,16 +47,19 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 </span>
                 <span className="meta-item">
                   <span className="meta-label">{t('query.results.total')}:</span>{' '}
-                  {'size' in result ? result.size || 0 : 0}
+                  {'size' in result && typeof result.size === 'number' ? result.size : 0}
                 </span>
                 <span className="meta-item">
                   <span className="meta-label">{t('query.results.page')}:</span>{' '}
-                  {'page' in result ? result.page || 1 : 1}
+                  {'page' in result && typeof result.page === 'number' ? result.page : 1}
                 </span>
                 <span className="meta-item">
                   <span className="meta-label">{t('query.results.displayed')}:</span>{' '}
-                  {'results' in result ? result.results?.length || 0 : 0} {t('query.results.of')}{' '}
-                  {'size' in result ? result.size || 0 : 0}
+                  {'results' in result && Array.isArray(result.results)
+                    ? result.results.length
+                    : 0}{' '}
+                  {t('query.results.of')}{' '}
+                  {'size' in result && typeof result.size === 'number' ? result.size : 0}
                 </span>
               </div>
               <div className="query-results-actions">
@@ -66,10 +70,12 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                 >
                   {copied ? t('common.copied') : t('query.results.copyJson')}
                 </button>
-                <ExportButton
-                  data={result as ExportData}
-                  filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
-                />
+                {'results' in result ? (
+                  <ExportButton
+                    data={{ results: Array.isArray(result.results) ? result.results : [] } as ExportData}
+                    filename={`fofa_${('query' in result ? result.query : 'query') || 'query'}_${Date.now()}`}
+                  />
+                ) : null}
               </div>
             </div>
             {'results' in result && Array.isArray(result.results) && result.results.length > 0 ? (
@@ -135,7 +141,10 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
               >
                 {copied ? t('common.copied') : t('query.results.copyJson')}
               </button>
-              <ExportButton data={result} filename={`fofa_${tab}_${Date.now()}`} />
+              <ExportButton
+                data={{ results: [], ...result } as ExportData}
+                filename={`fofa_${tab}_${Date.now()}`}
+              />
             </div>
           </div>
         );

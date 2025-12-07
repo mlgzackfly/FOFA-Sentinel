@@ -158,7 +158,7 @@ historyRoutes.get('/:id/results', (req, res) => {
       created_at: string;
     }
 
-    const parsedResults = results.map((r: QueryResultRow) => ({
+    const parsedResults = (results as QueryResultRow[]).map((r: QueryResultRow) => ({
       ...r,
       result_data: JSON.parse(r.result_data),
     }));
@@ -229,7 +229,7 @@ historyRoutes.get('/:id/export', (req, res) => {
       created_at: string;
     }
 
-    results.forEach((result: ExportResultRow, index: number) => {
+    (results as ExportResultRow[]).forEach((result: ExportResultRow, index: number) => {
       try {
         let data: unknown;
         if (typeof result.result_data === 'string') {
