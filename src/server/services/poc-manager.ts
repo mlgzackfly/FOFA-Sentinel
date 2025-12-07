@@ -380,15 +380,33 @@ export function getScanResults(
   >;
   console.log(`[DB] Query returned ${results.length} results for session ${sessionId}`);
 
-  // Parse tags from JSON string
-  return results.map(result => ({
-    ...result,
-    tags: result.tags
-      ? typeof result.tags === 'string'
-        ? JSON.parse(result.tags)
-        : result.tags
-      : [],
-  })) as PocScanResult[];
+  // Parse tags from JSON string and map snake_case to camelCase
+  return results.map(result => {
+    // Convert vulnerable from integer (0/1) to boolean (false/true)
+    const vulnerableValue = result.vulnerable === 1 ? true : result.vulnerable === 0 ? false : null;
+
+    // Map snake_case fields to camelCase
+    const mappedResult: PocScanResult = {
+      id: result.id,
+      sessionId: result.session_id,
+      host: result.host,
+      vulnerable: vulnerableValue,
+      statusCode: result.status_code ?? undefined,
+      error: result.error ?? undefined,
+      finalUrl: result.final_url ?? undefined,
+      testedUrl: result.tested_url ?? undefined,
+      notes: result.notes ?? undefined,
+      tags: result.tags
+        ? typeof result.tags === 'string'
+          ? JSON.parse(result.tags)
+          : result.tags
+        : [],
+      status: result.status as 'pending' | 'scanned' | 'error',
+      scannedAt: result.scanned_at || new Date().toISOString(), // Convert scanned_at to scannedAt
+    };
+
+    return mappedResult;
+  });
 }
 
 /**
