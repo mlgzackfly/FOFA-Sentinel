@@ -176,6 +176,57 @@ export function ScanResultsPage() {
     }
   };
 
+  const handleExport = () => {
+    if (results.length === 0) {
+      alert(t('scanResults.export.noResults') || 'No results to export');
+      return;
+    }
+
+    // Extract tested URLs from results
+    const urls = results
+      .map(result => result.testedUrl || result.host)
+      .filter((url): url is string => Boolean(url));
+
+    if (urls.length === 0) {
+      alert(t('scanResults.export.noUrls') || 'No URLs to export');
+      return;
+    }
+
+    // Create export data in the format expected by convertToTXT
+    const exportData = {
+      results: urls.map(url => ({ host: url })),
+    };
+
+    const content = convertToTXT(exportData);
+    const blob = new Blob([content], { type: getMimeType('txt') });
+    const url = URL.createObjectURL(blob);
+
+    // Generate filename based on filter
+    const filterName =
+      filter === 'all'
+        ? 'all'
+        : filter === 'vulnerable'
+          ? 'vulnerable'
+          : filter === 'safe'
+            ? 'safe'
+            : 'error';
+    const sessionName = selectedSession?.name
+      ? selectedSession.name.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)
+      : 'scan-results';
+    const filename = ensureFileExtension(
+      `${sessionName}_${filterName}_${new Date().toISOString().split('T')[0]}`,
+      'txt'
+    );
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="scan-results-page">
       <div className="poc-page-header">
