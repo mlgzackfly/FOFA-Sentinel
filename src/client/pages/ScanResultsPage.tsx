@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import {
   getAllPocSessions,
-  getPocSession,
   getPocResults,
   deletePocSession,
   getPocStatistics,

@@ -8,9 +8,6 @@ export function formatError(error: string | undefined | null): string {
     return '';
   }
 
-  // Extract error type and key information
-  let formatted = error;
-
   // SSL Certificate errors
   if (error.includes('SSL') || error.includes('certificate')) {
     if (error.includes('hostname') && error.includes("doesn't match")) {

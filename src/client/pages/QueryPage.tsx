@@ -29,7 +29,11 @@ export function QueryPage() {
   const handleResult = (
     result: FofaQueryResult,
     pocScriptId?: string,
-    pocScanState?: { scanning: boolean; progress: { current: number; total: number }; sessionId: string | null }
+    pocScanState?: {
+      scanning: boolean;
+      progress: { current: number; total: number };
+      sessionId: string | null;
+    }
   ) => {
     setQueryResult(result);
     setSelectedPocScriptId(pocScriptId);

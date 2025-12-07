@@ -119,7 +119,7 @@ export function getAllPocScripts(limit = 100, offset = 0): PocScript[] {
         // Continue with undefined parameters if parsing fails
       }
     }
-    
+
     return {
       id: script.id,
       scriptId: script.script_id,

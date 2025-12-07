@@ -5,9 +5,8 @@ import {
   getFofaHostAggregation,
   getFofaAccountInfo,
   searchAllFofa,
-  scanWithPoc,
 } from '../utils/api';
-import { getAllPocScripts, startBackgroundScan, getPocSession } from '../utils/poc-api';
+import { getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
 import { useTranslation } from '../hooks/useTranslation';
 import './QueryForm.css';
 
@@ -20,7 +19,11 @@ interface QueryFormProps {
   onResult: (
     result: FofaQueryResult,
     pocScriptId?: string,
-    pocScanState?: { scanning: boolean; progress: { current: number; total: number }; sessionId: string | null }
+    pocScanState?: {
+      scanning: boolean;
+      progress: { current: number; total: number };
+      sessionId: string | null;
+    }
   ) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
@@ -113,7 +116,6 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
     Array<{ scriptId: string; name: string; enabled: boolean }>
   >([]);
   const [pocScanning, setPocScanning] = useState(false);
-  const [pocProgress, setPocProgress] = useState({ current: 0, total: 0 });
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load PoC scripts on mount
@@ -297,14 +299,12 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         }).catch(err => {
           console.error('Auto PoC scan failed:', err);
           setPocScanning(false);
-          setPocProgress({ current: 0, total: 0 });
         });
       } else {
         // Pass result without PoC if no PoC selected
         onResult(result);
         // Reset PoC scanning state if no scan is needed
         setPocScanning(false);
-        setPocProgress({ current: 0, total: 0 });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknown'));
@@ -340,21 +340,24 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         const rowObj = row as Record<string, unknown>;
         // Try multiple possible field names
         hostValue = String(
-          rowObj.host ?? 
-          rowObj.HOST ?? 
-          rowObj.Host ?? 
-          rowObj.ip ?? 
-          rowObj.IP ?? 
-          rowObj.Ip ??
-          rowObj[0] ?? 
-          ''
+          rowObj.host ??
+            rowObj.HOST ??
+            rowObj.Host ??
+            rowObj.ip ??
+            rowObj.IP ??
+            rowObj.Ip ??
+            rowObj[0] ??
+            ''
         ).trim();
       }
-      
+
       // Only add if it looks like a valid host (contains . or :)
       if (hostValue && (hostValue.includes('.') || hostValue.includes(':'))) {
         // Remove protocol if present
-        hostValue = hostValue.replace(/^https?:\/\//i, '').split('/')[0].split('?')[0];
+        hostValue = hostValue
+          .replace(/^https?:\/\//i, '')
+          .split('/')[0]
+          .split('?')[0];
         hostsSet.add(hostValue);
       }
     });
@@ -377,7 +380,6 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
     }
 
     setPocScanning(true);
-    setPocProgress({ current: 0, total: hosts.length });
 
     try {
       // Get PoC script name for session name
@@ -399,8 +401,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         useRscScan: false,
       });
 
-      // Update progress to show scan started (0/hosts.length means started but not yet scanned)
-      setPocProgress({ current: 0, total: hosts.length });
+      // Progress will be updated via polling in QueryResults component
 
       // Notify parent component about the session ID immediately
       if (onSessionCreated) {
@@ -417,7 +418,6 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         pollIntervalRef.current = null;
       }
       setPocScanning(false);
-      setPocProgress({ current: 0, total: 0 });
     }
   };
 

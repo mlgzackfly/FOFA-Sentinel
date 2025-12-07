@@ -204,10 +204,14 @@ async function executePythonPoc(
  * Execute JavaScript PoC script
  */
 async function executeJavaScriptPoc(
-  script: { script: string },
-  targetUrl: string,
-  options: PocScanOptions,
-  timeout: number
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _script: { script: string },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _targetUrl: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _options: PocScanOptions,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _timeout: number
 ): Promise<PocScanResult> {
   // For now, JavaScript PoCs would need to be executed in Node.js context
   // This is a placeholder - can be enhanced later

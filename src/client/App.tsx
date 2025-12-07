@@ -9,7 +9,7 @@ import { NavigationDrawer } from './components/NavigationDrawer';
 import { getLocale } from './i18n';
 import './App.css';
 
-type Page = 'query' | 'history' | 'poc' | 'settings' | 'docs';
+type Page = 'query' | 'history' | 'scan-results' | 'poc' | 'settings' | 'docs';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('query');

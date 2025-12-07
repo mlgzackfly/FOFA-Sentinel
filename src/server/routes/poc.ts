@@ -17,11 +17,7 @@ import {
   updatePocScript,
   deletePocScript,
 } from '../services/poc-scripts.js';
-import {
-  executePocScriptForHosts,
-  type PocScanResult as PocExecutionResult,
-} from '../services/poc-executor.js';
-import { scanHosts } from '../services/rsc-scanner.js';
+import { executePocScriptForHosts } from '../services/poc-executor.js';
 
 export const pocRoutes = Router();
 
@@ -145,8 +141,8 @@ pocRoutes.post('/scan-batch', async (req, res) => {
           try {
             if (useRscScan) {
               // Use RSC scan
-              const { scanHosts } = await import('../services/rsc-scanner.js');
-              batchResults = await scanHosts(batch, {
+              const { scanHosts: scanHostsFn } = await import('../services/rsc-scanner.js');
+              batchResults = await scanHostsFn(batch, {
                 timeout: timeout || 15,
                 safeCheck: true,
               });

@@ -19,7 +19,6 @@ import {
   executePocScriptForHosts,
   type PocScanResult,
 } from '../services/poc-executor.js';
-import { getPocScript } from '../services/poc-scripts.js';
 
 export const fofaRoutes = Router();
 
@@ -309,11 +308,13 @@ fofaRoutes.post('/rsc-scan', async (req, res) => {
     } else if (sessionId) {
       pocSessionId = sessionId;
       try {
-        const currentSession = getScanSession(sessionId);
-        updateScanSession(sessionId, {
-          status: 'scanning',
-          totalHosts: host ? 1 : hosts?.length || 0,
-        });
+        const existingSession = getScanSession(sessionId);
+        if (existingSession) {
+          updateScanSession(sessionId, {
+            status: 'scanning',
+            totalHosts: (existingSession.totalHosts || 0) + (host ? 1 : hosts?.length || 0),
+          });
+        }
       } catch (error) {
         // Session doesn't exist, ignore
         console.warn('PoC session not found:', sessionId);
@@ -408,11 +409,11 @@ fofaRoutes.post('/poc-scan', async (req, res) => {
       });
     } else if (sessionId) {
       pocSessionId = sessionId;
-      const currentSession = getScanSession(sessionId);
-      if (currentSession) {
+      const existingSession = getScanSession(sessionId);
+      if (existingSession) {
         updateScanSession(sessionId, {
           status: 'scanning',
-          totalHosts: (currentSession.totalHosts || 0) + (host ? 1 : hosts?.length || 0),
+          totalHosts: (existingSession.totalHosts || 0) + (host ? 1 : hosts?.length || 0),
         });
       }
     }

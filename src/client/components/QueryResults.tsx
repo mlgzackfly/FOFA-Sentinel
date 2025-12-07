@@ -13,7 +13,12 @@ import {
   scanWithPoc,
   type PocScanResult,
 } from '../utils/api';
-import { createPocSession, getAllPocScripts, startBackgroundScan, getPocResults, type PocResult } from '../utils/poc-api';
+import {
+  getAllPocScripts,
+  startBackgroundScan,
+  getPocResults,
+  type PocResult,
+} from '../utils/poc-api';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -64,9 +69,7 @@ export function QueryResults({
     Array<{ scriptId: string; name: string; enabled: boolean }>
   >([]);
   const [pocScanning, setPocScanning] = useState(externalPocScanning || false);
-  const [pocProgress, setPocProgress] = useState(
-    externalPocProgress || { current: 0, total: 0 }
-  );
+  const [pocProgress, setPocProgress] = useState(externalPocProgress || { current: 0, total: 0 });
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update pocScanning and pocProgress when props change
@@ -140,7 +143,7 @@ export function QueryResults({
           const total = session.totalHosts || 0;
           const newProgress = { current: scanned, total: total };
           setPocProgress(newProgress);
-          
+
           // Log for debugging
           if (total > 0 && scanned !== total) {
             console.log(`PoC scan progress: ${scanned}/${total}`);
@@ -158,16 +161,16 @@ export function QueryResults({
               pollIntervalRef.current = null;
             }
             setPocScanning(false);
-            
+
             // Load scan results from database
             try {
               const resultsData = await getPocResults(pocSessionId);
-              
+
               // Convert PocResult[] to scanResults format
               const resultsMap: Record<string, PocScanResult> = {};
               let vulnerableCount = 0;
               let safeCount = 0;
-              
+
               resultsData.results.forEach((result: PocResult) => {
                 resultsMap[result.host] = {
                   host: result.host,
@@ -177,14 +180,14 @@ export function QueryResults({
                   finalUrl: result.finalUrl,
                   testedUrl: result.testedUrl,
                 };
-                
+
                 if (result.vulnerable === true) {
                   vulnerableCount++;
                 } else if (result.vulnerable === false) {
                   safeCount++;
                 }
               });
-              
+
               setScanResults(resultsMap);
               setScanSummary({
                 total: resultsData.results.length,
@@ -194,7 +197,7 @@ export function QueryResults({
             } catch (loadError) {
               console.error('Failed to load scan results:', loadError);
             }
-            
+
             // Keep progress for a moment to show completion
             setTimeout(() => {
               setPocProgress({ current: 0, total: 0 });
@@ -213,17 +216,20 @@ export function QueryResults({
     pollIntervalRef.current = pollInterval;
 
     // Stop polling after 5 minutes (safety timeout)
-    const timeoutId = setTimeout(() => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
-      setPocScanning(false);
-      setPocProgress({ current: 0, total: 0 });
-      if (onPocProgressUpdate) {
-        onPocProgressUpdate({ current: 0, total: 0 }, false, pocSessionId);
-      }
-    }, 5 * 60 * 1000);
+    const timeoutId = setTimeout(
+      () => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+        setPocScanning(false);
+        setPocProgress({ current: 0, total: 0 });
+        if (onPocProgressUpdate) {
+          onPocProgressUpdate({ current: 0, total: 0 }, false, pocSessionId);
+        }
+      },
+      5 * 60 * 1000
+    );
 
     return () => {
       clearTimeout(timeoutId);
