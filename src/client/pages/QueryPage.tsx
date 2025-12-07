@@ -13,10 +13,17 @@ export function QueryPage() {
   const [activeTab, setActiveTab] = useState<QueryTab>('search');
   const [queryResult, setQueryResult] = useState<FofaQueryResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedPocScriptId, setSelectedPocScriptId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     setQueryResult(null);
+    setSelectedPocScriptId(undefined);
   }, [activeTab]);
+
+  const handleResult = (result: FofaQueryResult, pocScriptId?: string) => {
+    setQueryResult(result);
+    setSelectedPocScriptId(pocScriptId);
+  };
 
   const tabs = [
     { id: 'search' as QueryTab, labelKey: 'query.tabs.search', icon: '>' },
@@ -44,11 +51,13 @@ export function QueryPage() {
       <div className="query-page-content">
         <QueryForm
           tab={activeTab}
-          onResult={setQueryResult}
+          onResult={handleResult}
           loading={loading}
           setLoading={setLoading}
         />
-        {queryResult && <QueryResults result={queryResult} tab={activeTab} />}
+        {queryResult && (
+          <QueryResults result={queryResult} tab={activeTab} selectedPocScriptId={selectedPocScriptId} />
+        )}
       </div>
     </div>
   );

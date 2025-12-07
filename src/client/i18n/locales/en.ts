@@ -78,6 +78,9 @@ export const en = {
       rscScan: 'RSC SCAN',
       saveToPoc: 'Save to Scan Results',
       viewInPoc: 'View in Scan Results',
+      selectedPoc: 'Selected PoC',
+      scanStarted: 'Scan started in background. Check Scan Results page for progress.',
+      scanError: 'Failed to start scan',
       summary: {
         total: 'Total',
         alive: 'Alive',

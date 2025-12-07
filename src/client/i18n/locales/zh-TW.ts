@@ -78,6 +78,9 @@ export const zhTW = {
       rscScan: 'RSC 掃描',
       saveToPoc: '保存到掃描結果',
       viewInPoc: '在掃描結果中查看',
+      selectedPoc: '已選擇 PoC',
+      scanStarted: '掃描已在背景開始執行。請前往掃描結果頁面查看進度。',
+      scanError: '啟動掃描失敗',
       summary: {
         total: '總數',
         alive: '存活',

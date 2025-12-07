@@ -221,3 +221,36 @@ export async function deletePocScript(scriptId: string): Promise<void> {
   }
 }
 
+export async function startBackgroundScan(
+  hosts: string[],
+  options: {
+    pocScriptId?: string;
+    pocParameters?: Record<string, any>;
+    timeout?: number;
+    name?: string;
+    description?: string;
+    query?: string;
+    useRscScan?: boolean;
+  }
+): Promise<{ sessionId: string }> {
+  const response = await fetch(`${API_BASE}/poc/scan-batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      hosts,
+      pocScriptId: options.pocScriptId,
+      pocParameters: options.pocParameters,
+      timeout: options.timeout,
+      name: options.name,
+      description: options.description,
+      query: options.query,
+      useRscScan: options.useRscScan || false,
+    }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to start background scan');
+  }
+  return response.json();
+}
+

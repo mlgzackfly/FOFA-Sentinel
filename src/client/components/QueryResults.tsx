@@ -13,15 +13,16 @@ import {
   scanWithPoc,
   type PocScanResult,
 } from '../utils/api';
-import { createPocSession, getAllPocScripts } from '../utils/poc-api';
+import { createPocSession, getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
 import './QueryResults.css';
 
 interface QueryResultsProps {
   result: FofaQueryResult;
   tab: string;
+  selectedPocScriptId?: string;
 }
 
-export function QueryResults({ result, tab }: QueryResultsProps) {
+export function QueryResults({ result, tab, selectedPocScriptId }: QueryResultsProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [checkingAll, setCheckingAll] = useState(false);
@@ -42,8 +43,15 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
   } | null>(null);
   const [saveToPoc, setSaveToPoc] = useState(false);
   const [pocSessionId, setPocSessionId] = useState<string | null>(null);
-  const [selectedPocScript, setSelectedPocScript] = useState<string>('');
+  const [selectedPocScript, setSelectedPocScript] = useState<string>(selectedPocScriptId || '');
   const [pocScripts, setPocScripts] = useState<Array<{ scriptId: string; name: string; enabled: boolean }>>([]);
+
+  // Update selectedPocScript when prop changes
+  useEffect(() => {
+    if (selectedPocScriptId) {
+      setSelectedPocScript(selectedPocScriptId);
+    }
+  }, [selectedPocScriptId]);
 
   // Load PoC scripts on mount
   useEffect(() => {
@@ -163,15 +171,9 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
     // If PoC script is selected, use PoC scan; otherwise use RSC scan
     const usePocScan = selectedPocScript && selectedPocScript !== '';
 
-    setScanningAll(true);
-    setScanProgress({ current: 0, total: hosts.length });
-    setScanSummary(null);
-
-    let sessionId: string | null = null;
-
-    try {
-      // Create PoC session if saveToPoc is enabled
-      if (saveToPoc) {
+    // If saveToPoc is enabled, use background scan (runs on server)
+    if (saveToPoc) {
+      try {
         const query = 'query' in result && result.query ? String(result.query) : undefined;
         const pocName = usePocScan
           ? `PoC Scan: ${pocScripts.find(s => s.scriptId === selectedPocScript)?.name || 'Custom PoC'}`
@@ -179,11 +181,36 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
         const pocDescription = usePocScan
           ? `PoC vulnerability scan for ${hosts.length} hosts`
           : `RSC vulnerability scan for ${hosts.length} hosts`;
-        const session = await createPocSession(pocName, pocDescription, query);
-        sessionId = session.sessionId;
-        setPocSessionId(sessionId);
-      }
 
+        // Start background scan - returns immediately with sessionId
+        const response = await startBackgroundScan(hosts, {
+          pocScriptId: usePocScan ? selectedPocScript : undefined,
+          timeout: 30,
+          name: pocName,
+          description: pocDescription,
+          query: query,
+          useRscScan: !usePocScan,
+        });
+
+        setPocSessionId(response.sessionId);
+        setScanningAll(false); // Don't show scanning state since it's in background
+
+        // Show success message
+        alert(t('query.results.scanStarted') || 'Scan started in background. Check Scan Results page for progress.');
+      } catch (error) {
+        console.error('Failed to start background scan:', error);
+        alert(t('query.results.scanError') || 'Failed to start scan');
+      }
+      return;
+    }
+
+    // If saveToPoc is disabled, use synchronous scan (for immediate results display)
+    setScanningAll(true);
+    setScanProgress({ current: 0, total: hosts.length });
+    setScanSummary(null);
+    setPocSessionId(null);
+
+    try {
       // Scan hosts in batches to avoid overwhelming the server
       const batchSize = 5;
       const resultsMap: Record<string, RSCScanResult | PocScanResult> = {};
@@ -199,15 +226,13 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
           // Use PoC scan
           batchResults = await scanWithPoc(batch, selectedPocScript, {
             timeout: 15,
-            sessionId: sessionId || undefined,
-            saveToPoc: false, // Don't create new session, use existing sessionId
+            saveToPoc: false,
           });
         } else {
           // Use RSC scan
           batchResults = await scanRSCs(batch, {
             timeout: 15,
-            sessionId: sessionId || undefined,
-            saveToPoc: false, // Don't create new session, use existing sessionId
+            saveToPoc: false,
           });
         }
 
@@ -294,22 +319,33 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                         : t('query.results.checkAll')}
                     </button>
                     <div className="scan-actions-group">
-                      <label className="poc-select-label">
-                        <span>{t('query.results.selectPoc')}:</span>
-                        <select
-                          className="poc-select"
-                          value={selectedPocScript}
-                          onChange={e => setSelectedPocScript(e.target.value)}
-                          disabled={scanningAll}
-                        >
-                          <option value="">{t('query.results.useRscScan')}</option>
-                          {pocScripts.map(script => (
-                            <option key={script.scriptId} value={script.scriptId}>
-                              {script.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      {!selectedPocScriptId && (
+                        <label className="poc-select-label">
+                          <span>{t('query.results.selectPoc')}:</span>
+                          <select
+                            className="poc-select"
+                            value={selectedPocScript}
+                            onChange={e => setSelectedPocScript(e.target.value)}
+                            disabled={scanningAll}
+                          >
+                            <option value="">{t('query.results.useRscScan')}</option>
+                            {pocScripts.map(script => (
+                              <option key={script.scriptId} value={script.scriptId}>
+                                {script.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {selectedPocScriptId && (
+                        <div className="poc-selected-info">
+                          <span>
+                            {t('query.results.selectedPoc')}:{' '}
+                            {pocScripts.find(s => s.scriptId === selectedPocScriptId)?.name ||
+                              selectedPocScriptId}
+                          </span>
+                        </div>
+                      )}
                       <label className="save-to-poc-checkbox">
                         <input
                           type="checkbox"
@@ -330,14 +366,14 @@ export function QueryResults({ result, tab }: QueryResultsProps) {
                           : t('query.results.scanAll')}
                       </button>
                     </div>
-                    {pocSessionId && (
+                    {pocSessionId && !scanningAll && scanSummary && (
                       <div className="poc-session-link">
                         <a
                           href="#"
                           onClick={e => {
                             e.preventDefault();
-                            // Navigate to Scan Results page
-                            window.location.hash = '#scan-results';
+                            // Navigate to Scan Results page with session ID
+                            window.location.hash = `#scan-results?sessionId=${pocSessionId}`;
                           }}
                         >
                           {t('query.results.viewInPoc')}

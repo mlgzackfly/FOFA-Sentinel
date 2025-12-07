@@ -17,6 +17,11 @@ import {
   updatePocScript,
   deletePocScript,
 } from '../services/poc-scripts.js';
+import {
+  executePocScriptForHosts,
+  type PocScanResult as PocExecutionResult,
+} from '../services/poc-executor.js';
+import { scanHosts } from '../services/rsc-scanner.js';
 
 export const pocRoutes = Router();
 
@@ -81,6 +86,136 @@ pocRoutes.patch('/sessions/:sessionId', (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Update session error:', error);
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Start background batch scan
+pocRoutes.post('/scan-batch', async (req, res) => {
+  try {
+    const {
+      hosts,
+      pocScriptId,
+      pocParameters,
+      timeout,
+      name,
+      description,
+      query,
+      useRscScan = false,
+    } = req.body;
+
+    if (!hosts || !Array.isArray(hosts) || hosts.length === 0) {
+      return res.status(400).json({ error: 'hosts array is required' });
+    }
+
+    // Create session immediately
+    const session = createScanSession(name, description, query);
+    updateScanSession(session.sessionId, {
+      totalHosts: hosts.length,
+      status: 'scanning',
+    });
+
+    // Return session ID immediately, scan will continue in background
+    res.json({
+      success: true,
+      sessionId: session.sessionId,
+      message: 'Scan started in background',
+    });
+
+    // Execute scan in background (don't await - fire and forget)
+    (async () => {
+      try {
+        const batchSize = 5;
+        let vulnerableCount = 0;
+        let safeCount = 0;
+        let errorCount = 0;
+        let scannedCount = 0;
+
+        for (let i = 0; i < hosts.length; i += batchSize) {
+          const batch = hosts.slice(i, i + batchSize);
+          let batchResults: Array<{
+            host: string;
+            vulnerable: boolean | null;
+            statusCode?: number;
+            error?: string;
+            finalUrl?: string;
+            testedUrl?: string;
+          }> = [];
+
+          try {
+            if (useRscScan) {
+              // Use RSC scan
+              const { scanHosts } = await import('../services/rsc-scanner.js');
+              batchResults = await scanHosts(batch, {
+                timeout: timeout || 15,
+                safeCheck: true,
+              });
+            } else if (pocScriptId) {
+              // Use PoC scan
+              batchResults = await executePocScriptForHosts(pocScriptId, batch, {
+                timeout: timeout || 30,
+                ...pocParameters,
+              });
+            } else {
+              throw new Error('Either pocScriptId or useRscScan must be provided');
+            }
+
+            // Save results to database
+            saveScanResults(session.sessionId, batchResults);
+
+            // Update counts
+            batchResults.forEach(result => {
+              if (result.vulnerable === true) {
+                vulnerableCount++;
+              } else if (result.vulnerable === false) {
+                safeCount++;
+              } else {
+                errorCount++;
+              }
+            });
+
+            scannedCount = Math.min(i + batchSize, hosts.length);
+
+            // Update session progress
+            updateScanSession(session.sessionId, {
+              scannedHosts: scannedCount,
+              vulnerableCount: vulnerableCount,
+              safeCount: safeCount,
+              errorCount: errorCount,
+              status: scannedCount < hosts.length ? 'scanning' : 'completed',
+            });
+          } catch (batchError) {
+            console.error(`Failed to scan batch ${i}-${i + batchSize}:`, batchError);
+            errorCount += batch.length;
+            scannedCount = Math.min(i + batchSize, hosts.length);
+            updateScanSession(session.sessionId, {
+              scannedHosts: scannedCount,
+              errorCount: errorCount,
+              status: scannedCount < hosts.length ? 'scanning' : 'completed',
+            });
+          }
+        }
+
+        // Final update
+        updateScanSession(session.sessionId, {
+          scannedHosts: hosts.length,
+          vulnerableCount: vulnerableCount,
+          safeCount: safeCount,
+          errorCount: errorCount,
+          status: 'completed',
+        });
+
+        console.log(`Background scan completed for session ${session.sessionId}`);
+      } catch (error) {
+        console.error('Background scan error:', error);
+        updateScanSession(session.sessionId, {
+          status: 'failed',
+        });
+      }
+    })();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    console.error('Start batch scan error:', error);
     res.status(500).json({ error: errorMessage });
   }
 });

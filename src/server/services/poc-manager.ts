@@ -84,11 +84,11 @@ export function getScanSession(sessionId: string): PocScanSession {
     name: session.name,
     description: session.description,
     query: session.query,
-    totalHosts: session.totalHosts,
-    scannedHosts: session.scannedHosts,
-    vulnerableCount: session.vulnerableCount,
-    safeCount: session.safeCount,
-    errorCount: session.errorCount,
+    totalHosts: (session as any).total_hosts || 0, // Map total_hosts to totalHosts
+    scannedHosts: (session as any).scanned_hosts || 0, // Map scanned_hosts to scannedHosts
+    vulnerableCount: (session as any).vulnerable_count || 0, // Map vulnerable_count to vulnerableCount
+    safeCount: (session as any).safe_count || 0, // Map safe_count to safeCount
+    errorCount: (session as any).error_count || 0, // Map error_count to errorCount
     status: session.status,
     createdAt: session.created_at,
     updatedAt: session.updated_at,
@@ -246,11 +246,11 @@ export function getAllScanSessions(limit = 50, offset = 0): PocScanSession[] {
     name: session.name,
     description: session.description,
     query: session.query,
-    totalHosts: session.totalHosts,
-    scannedHosts: session.scannedHosts,
-    vulnerableCount: session.vulnerableCount,
-    safeCount: session.safeCount,
-    errorCount: session.errorCount,
+    totalHosts: (session as any).total_hosts || 0, // Map total_hosts to totalHosts
+    scannedHosts: (session as any).scanned_hosts || 0, // Map scanned_hosts to scannedHosts
+    vulnerableCount: (session as any).vulnerable_count || 0, // Map vulnerable_count to vulnerableCount
+    safeCount: (session as any).safe_count || 0, // Map safe_count to safeCount
+    errorCount: (session as any).error_count || 0, // Map error_count to errorCount
     status: session.status,
     createdAt: session.created_at,
     updatedAt: session.updated_at,
@@ -399,21 +399,24 @@ export function getPocStatistics(): {
   totalErrors: number;
 } {
   const db = getDatabase();
+  // Count all sessions (not just completed ones)
+  const totalSessions = db.prepare('SELECT COUNT(*) as count FROM poc_scan_sessions').get() as {
+    count: number;
+  };
+
+  // Sum statistics from all sessions (including scanning ones)
   const stats = db
     .prepare(
       `
     SELECT 
-      COUNT(*) as total_sessions,
-      SUM(scanned_hosts) as total_scanned,
-      SUM(vulnerable_count) as total_vulnerable,
-      SUM(safe_count) as total_safe,
-      SUM(error_count) as total_errors
+      COALESCE(SUM(scanned_hosts), 0) as total_scanned,
+      COALESCE(SUM(vulnerable_count), 0) as total_vulnerable,
+      COALESCE(SUM(safe_count), 0) as total_safe,
+      COALESCE(SUM(error_count), 0) as total_errors
     FROM poc_scan_sessions
-    WHERE status = 'completed'
   `
     )
     .get() as {
-      total_sessions: number;
       total_scanned: number;
       total_vulnerable: number;
       total_safe: number;
@@ -421,7 +424,7 @@ export function getPocStatistics(): {
     };
 
   return {
-    totalSessions: stats.total_sessions || 0,
+    totalSessions: totalSessions.count || 0,
     totalScanned: stats.total_scanned || 0,
     totalVulnerable: stats.total_vulnerable || 0,
     totalSafe: stats.total_safe || 0,

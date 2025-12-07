@@ -78,6 +78,9 @@ export const zhCN = {
       rscScan: 'RSC 扫描',
       saveToPoc: '保存到扫描结果',
       viewInPoc: '在扫描结果中查看',
+      selectedPoc: '已选择 PoC',
+      scanStarted: '扫描已在后台开始执行。请前往扫描结果页面查看进度。',
+      scanError: '启动扫描失败',
       summary: {
         total: '总数',
         alive: '存活',

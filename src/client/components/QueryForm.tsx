@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   searchFofa,
   getFofaStats,
@@ -7,7 +7,7 @@ import {
   searchAllFofa,
   scanWithPoc,
 } from '../utils/api';
-import { getAllPocScripts, createPocSession } from '../utils/poc-api';
+import { getAllPocScripts, startBackgroundScan, getPocSession } from '../utils/poc-api';
 import { useTranslation } from '../hooks/useTranslation';
 import './QueryForm.css';
 
@@ -17,7 +17,7 @@ import { type FofaQueryResult } from '../../shared/types';
 
 interface QueryFormProps {
   tab: QueryTab;
-  onResult: (result: FofaQueryResult) => void;
+  onResult: (result: FofaQueryResult, pocScriptId?: string) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
 }
@@ -105,6 +105,7 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
   >([]);
   const [pocScanning, setPocScanning] = useState(false);
   const [pocProgress, setPocProgress] = useState({ current: 0, total: 0 });
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load PoC scripts on mount
   useEffect(() => {
@@ -256,7 +257,8 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
           break;
       }
 
-      onResult(result);
+      // Pass selectedPocScript to QueryResults
+      onResult(result, selectedPocScript || undefined);
 
       // Auto-execute PoC scan if selected and result has hosts (only for search tab)
       // Run this asynchronously to avoid blocking the UI
@@ -266,13 +268,19 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         result &&
         !result.error &&
         'results' in result &&
-        Array.isArray(result.results)
+        Array.isArray(result.results) &&
+        result.results.length > 0
       ) {
         // Execute in background without blocking
         executeAutoPocScan(result, finalQuery).catch(err => {
           console.error('Auto PoC scan failed:', err);
-          // Don't show error to user, just log it
+          setPocScanning(false);
+          setPocProgress({ current: 0, total: 0 });
         });
+      } else {
+        // Reset PoC scanning state if no scan is needed
+        setPocScanning(false);
+        setPocProgress({ current: 0, total: 0 });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.unknown'));
@@ -311,47 +319,103 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
       return;
     }
 
+    if (!selectedPocScript) {
+      return;
+    }
+
     setPocScanning(true);
     setPocProgress({ current: 0, total: hosts.length });
 
     try {
-      // Create PoC session
-      const session = await createPocSession(
-        `Auto Scan: ${query || 'FOFA Query'}`,
-        `Automatic PoC scan for ${hosts.length} hosts from FOFA query`,
-        query
-      );
+      // Get PoC script name for session name
+      const pocScript = pocScripts.find(s => s.scriptId === selectedPocScript);
+      const pocName = pocScript
+        ? `Auto Scan: ${pocScript.name} - ${query || 'FOFA Query'}`
+        : `Auto Scan: ${query || 'FOFA Query'}`;
+      const pocDescription = pocScript
+        ? `Automatic PoC scan (${pocScript.name}) for ${hosts.length} hosts from FOFA query`
+        : `Automatic PoC scan for ${hosts.length} hosts from FOFA query`;
 
-      // Scan hosts in batches
-      const batchSize = 5;
-      let scannedCount = 0;
+      // Start background scan - this will run on server and continue even if user navigates away
+      const response = await startBackgroundScan(hosts, {
+        pocScriptId: selectedPocScript,
+        timeout: 30,
+        name: pocName,
+        description: pocDescription,
+        query: query,
+        useRscScan: false,
+      });
 
-      for (let i = 0; i < hosts.length; i += batchSize) {
-        const batch = hosts.slice(i, i + batchSize);
-        try {
-          await scanWithPoc(batch, selectedPocScript, {
-            timeout: 30, // Increased timeout for PoC scripts
-            sessionId: session.sessionId,
-            saveToPoc: false, // Already have session, just use it
-          });
-        } catch (batchError) {
-          console.error(`Failed to scan batch ${i}-${i + batchSize}:`, batchError);
-          // Continue with next batch even if this one fails
-        }
+      // Update progress to show scan started (0/hosts.length means started but not yet scanned)
+      setPocProgress({ current: 0, total: hosts.length });
 
-        scannedCount = Math.min(i + batchSize, hosts.length);
-        setPocProgress({ current: scannedCount, total: hosts.length });
+      // Clear any existing poll interval
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
       }
 
-      // Show notification or navigate to scan results
-      // PoC scan completed - session saved with ID: ${session.sessionId}
+      // Poll session status to update progress
+      const pollInterval = setInterval(async () => {
+        try {
+          const session = await getPocSession(response.sessionId);
+          if (session) {
+            const scanned = session.scannedHosts || 0;
+            const total = session.totalHosts || hosts.length;
+            setPocProgress({ current: scanned, total: total });
+
+            // If scan is completed or failed, stop polling
+            if (session.status === 'completed' || session.status === 'failed') {
+              if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+              }
+              // Keep scanning state for a moment to show completion, then reset
+              setTimeout(() => {
+                setPocScanning(false);
+                setPocProgress({ current: 0, total: 0 });
+              }, 2000);
+            }
+          }
+        } catch (pollError) {
+          console.error('Failed to poll session status:', pollError);
+          // Continue polling even if one request fails
+        }
+      }, 2000); // Poll every 2 seconds
+
+      pollIntervalRef.current = pollInterval;
+
+      // Stop polling after 5 minutes (safety timeout)
+      setTimeout(() => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+        setPocScanning(false);
+        setPocProgress({ current: 0, total: 0 });
+      }, 5 * 60 * 1000);
+
+      console.log(`Background PoC scan started for ${hosts.length} hosts, session: ${response.sessionId}`);
     } catch (error) {
-      console.error('Failed to execute auto PoC scan:', error);
-    } finally {
+      console.error('Failed to start auto PoC scan:', error);
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
       setPocScanning(false);
       setPocProgress({ current: 0, total: 0 });
     }
   };
+
+  // Cleanup poll interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   if (tab === 'account') {
     return (

@@ -34,6 +34,11 @@ export function ScanResultsPage() {
     loadStatistics();
   }, []);
 
+  // Refresh statistics when sessions change
+  useEffect(() => {
+    loadStatistics();
+  }, [sessions]);
+
   useEffect(() => {
     if (selectedSession) {
       loadResults(selectedSession.sessionId);
