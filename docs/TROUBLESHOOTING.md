@@ -139,7 +139,7 @@ Common issues and their solutions.
 
 If you're still experiencing issues:
 
-1. Check [GitHub Issues](https://github.com/your-username/fofa-api-client/issues) for similar problems
+1. Check [GitHub Issues](https://github.com/your-username/fofa-sentinel/issues) for similar problems
 2. Create a new issue with:
    - Description of the problem
    - Steps to reproduce

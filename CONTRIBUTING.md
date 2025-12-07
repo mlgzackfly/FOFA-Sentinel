@@ -1,111 +1,96 @@
-# Contributing to FOFA API Client
+# Contributing to FOFA Sentinel
 
-感謝您對 FOFA API Client 的興趣！我們歡迎所有形式的貢獻。
+Thank you for your interest in FOFA Sentinel! We welcome all forms of contributions.
 
-## 如何貢獻
+## How to Contribute
 
-### 報告問題
+### Reporting Issues
 
-如果您發現了 bug 或有功能建議，請：
+If you find a bug or have a feature suggestion, please:
 
-1. 檢查 [Issues](https://github.com/your-username/fofa-api-client/issues) 確認問題尚未被報告
-2. 創建新的 Issue，包含：
-   - 清晰的問題描述
-   - 重現步驟
-   - 預期行為 vs 實際行為
-   - 環境信息（OS、Node.js 版本等）
+1. Check [Issues](https://github.com/your-username/fofa-sentinel/issues) to ensure the issue hasn't been reported
+2. Create a new Issue with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected behavior vs actual behavior
+   - Environment information (OS, Node.js version, etc.)
 
-### 提交代碼
+### Submitting Code
 
-1. **Fork 專案**並克隆到本地
-2. **創建功能分支**：
+1. **Fork the project** and clone to your local machine
+2. **Create a feature branch**:
    ```bash
    git checkout develop
    git pull origin develop
    git checkout -b feature/your-feature-name
    ```
-3. **進行開發**：
-   - 遵循現有的代碼風格
-   - 確保代碼通過 lint 檢查
-   - 添加必要的註釋
-4. **提交變更**：
-   ```bash
-   git commit -m "feat(scope): your feature description"
-   ```
-   - 遵循 [約定式提交](https://www.conventionalcommits.org/) 格式
-   - 使用英文撰寫 commit message
-5. **推送並創建 Pull Request**：
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-   - 在 GitHub 上創建 PR 到 `develop` 分支
-   - 填寫 PR 描述，說明變更內容
+3. **Make your changes**:
+   - Follow existing code style
+   - Ensure code passes lint checks
+   - Add necessary comments
+   - Write or update tests if applicable
+4. **Commit your changes**:
+   - Use [Conventional Commits](https://www.conventionalcommits.org/) format
+   - Example: `feat: add new export format support`
+5. **Push and create a Pull Request**:
+   - Push to your fork
+   - Create a PR to the `develop` branch
+   - Fill out the PR template
 
-## 開發規範
+### Code Style
 
-### 代碼風格
+- Follow the existing TypeScript/React patterns
+- Run `npm run lint` before committing
+- Run `npm run format` to format code
+- Ensure `npm run type-check` passes
 
-- 使用 TypeScript 嚴格模式
-- 遵循 ESLint 和 Prettier 配置
-- 組件使用函數式組件和 Hooks
-- 使用有意義的變數和函數名稱
+### Commit Message Format
 
-### Commit 規範
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
-使用約定式提交格式：
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `style:` - Code style changes (formatting, etc.)
+- `refactor:` - Code refactoring
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks
 
+Example:
 ```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**Type 類型：**
-- `feat`: 新功能
-- `fix`: 修復 bug
-- `docs`: 文檔更新
-- `style`: 代碼格式調整
-- `refactor`: 重構
-- `test`: 測試相關
-- `chore`: 構建/工具調整
-
-**範例：**
-```bash
-feat(ui): add dark mode toggle
-fix(api): resolve CORS issue
-docs: update installation guide
+feat: add CSV export format support
+fix: resolve date filter issue in query form
+docs: update README with new features
 ```
 
-### 分支策略
+## Development Setup
 
-- `main`: 正式環境分支
-- `develop`: 開發分支
-- `feature/*`: 新功能分支
-- `fix/*`: Bug 修復分支
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create `.env` file (optional, see [Environment Variables](./docs/ENVIRONMENT.md))
+4. Run development server: `npm run dev`
+5. Make your changes
+6. Test your changes
+7. Submit a Pull Request
 
-## 開發環境設置
+## Pull Request Process
 
-1. Fork 並克隆專案
-2. 安裝依賴：`npm install`
-3. 複製環境變數：`cp .env.example .env`
-4. 啟動開發服務器：`npm run dev`
-5. 運行 lint：`npm run lint`
-6. 運行類型檢查：`npm run type-check`
+1. Update documentation if needed
+2. Ensure all tests pass (if applicable)
+3. Update CHANGELOG.md if adding new features
+4. Request review from maintainers
+5. Address any review comments
+6. Once approved, maintainers will merge
 
-## 測試
+## Code of Conduct
 
-在提交 PR 前，請確保：
+Please be respectful and constructive in all interactions. We aim to create a welcoming environment for all contributors.
 
-- [ ] 代碼通過 lint 檢查
-- [ ] TypeScript 類型檢查通過
-- [ ] 手動測試新功能
-- [ ] 更新相關文檔
+## Questions?
 
-## 問題？
+If you have questions, feel free to:
+- Open an issue for discussion
+- Check existing issues and discussions
+- Review the documentation
 
-如有任何問題，請在 [Issues](https://github.com/your-username/fofa-api-client/issues) 中提出。
-
-再次感謝您的貢獻！🎉
-
+Thank you for contributing to FOFA Sentinel! 🚀

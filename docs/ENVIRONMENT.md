@@ -1,6 +1,6 @@
 # Environment Variables
 
-This document describes all environment variables used in the FOFA API Client.
+This document describes all environment variables used in FOFA Sentinel.
 
 ## Server Configuration
 
@@ -20,12 +20,7 @@ These can be set via environment variables or through the web UI.
 - **Description**: Your FOFA API key
 - **How to get**: Visit https://fofa.info/user/personal
 - **Example**: `FOFA_API_KEY=your_api_key_here`
-
-### `FOFA_EMAIL`
-- **Type**: String
-- **Required**: No (can be set in UI)
-- **Description**: Your FOFA account email
-- **Example**: `FOFA_EMAIL=your@email.com`
+- **Note**: Your FOFA account email will be automatically retrieved from your account info when needed
 
 ## Database Configuration
 
@@ -43,7 +38,6 @@ PORT=3002
 
 # FOFA API (optional - can be set in UI)
 FOFA_API_KEY=your_api_key_here
-FOFA_EMAIL=your@email.com
 
 # Database
 DB_PATH=./data/fofa.db
