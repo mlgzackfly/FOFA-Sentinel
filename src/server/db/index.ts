@@ -168,9 +168,6 @@ export function initDatabase(): void {
     CREATE INDEX IF NOT EXISTS idx_poc_scripts_language ON poc_scripts(language);
     CREATE INDEX IF NOT EXISTS idx_poc_scripts_enabled ON poc_scripts(enabled);
   `);
-
-  // eslint-disable-next-line no-console
-  console.log('Database initialized');
 }
 
 export function closeDatabase(): void {

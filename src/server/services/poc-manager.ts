@@ -170,11 +170,8 @@ export function saveScanResults(
   }>
 ): void {
   if (!results || results.length === 0) {
-    console.log(`[saveScanResults] No results to save for session ${sessionId}`);
     return;
   }
-
-  console.log(`[saveScanResults] Saving ${results.length} results for session ${sessionId}`);
   const db = getDatabase();
   const insertStmt = db.prepare(`
     INSERT INTO poc_scan_results 
@@ -200,10 +197,6 @@ export function saveScanResults(
         // Convert boolean to number for SQLite (true -> 1, false -> 0, null -> null)
         const vulnerableValue =
           result.vulnerable === true ? 1 : result.vulnerable === false ? 0 : null;
-        // Log before insertion for debugging
-        console.log(
-          `[saveScanResults] Inserting result for ${result.host}: vulnerable=${result.vulnerable} (type: ${typeof result.vulnerable}) -> ${vulnerableValue} (SQLite), status=${status}`
-        );
         const insertResult = insertStmt.run(
           sessionId,
           result.host,
@@ -217,13 +210,6 @@ export function saveScanResults(
 
         if (insertResult.changes > 0) {
           insertedCount++;
-          console.log(
-            `[saveScanResults] Successfully inserted result for ${result.host}: vulnerable=${vulnerableValue}`
-          );
-        } else {
-          console.warn(
-            `[saveScanResults] Failed to insert result for host ${result.host}: vulnerable=${result.vulnerable} (converted: ${vulnerableValue})`
-          );
         }
 
         if (result.vulnerable === true) {
@@ -242,8 +228,6 @@ export function saveScanResults(
       }
     }
 
-    console.log(`[saveScanResults] Inserted ${insertedCount} results into database`);
-
     // Update session statistics
     try {
       const currentSession = getScanSession(sessionId);
@@ -254,9 +238,6 @@ export function saveScanResults(
         safeCount: currentSession.safeCount + safeCount,
         errorCount: currentSession.errorCount + errorCount,
       });
-      console.log(
-        `[saveScanResults] Updated session ${sessionId} stats: scannedHosts=${currentSession.scannedHosts} + ${insertedCount} = ${currentSession.scannedHosts + insertedCount}, safeCount=${currentSession.safeCount} + ${safeCount} = ${currentSession.safeCount + safeCount}`
-      );
     } catch (updateError) {
       console.error(`[saveScanResults] Error updating session statistics:`, updateError);
       throw updateError; // Re-throw to rollback transaction
@@ -265,9 +246,6 @@ export function saveScanResults(
 
   try {
     transaction();
-    console.log(
-      `[saveScanResults] Successfully saved ${results.length} results for session ${sessionId}`
-    );
   } catch (transactionError) {
     console.error(
       `[saveScanResults] Transaction failed for session ${sessionId}:`,
@@ -328,15 +306,8 @@ export function getScanResults(
     .get(sessionId) as { session_id: string } | undefined;
 
   if (!sessionCheck) {
-    console.log(`[DB] Session ${sessionId} not found in poc_scan_sessions`);
     return [];
   }
-
-  const totalCount = db
-    .prepare('SELECT COUNT(*) as count FROM poc_scan_results WHERE session_id = ?')
-    .get(sessionId) as { count: number } | undefined;
-
-  console.log(`[DB] Session ${sessionId} exists. Total results in DB: ${totalCount?.count || 0}`);
 
   let query = 'SELECT * FROM poc_scan_results WHERE session_id = ?';
   const params: unknown[] = [sessionId];
@@ -351,9 +322,6 @@ export function getScanResults(
       // false -> 0, true -> 1
       const vulnerableValue = filter.vulnerable === true ? 1 : 0;
       params.push(vulnerableValue);
-      console.log(
-        `[getScanResults] Filtering by vulnerable=${filter.vulnerable} (SQL: vulnerable=${vulnerableValue})`
-      );
     }
   }
   if (filter?.status) {
@@ -372,7 +340,6 @@ export function getScanResults(
 
   query += ' ORDER BY scanned_at DESC';
 
-  console.log(`[DB] Executing query: ${query} with params:`, params);
   // Database returns snake_case fields, so we need to map them to camelCase
   const results = db.prepare(query).all(...params) as Array<{
     id?: number;
@@ -388,7 +355,6 @@ export function getScanResults(
     status: string;
     scanned_at: string;
   }>;
-  console.log(`[DB] Query returned ${results.length} results for session ${sessionId}`);
 
   // Parse tags from JSON string and map snake_case to camelCase
   return results.map(result => {
@@ -469,13 +435,6 @@ export function deleteScanSession(sessionId: string): void {
     throw new Error('Scan session not found');
   }
 
-  // Check how many results are associated with this session (for logging)
-  const resultCount = db
-    .prepare('SELECT COUNT(*) as count FROM poc_scan_results WHERE session_id = ?')
-    .get(sessionId) as { count: number } | undefined;
-
-  console.log(`Deleting session ${sessionId} with ${resultCount?.count || 0} associated results`);
-
   // Use a transaction to ensure atomicity
   const transaction = db.transaction(() => {
     // Ensure foreign keys are enabled within transaction
@@ -487,8 +446,7 @@ export function deleteScanSession(sessionId: string): void {
 
     // First delete all related results (explicit deletion for safety)
     // This should work even if foreign keys are disabled
-    const resultsDeleted = deleteResults.run(sessionId);
-    console.log(`Deleted ${resultsDeleted.changes} scan results`);
+    deleteResults.run(sessionId);
 
     // Then delete the session
     const sessionDeleted = deleteSession.run(sessionId);
@@ -496,8 +454,6 @@ export function deleteScanSession(sessionId: string): void {
     if (sessionDeleted.changes === 0) {
       throw new Error('Failed to delete scan session - no rows affected');
     }
-
-    console.log(`Successfully deleted session ${sessionId}`);
   });
 
   try {

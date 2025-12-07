@@ -43,6 +43,7 @@ export function ScanResultsPage() {
   useEffect(() => {
     loadSessions();
     loadStatistics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Refresh statistics when sessions change
@@ -57,6 +58,7 @@ export function ScanResultsPage() {
       // Clear results when no session is selected
       setResults([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSession, filter]);
 
   const loadSessions = async () => {

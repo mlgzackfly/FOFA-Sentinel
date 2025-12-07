@@ -317,7 +317,6 @@ fofaRoutes.post('/rsc-scan', async (req, res) => {
         }
       } catch (error) {
         // Session doesn't exist, ignore
-        console.warn('PoC session not found:', sessionId);
       }
     }
 

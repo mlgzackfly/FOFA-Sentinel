@@ -33,11 +33,7 @@ export function Modal({ isOpen, onClose, title, message, type = 'info' }: ModalP
         <div className={`modal-content modal-${type}`}>
           <div className="modal-header">
             {title && <h2 className="modal-title">{title}</h2>}
-            <button
-              className="modal-close"
-              onClick={onClose}
-              aria-label="Close"
-            >
+            <button className="modal-close" onClick={onClose} aria-label="Close">
               ×
             </button>
           </div>
@@ -54,4 +50,3 @@ export function Modal({ isOpen, onClose, title, message, type = 'info' }: ModalP
     </>
   );
 }
-

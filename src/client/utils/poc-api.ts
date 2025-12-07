@@ -164,7 +164,7 @@ export interface PocScript {
   type: 'rsc' | 'xss' | 'sqli' | 'rce' | 'ssrf' | 'other';
   language: 'python' | 'http' | 'javascript' | 'bash' | 'other';
   script: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -233,7 +233,7 @@ export async function startBackgroundScan(
   hosts: string[],
   options: {
     pocScriptId?: string;
-    pocParameters?: Record<string, any>;
+    pocParameters?: Record<string, unknown>;
     timeout?: number;
     name?: string;
     description?: string;

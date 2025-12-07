@@ -183,9 +183,6 @@ async function executePythonPoc(
           errorValue = jsonOutput.error;
         }
 
-        console.log(
-          `[poc-executor] PoC result for ${targetUrl}: vulnerable=${vulnerableValue}, error=${errorValue || 'none'}`
-        );
         resolve({
           host: targetUrl,
           vulnerable: vulnerableValue,
@@ -257,7 +254,6 @@ async function executeHttpRequestPoc(
 
     const method = requestLineMatch[1].toUpperCase();
     let path = requestLineMatch[2];
-    const httpVersion = requestLineMatch[3];
 
     // Parse headers
     const headers: Record<string, string> = {};
@@ -320,8 +316,6 @@ async function executeHttpRequestPoc(
     }
 
     const fullUrl = `${targetProtocol}://${targetHost}${targetPort !== 80 && targetPort !== 443 ? `:${targetPort}` : ''}${path}`;
-
-    console.log(`[http-poc] Sending ${method} request to ${fullUrl}`);
 
     // Prepare fetch options
     const fetchOptions: RequestInit = {
@@ -522,7 +516,6 @@ export async function executePocScriptForHosts(
 ): Promise<PocScanResult[]> {
   // Execute all hosts in parallel using Promise.allSettled
   // This ensures that if one host hangs or fails, others can still complete
-  console.log(`[executePocScriptForHosts] Starting parallel scan for ${hosts.length} hosts`);
 
   const promises = hosts.map(host => {
     // Wrap each execution in a promise that will always resolve
@@ -533,7 +526,6 @@ export async function executePocScriptForHosts(
         // Fallback timeout (should be longer than PoC timeout)
         const fallbackTimeout = (options.timeout || 30) * 1000 + 5000; // PoC timeout + 5s buffer
         setTimeout(() => {
-          console.warn(`[executePocScriptForHosts] Host ${host} exceeded fallback timeout`);
           resolve({
             host,
             vulnerable: null,
@@ -563,8 +555,5 @@ export async function executePocScriptForHosts(
     }
   });
 
-  console.log(
-    `[executePocScriptForHosts] Completed scan for ${hosts.length} hosts, got ${results.length} results`
-  );
   return results;
 }

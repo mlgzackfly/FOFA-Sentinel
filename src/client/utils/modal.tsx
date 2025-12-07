@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { Modal } from '../components/Modal';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface ModalOptions {
   title?: string;
@@ -21,7 +21,7 @@ function createModalContainer() {
 }
 
 export function showModal(message: string, options: ModalOptions = {}) {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>(resolve => {
     createModalContainer();
 
     const ModalWrapper = () => {
@@ -77,4 +77,3 @@ export const alertSuccess = (message: string, title?: string) => {
 export const alertInfo = (message: string, title?: string) => {
   return showModal(message, { type: 'info', title });
 };
-

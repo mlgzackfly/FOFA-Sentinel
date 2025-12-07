@@ -19,7 +19,7 @@ import {
   getPocResults,
   type PocResult,
 } from '../utils/poc-api';
-import { alert, alertError, alertSuccess } from '../utils/modal';
+import { alertError, alertSuccess } from '../utils/modal';
 import './QueryResults.css';
 
 interface QueryResultsProps {
@@ -144,7 +144,6 @@ export function QueryResults({
           const total = session.totalHosts || 0;
           const newProgress = { current: scanned, total: total };
           setPocProgress(newProgress);
-
 
           // Update parent component
           if (onPocProgressUpdate) {

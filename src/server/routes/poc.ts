@@ -106,14 +106,10 @@ pocRoutes.post('/scan-batch', async (req, res) => {
 
     // Create session immediately
     const session = createScanSession(name, description, query);
-    console.log(`[scan-batch] Created session ${session.sessionId} for ${hosts.length} hosts`);
     updateScanSession(session.sessionId, {
       totalHosts: hosts.length,
       status: 'scanning',
     });
-    console.log(
-      `[scan-batch] Updated session ${session.sessionId} with totalHosts: ${hosts.length}`
-    );
 
     // Return session ID immediately, scan will continue in background
     res.json({
@@ -161,18 +157,7 @@ pocRoutes.post('/scan-batch', async (req, res) => {
             }
 
             // Save results to database
-            console.log(
-              `[scan-batch] Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(hosts.length / batchSize)}: Saving ${batchResults.length} results for session ${session.sessionId}`
-            );
-            console.log(`[scan-batch] Batch results sample:`, batchResults.slice(0, 2));
             saveScanResults(session.sessionId, batchResults);
-            console.log(`[scan-batch] saveScanResults completed for session ${session.sessionId}`);
-
-            // Log progress
-            const progressPercent = Math.round((scannedCount / hosts.length) * 100);
-            console.log(
-              `[scan-batch] Progress: ${scannedCount}/${hosts.length} (${progressPercent}%) - Vulnerable: ${vulnerableCount}, Safe: ${safeCount}, Errors: ${errorCount}`
-            );
 
             // Update counts
             batchResults.forEach(result => {
@@ -218,7 +203,6 @@ pocRoutes.post('/scan-batch', async (req, res) => {
             });
 
             // Continue to next batch even if this one failed
-            console.log(`[scan-batch] Continuing to next batch after error...`);
           }
         }
 
@@ -230,8 +214,6 @@ pocRoutes.post('/scan-batch', async (req, res) => {
           errorCount: errorCount,
           status: 'completed',
         });
-
-        console.log(`Background scan completed for session ${session.sessionId}`);
       } catch (error) {
         console.error('Background scan error:', error);
         updateScanSession(session.sessionId, {
@@ -267,10 +249,6 @@ pocRoutes.get('/sessions/:sessionId/results', (req, res) => {
     const vulnerable = req.query.vulnerable;
     const status = req.query.status as string | undefined;
 
-    console.log(
-      `[API] GET /sessions/${sessionId}/results - vulnerable: ${vulnerable}, status: ${status}`
-    );
-
     const filter: { vulnerable?: boolean | null; status?: string } = {};
     if (vulnerable !== undefined) {
       filter.vulnerable = vulnerable === 'true' ? true : vulnerable === 'false' ? false : null;
@@ -279,13 +257,7 @@ pocRoutes.get('/sessions/:sessionId/results', (req, res) => {
       filter.status = status;
     }
 
-    console.log(`[API] Calling getScanResults with filter:`, filter);
     const results = getScanResults(sessionId, filter);
-    console.log(
-      `[API] getScanResults for session ${sessionId} with filter:`,
-      filter,
-      `returned ${results.length} results`
-    );
     res.json({ results });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';

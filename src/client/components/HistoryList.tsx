@@ -12,13 +12,8 @@ import {
   ensureFileExtension,
 } from '../utils/export';
 import { type HistoryItem as SharedHistoryItem } from '../../shared/types';
-import {
-  checkHostsHealth,
-  type HealthCheckResult,
-  scanRSCs,
-  type RSCScanResult,
-} from '../utils/api';
-import { createPocSession, getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
+import { checkHostsHealth, type HealthCheckResult, type RSCScanResult } from '../utils/api';
+import { getAllPocScripts, startBackgroundScan } from '../utils/poc-api';
 import { alert, alertError } from '../utils/modal';
 import './HistoryList.css';
 
@@ -199,7 +194,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
   const [scanProgress, setScanProgress] = useState<
     Record<number, { current: number; total: number }>
   >({});
-  const [scanResults, setScanResults] = useState<Record<number, Record<string, RSCScanResult>>>({});
+  const [scanResults] = useState<Record<number, Record<string, RSCScanResult>>>({});
   const [scanSummary, setScanSummary] = useState<
     Record<number, { total: number; vulnerable: number; safe: number }>
   >({});
@@ -365,7 +360,9 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
 
     const pocScriptId = selectedPocScript[historyId];
     if (!pocScriptId) {
-      await alert(t('query.results.selectPoc') || 'Please select a PoC script', { type: 'warning' });
+      await alert(t('query.results.selectPoc') || 'Please select a PoC script', {
+        type: 'warning',
+      });
       return;
     }
 

@@ -21,6 +21,7 @@ export function PocManagementPage() {
 
   useEffect(() => {
     loadPocs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPocs = async () => {
@@ -58,7 +59,9 @@ export function PocManagementPage() {
   const handleSave = async () => {
     try {
       if (!formData.name || !formData.type || !formData.language || !formData.script) {
-        await alertError(t('poc.requiredFields') || 'Name, type, language, and script are required');
+        await alertError(
+          t('poc.requiredFields') || 'Name, type, language, and script are required'
+        );
         return;
       }
 
@@ -236,7 +239,9 @@ export function PocManagementPage() {
                     <label>{t('poc.editor.type')}</label>
                     <select
                       value={formData.type || 'other'}
-                      onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                      onChange={e =>
+                        setFormData({ ...formData, type: e.target.value as PocScript['type'] })
+                      }
                     >
                       <option value="rsc">RSC</option>
                       <option value="xss">XSS</option>
