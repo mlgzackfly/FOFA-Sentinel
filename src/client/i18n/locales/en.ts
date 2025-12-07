@@ -137,6 +137,12 @@ export const en = {
       tagsPlaceholder: 'tag1, tag2, tag3',
       noTagsAvailable: 'No tags available',
     },
+    export: {
+      title: 'Export filtered results to TXT',
+      export: 'Export TXT',
+      noResults: 'No results to export',
+      noUrls: 'No URLs to export',
+    },
     filter: {
       all: 'All',
       vulnerable: 'Vulnerable',

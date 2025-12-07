@@ -10,6 +10,7 @@ import {
   type PocResult,
 } from '../utils/poc-api';
 import { formatError, getFullError } from '../utils/error-format';
+import { convertToTXT, getMimeType, ensureFileExtension } from '../utils/export';
 import './ScanResultsPage.css';
 
 export function ScanResultsPage() {
@@ -309,35 +310,46 @@ export function ScanResultsPage() {
                     return name;
                   })()}
                 </h2>
-                <div className="filter-buttons">
-                  <button
-                    key="filter-all"
-                    className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-                    onClick={() => setFilter('all')}
-                  >
-                    {t('scanResults.filter.all')}
-                  </button>
-                  <button
-                    key="filter-vulnerable"
-                    className={`filter-btn ${filter === 'vulnerable' ? 'active' : ''}`}
-                    onClick={() => setFilter('vulnerable')}
-                  >
-                    ⚠️ {t('scanResults.filter.vulnerable')}
-                  </button>
-                  <button
-                    key="filter-safe"
-                    className={`filter-btn ${filter === 'safe' ? 'active' : ''}`}
-                    onClick={() => setFilter('safe')}
-                  >
-                    ✓ {t('scanResults.filter.safe')}
-                  </button>
-                  <button
-                    key="filter-error"
-                    className={`filter-btn ${filter === 'error' ? 'active' : ''}`}
-                    onClick={() => setFilter('error')}
-                  >
-                    ✗ {t('scanResults.filter.error')}
-                  </button>
+                <div className="filter-export-container">
+                  <div className="filter-buttons">
+                    <button
+                      key="filter-all"
+                      className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                      onClick={() => setFilter('all')}
+                    >
+                      {t('scanResults.filter.all')}
+                    </button>
+                    <button
+                      key="filter-vulnerable"
+                      className={`filter-btn ${filter === 'vulnerable' ? 'active' : ''}`}
+                      onClick={() => setFilter('vulnerable')}
+                    >
+                      ⚠️ {t('scanResults.filter.vulnerable')}
+                    </button>
+                    <button
+                      key="filter-safe"
+                      className={`filter-btn ${filter === 'safe' ? 'active' : ''}`}
+                      onClick={() => setFilter('safe')}
+                    >
+                      ✓ {t('scanResults.filter.safe')}
+                    </button>
+                    <button
+                      key="filter-error"
+                      className={`filter-btn ${filter === 'error' ? 'active' : ''}`}
+                      onClick={() => setFilter('error')}
+                    >
+                      ✗ {t('scanResults.filter.error')}
+                    </button>
+                  </div>
+                  {results.length > 0 && (
+                    <button
+                      className="btn-export"
+                      onClick={handleExport}
+                      title={t('scanResults.export.title')}
+                    >
+                      📥 {t('scanResults.export.export')}
+                    </button>
+                  )}
                 </div>
               </div>
 

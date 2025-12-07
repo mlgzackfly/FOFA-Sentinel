@@ -137,6 +137,12 @@ export const zhCN = {
       tagsPlaceholder: '标签1, 标签2, 标签3',
       noTagsAvailable: '无可用标签',
     },
+    export: {
+      title: '导出筛选结果为 TXT',
+      export: '导出 TXT',
+      noResults: '无结果可导出',
+      noUrls: '无 URL 可导出',
+    },
     filter: {
       all: '全部',
       vulnerable: '存在漏洞',

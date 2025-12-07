@@ -137,6 +137,12 @@ export const zhTW = {
       tagsPlaceholder: '標籤1, 標籤2, 標籤3',
       noTagsAvailable: '無可用標籤',
     },
+    export: {
+      title: '匯出篩選結果為 TXT',
+      export: '匯出 TXT',
+      noResults: '無結果可匯出',
+      noUrls: '無 URL 可匯出',
+    },
     filter: {
       all: '全部',
       vulnerable: '存在漏洞',

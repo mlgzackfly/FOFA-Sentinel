@@ -257,11 +257,18 @@
   min-height: 400px;
 }
 
+.filter-export-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+  align-items: center;
+}
+
 .filter-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  justify-content: flex-start;
   align-items: center;
 }
 
@@ -486,6 +493,24 @@
   background: transparent;
   border-color: var(--color-terminal-red);
   color: var(--color-terminal-red);
+}
+
+.btn-export {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-terminal-green);
+  background: var(--bg-surface);
+  color: var(--color-terminal-green);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-export:hover {
+  background: var(--color-terminal-green);
+  color: var(--text-primary);
 }
 
 .btn-cancel:hover {
