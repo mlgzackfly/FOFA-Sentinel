@@ -75,7 +75,6 @@ export function QueryForm({ tab, onResult, loading, setLoading }: QueryFormProps
         case 'stats':
           result = await getFofaStats({
             qbase64,
-            fields: fields || undefined,
           });
           break;
         case 'host':

@@ -233,6 +233,85 @@ export function DocsPage() {
         <section className="docs-section">
           <h2 className="docs-section-title">
             <span className="docs-section-icon">#</span>
+            QUERY TYPES
+          </h2>
+          <div className="docs-section-content">
+            <h3 className="docs-subtitle">SEARCH - 搜索所有資產</h3>
+            <p className="docs-text">
+              返回符合查詢條件的所有資產列表，支持分頁查詢。適合需要查看具體資產詳情的場景。
+            </p>
+            <div className="docs-example">
+              <div className="docs-example-label">特點：</div>
+              <code>• 返回完整的資產列表</code>
+              <code>• 支持分頁（page, size）</code>
+              <code>• 可指定返回字段（fields）</code>
+              <code>• 可選擇是否搜索全部數據（full）</code>
+            </div>
+            <div className="docs-example-block">
+              <div className="docs-example-title">使用場景：</div>
+              <code>查找所有 WordPress 網站並獲取 IP、端口、標題等信息</code>
+            </div>
+
+            <h3 className="docs-subtitle">STATS - 統計聚合</h3>
+            <p className="docs-text">
+              對查詢結果進行統計分析，返回聚合數據。適合需要了解數據分佈、統計信息的場景。
+            </p>
+            <div className="docs-example">
+              <div className="docs-example-label">特點：</div>
+              <code>• 返回統計和聚合數據</code>
+              <code>• 不返回具體資產列表</code>
+              <code>• 可指定統計字段（fields）</code>
+              <code>• 用於分析數據分佈</code>
+            </div>
+            <div className="docs-example-block">
+              <div className="docs-example-title">使用場景：</div>
+              <code>統計某個查詢條件下，不同國家、端口、服務器的分佈情況</code>
+            </div>
+
+            <h3 className="docs-subtitle">HOST - 主機聚合</h3>
+            <p className="docs-text">
+              針對單個主機（IP 或域名）進行聚合查詢，返回該主機的所有相關資產信息。適合需要查看單個主機完整信息的場景。
+            </p>
+            <div className="docs-example">
+              <div className="docs-example-label">特點：</div>
+              <code>• 針對單個主機進行查詢</code>
+              <code>• 返回該主機的所有端口和服務</code>
+              <code>• 可指定返回數量（size）</code>
+              <code>• 用於主機資產梳理</code>
+            </div>
+            <div className="docs-example-block">
+              <div className="docs-example-title">使用場景：</div>
+              <code>查詢某個 IP 地址或域名下所有開放的端口和服務</code>
+            </div>
+
+            <div className="docs-table">
+              <div className="docs-table-row">
+                <div className="docs-table-cell docs-table-header">類型</div>
+                <div className="docs-table-cell docs-table-header">API 端點</div>
+                <div className="docs-table-cell docs-table-header">返回內容</div>
+              </div>
+              <div className="docs-table-row">
+                <div className="docs-table-cell"><code>SEARCH</code></div>
+                <div className="docs-table-cell"><code>/search/all</code></div>
+                <div className="docs-table-cell">資產列表（支持分頁）</div>
+              </div>
+              <div className="docs-table-row">
+                <div className="docs-table-cell"><code>STATS</code></div>
+                <div className="docs-table-cell"><code>/search/stats</code></div>
+                <div className="docs-table-cell">統計聚合數據</div>
+              </div>
+              <div className="docs-table-row">
+                <div className="docs-table-cell"><code>HOST</code></div>
+                <div className="docs-table-cell"><code>/host</code></div>
+                <div className="docs-table-cell">單個主機的所有資產</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="docs-section">
+          <h2 className="docs-section-title">
+            <span className="docs-section-icon">#</span>
             API PARAMETERS
           </h2>
           <div className="docs-section-content">

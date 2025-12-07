@@ -108,7 +108,13 @@ export async function getFofaHostAggregation(params: FofaHostParams): Promise<an
 
   const response = await fetch(url.toString());
   if (!response.ok) {
-    throw new Error(`FOFA API error: ${response.statusText}`);
+    const errorText = await response.text();
+    try {
+      const errorJson = JSON.parse(errorText);
+      throw new Error(errorJson.errmsg || `FOFA API error: ${response.statusText}`);
+    } catch {
+      throw new Error(`FOFA API error: ${response.statusText} - ${errorText}`);
+    }
   }
 
   return await response.json();

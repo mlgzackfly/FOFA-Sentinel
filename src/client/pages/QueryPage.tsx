@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QueryForm } from '../components/QueryForm';
 import { QueryResults } from '../components/QueryResults';
 import { TabSelector } from '../components/TabSelector';
@@ -10,6 +10,10 @@ export function QueryPage() {
   const [activeTab, setActiveTab] = useState<QueryTab>('search');
   const [queryResult, setQueryResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setQueryResult(null);
+  }, [activeTab]);
 
   const tabs = [
     { id: 'search' as QueryTab, label: 'SEARCH', icon: '>' },
