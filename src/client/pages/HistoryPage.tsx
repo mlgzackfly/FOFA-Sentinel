@@ -36,7 +36,9 @@ export function HistoryPage() {
 
   useEffect(() => {
     loadHistory();
-  }, [loadHistory]);
+    // Only run once on mount, not when loadHistory changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: number) => {
     try {
