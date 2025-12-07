@@ -276,6 +276,8 @@
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .result-header > span {
@@ -305,7 +307,8 @@
   align-items: center;
   gap: var(--space-2);
   flex-wrap: nowrap;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .poc-select {
@@ -323,8 +326,10 @@
   background-repeat: no-repeat;
   background-position: right var(--space-2) center;
   padding-right: var(--space-8);
-  min-width: 200px;
-  flex-shrink: 0;
+  min-width: 150px;
+  max-width: 250px;
+  flex-shrink: 1;
+  width: auto;
 }
 
 .poc-select:hover {
