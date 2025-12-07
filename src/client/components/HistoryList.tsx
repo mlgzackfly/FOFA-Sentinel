@@ -1,6 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { ExportButton } from './ExportButton';
 import { HealthCheckStatus } from './HealthCheckStatus';
 import {
   type ExportData,
@@ -28,96 +27,139 @@ function HistoryExportButtonWrapper({
 }: HistoryExportButtonWrapperProps) {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const buttonRef = useRef<HTMLDivElement>(null);
 
-  const handleExportClick = async (format: ExportFormat) => {
-    // If data is not loaded yet, load it first
-    if (!exportData) {
-      if (!isLoading) {
+  const handleExport = async (format: ExportFormat) => {
+    setIsOpen(false);
+    setExporting(true);
+
+    try {
+      // Get data to export - use existing exportData or fetch from API
+      let dataToExport = exportData;
+      
+      if (!dataToExport) {
         setIsLoading(true);
         try {
+          // Fetch data directly from API
+          const response = await fetch(`/api/history/${historyId}/results`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch results');
+          }
+          const data = await response.json();
+          
+          // Also trigger parent's loadResults to update state
           await onLoadResults();
-          setDataLoaded(true);
-          // After loading, wait a bit for state to update, then retry export
-          setTimeout(() => {
+          
+          // Extract all results from the response
+          const allResults: unknown[] = [];
+          data.forEach((result: { result_data?: unknown }) => {
+            const resultData = result.result_data;
+            if (resultData && typeof resultData === 'object' && resultData !== null) {
+              if ('results' in resultData && Array.isArray(resultData.results)) {
+                allResults.push(...resultData.results);
+              } else if (Array.isArray(resultData)) {
+                allResults.push(...resultData);
+              }
+            }
+          });
+
+          if (allResults.length > 0) {
+            dataToExport = { results: allResults };
+          } else {
+            console.error('No results to export');
+            setExporting(false);
             setIsLoading(false);
-          }, 100);
+            return;
+          }
         } catch (error) {
           console.error('Failed to load results:', error);
+          setExporting(false);
           setIsLoading(false);
           return;
+        } finally {
+          setIsLoading(false);
         }
       }
-      return;
+
+      // Data is loaded, proceed with export
+      let content = '';
+      switch (format) {
+        case 'json':
+          content = JSON.stringify(dataToExport, null, 2);
+          break;
+        case 'txt':
+          content = convertToTXT(dataToExport);
+          break;
+        case 'csv':
+          content = convertToCSV(dataToExport);
+          break;
+      }
+
+      const mimeType = getMimeType(format);
+      const extension = getFileExtension(format);
+
+      const blob = new Blob([content], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      const downloadFilename = ensureFileExtension(`fofa_${historyId}_${Date.now()}`, extension);
+      a.download = downloadFilename;
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExporting(false);
     }
-
-    // Data is loaded, proceed with export
-    let content = '';
-    switch (format) {
-      case 'json':
-        content = JSON.stringify(exportData, null, 2);
-        break;
-      case 'txt':
-        content = convertToTXT(exportData);
-        break;
-      case 'csv':
-        content = convertToCSV(exportData);
-        break;
-    }
-
-    const mimeType = getMimeType(format);
-    const extension = getFileExtension(format);
-
-    const blob = new Blob([content], { type: mimeType });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-
-    const downloadFilename = ensureFileExtension(`fofa_${historyId}_${Date.now()}`, extension);
-    a.download = downloadFilename;
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    setIsLoading(false);
   };
 
-  // Show button even if data is not loaded yet
-  // If data is not loaded, show a simple button that loads data on click
-  if (!exportData) {
-    return (
-      <button
-        className="btn-action"
-        onClick={async () => {
-          if (!isLoading) {
-            setIsLoading(true);
-            try {
-              await onLoadResults();
-              setDataLoaded(true);
-            } catch (error) {
-              console.error('Failed to load results:', error);
-            } finally {
-              setIsLoading(false);
-            }
-          }
-        }}
-        disabled={isLoading}
-        title={t('common.export')}
-        aria-label={t('common.export')}
-      >
-        {isLoading ? t('common.loading') : t('common.export')}
-      </button>
-    );
-  }
+  const formats: { value: ExportFormat; label: string }[] = [
+    { value: 'json', label: 'JSON' },
+    { value: 'txt', label: 'TXT' },
+    { value: 'csv', label: 'CSV' },
+  ];
 
+  // Always show dropdown button, even if data is not loaded
   return (
-    <ExportButton
-      data={exportData}
-      filename={`fofa_${historyId}_${Date.now()}`}
-      onExportClick={handleExportClick}
-      isLoading={isLoading}
-    />
+    <div className="export-button-container" ref={buttonRef}>
+      <button
+        className="btn-secondary export-button"
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={exporting || isLoading}
+        aria-label={t('common.export')}
+        aria-expanded={isOpen}
+      >
+        {isLoading
+          ? t('common.loading') || 'LOADING...'
+          : exporting
+            ? t('common.exporting') || 'EXPORTING...'
+            : t('common.export')}
+        <span className="export-arrow">{isOpen ? '▲' : '▼'}</span>
+      </button>
+      {isOpen && (
+        <>
+          <div className="export-overlay" onClick={() => setIsOpen(false)} />
+          <div className="export-dropdown">
+            {formats.map(format => (
+              <button
+                key={format.value}
+                className="export-option"
+                onClick={() => handleExport(format.value)}
+                aria-label={`${t('common.export')} as ${format.label}`}
+              >
+                {format.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
