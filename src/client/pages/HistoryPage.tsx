@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { HistoryList } from '../components/HistoryList';
 import { useTranslation } from '../hooks/useTranslation';
 import { type HistoryItem } from '../../shared/types';
@@ -10,11 +10,7 @@ export function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -24,13 +20,18 @@ export function HistoryPage() {
       }
       const data = await response.json();
       setHistory(data.history || []);
-    } catch (error: any) {
-      setError(error.message || t('errors.failedToLoad'));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : t('errors.failedToLoad');
+      setError(errorMessage);
       console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -39,8 +40,9 @@ export function HistoryPage() {
         throw new Error(t('errors.failedToDelete'));
       }
       loadHistory();
-    } catch (error: any) {
-      setError(error.message || t('errors.failedToDelete'));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : t('errors.failedToDelete');
+      setError(errorMessage);
       console.error('Failed to delete:', error);
     }
   };

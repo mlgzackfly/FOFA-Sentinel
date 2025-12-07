@@ -45,8 +45,9 @@ export function SettingsPage() {
       setMessage({ type: 'success', text: t('settings.apiKeySaved') || 'API key saved successfully' });
       setApiKey('');
       loadConfig();
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save API key';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
     }

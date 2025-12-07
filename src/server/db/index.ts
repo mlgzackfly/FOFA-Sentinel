@@ -92,6 +92,7 @@ export function initDatabase(): void {
     CREATE INDEX IF NOT EXISTS idx_results_history ON query_results(history_id);
   `);
 
+  // eslint-disable-next-line no-console
   console.log('Database initialized');
 }
 

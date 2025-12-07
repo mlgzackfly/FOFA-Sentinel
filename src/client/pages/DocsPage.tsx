@@ -49,7 +49,7 @@ export function DocsPage() {
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>||</code></div>
                 <div className="docs-table-cell">{t('docs.operatorOr')}</div>
-                <div className="docs-table-cell"><code>port="80" || port="443"</code></div>
+                <div className="docs-table-cell"><code>port=&quot;80&quot; || port=&quot;443&quot;</code></div>
               </div>
               <div className="docs-table-row">
                 <div className="docs-table-cell"><code>!=</code></div>
@@ -61,9 +61,9 @@ export function DocsPage() {
             <h3 className="docs-subtitle">{t('docs.timeFilters')}</h3>
             <div className="docs-example">
               <div className="docs-example-label">{t('docs.examples')}</div>
-              <code>after="2024-01-01"</code>
-              <code>before="2024-12-31"</code>
-              <code>after="2024-01-01" && before="2024-12-31"</code>
+              <code>after=&quot;2024-01-01&quot;</code>
+              <code>before=&quot;2024-12-31&quot;</code>
+              <code>after=&quot;2024-01-01&quot; && before=&quot;2024-12-31&quot;</code>
             </div>
 
             <h3 className="docs-subtitle">{t('docs.advancedQueries')}</h3>

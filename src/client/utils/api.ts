@@ -73,6 +73,17 @@ export async function searchAfterFofa(params: {
   return response.json();
 }
 
+export interface FofaSearchAllResult {
+  error: boolean;
+  size: number;
+  query: string;
+  results: unknown[][];
+  fetched: number;
+  pages: number;
+  message: string;
+  errmsg?: string;
+}
+
 export async function searchAllFofa(
   params: {
     qbase64: string;
@@ -81,16 +92,7 @@ export async function searchAllFofa(
     maxResults?: number;
   },
   onProgress?: (progress: { fetched: number; total: number; pages: number; message: string }) => void
-): Promise<{
-  error: boolean;
-  size: number;
-  query: string;
-  results: any[];
-  fetched: number;
-  pages: number;
-  message: string;
-  errmsg?: string;
-}> {
+): Promise<FofaSearchAllResult> {
   const response = await fetch(`${API_BASE}/fofa/search-all`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -109,7 +111,7 @@ export async function searchAllFofa(
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
-  let finalResult: any = null;
+  let finalResult: FofaSearchAllResult | null = null;
 
   while (true) {
     const { done, value } = await reader.read();

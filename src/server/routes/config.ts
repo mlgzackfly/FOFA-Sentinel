@@ -24,9 +24,10 @@ configRoutes.get('/key', (req, res) => {
       created_at: config.created_at,
       updated_at: config.updated_at,
     });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Get config error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -42,17 +43,19 @@ configRoutes.post('/key', (req, res) => {
     const existing = db.prepare('SELECT id FROM api_config ORDER BY updated_at DESC LIMIT 1').get();
 
     if (existing) {
+      const existingConfig = existing as { id: number };
       db.prepare('UPDATE api_config SET api_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-        .run(api_key, (existing as any).id);
+        .run(api_key, existingConfig.id);
     } else {
       db.prepare('INSERT INTO api_config (api_key) VALUES (?)')
         .run(api_key);
     }
 
     res.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Save config error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
