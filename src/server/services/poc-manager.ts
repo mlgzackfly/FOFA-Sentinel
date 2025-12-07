@@ -169,6 +169,12 @@ export function saveScanResults(
     testedUrl?: string;
   }>
 ): void {
+  if (!results || results.length === 0) {
+    console.log(`[saveScanResults] No results to save for session ${sessionId}`);
+    return;
+  }
+
+  console.log(`[saveScanResults] Saving ${results.length} results for session ${sessionId}`);
   const db = getDatabase();
   const insertStmt = db.prepare(`
     INSERT INTO poc_scan_results 
@@ -180,42 +186,79 @@ export function saveScanResults(
     let vulnerableCount = 0;
     let safeCount = 0;
     let errorCount = 0;
+    let insertedCount = 0;
 
     for (const result of results) {
-      const status =
-        result.vulnerable === true ? 'scanned' : result.vulnerable === false ? 'scanned' : 'error';
+      try {
+        const status =
+          result.vulnerable === true
+            ? 'scanned'
+            : result.vulnerable === false
+              ? 'scanned'
+              : 'error';
 
-      insertStmt.run(
-        sessionId,
-        result.host,
-        result.vulnerable,
-        result.statusCode || null,
-        result.error || null,
-        result.finalUrl || null,
-        result.testedUrl || null,
-        status
-      );
+        const insertResult = insertStmt.run(
+          sessionId,
+          result.host,
+          result.vulnerable,
+          result.statusCode || null,
+          result.error || null,
+          result.finalUrl || null,
+          result.testedUrl || null,
+          status
+        );
 
-      if (result.vulnerable === true) {
-        vulnerableCount++;
-      } else if (result.vulnerable === false) {
-        safeCount++;
-      } else {
-        errorCount++;
+        if (insertResult.changes > 0) {
+          insertedCount++;
+        } else {
+          console.warn(`[saveScanResults] Failed to insert result for host ${result.host}`);
+        }
+
+        if (result.vulnerable === true) {
+          vulnerableCount++;
+        } else if (result.vulnerable === false) {
+          safeCount++;
+        } else {
+          errorCount++;
+        }
+      } catch (insertError) {
+        console.error(
+          `[saveScanResults] Error inserting result for host ${result.host}:`,
+          insertError
+        );
+        // Continue with next result
       }
     }
 
+    console.log(`[saveScanResults] Inserted ${insertedCount} results into database`);
+
     // Update session statistics
-    const currentSession = getScanSession(sessionId);
-    updateScanSession(sessionId, {
-      scannedHosts: currentSession.scannedHosts + results.length,
-      vulnerableCount: currentSession.vulnerableCount + vulnerableCount,
-      safeCount: currentSession.safeCount + safeCount,
-      errorCount: currentSession.errorCount + errorCount,
-    });
+    try {
+      const currentSession = getScanSession(sessionId);
+      updateScanSession(sessionId, {
+        scannedHosts: currentSession.scannedHosts + results.length,
+        vulnerableCount: currentSession.vulnerableCount + vulnerableCount,
+        safeCount: currentSession.safeCount + safeCount,
+        errorCount: currentSession.errorCount + errorCount,
+      });
+    } catch (updateError) {
+      console.error(`[saveScanResults] Error updating session statistics:`, updateError);
+      throw updateError; // Re-throw to rollback transaction
+    }
   });
 
-  transaction();
+  try {
+    transaction();
+    console.log(
+      `[saveScanResults] Successfully saved ${results.length} results for session ${sessionId}`
+    );
+  } catch (transactionError) {
+    console.error(
+      `[saveScanResults] Transaction failed for session ${sessionId}:`,
+      transactionError
+    );
+    throw transactionError;
+  }
 }
 
 /**
