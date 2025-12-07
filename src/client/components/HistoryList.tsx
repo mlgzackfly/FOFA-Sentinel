@@ -401,12 +401,12 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
         useRscScan: false,
       });
 
-      if (response.success && response.sessionId) {
+      if (response.sessionId) {
         // Poll for progress updates
         const pollProgress = async () => {
           try {
             const { getPocSession } = await import('../utils/poc-api');
-            const session = await getPocSession(response.sessionId!);
+            const session = await getPocSession(response.sessionId);
             setScanProgress(prev => ({
               ...prev,
               [historyId]: {
