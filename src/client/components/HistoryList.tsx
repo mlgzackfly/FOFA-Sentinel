@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { HealthCheckStatus } from './HealthCheckStatus';
 import { RSCScanStatus } from './RSCScanStatus';
@@ -202,7 +202,31 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
   const [scanSummary, setScanSummary] = useState<
     Record<number, { total: number; vulnerable: number; safe: number }>
   >({});
-  const [saveToPoc, setSaveToPoc] = useState<Record<number, boolean>>({});
+  const [selectedPocScript, setSelectedPocScript] = useState<Record<number, string>>({});
+  const [pocScripts, setPocScripts] = useState<
+    Array<{ scriptId: string; name: string; enabled: boolean }>
+  >([]);
+
+  // Load PoC scripts on mount
+  useEffect(() => {
+    const loadPocScripts = async () => {
+      try {
+        const data = await getAllPocScripts();
+        setPocScripts(
+          data.scripts
+            .filter(s => s.enabled)
+            .map(s => ({
+              scriptId: s.scriptId,
+              name: s.name,
+              enabled: s.enabled,
+            }))
+        );
+      } catch (error) {
+        console.error('Failed to load PoC scripts:', error);
+      }
+    };
+    loadPocScripts();
+  }, []);
 
   const loadResults = async (id: number, expand: boolean = true) => {
     if (results[id] && exportData[id]) {
@@ -331,10 +355,16 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
     }
   };
 
-  // Batch scan all hosts for RSC vulnerability
+  // Batch scan all hosts with selected PoC
   const handleScanAll = async (historyId: number) => {
     const resultData = exportData[historyId];
     if (!resultData) {
+      return;
+    }
+
+    const pocScriptId = selectedPocScript[historyId];
+    if (!pocScriptId) {
+      alert(t('query.results.selectPoc') || 'Please select a PoC script');
       return;
     }
 
@@ -351,75 +381,66 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
       return newSummary;
     });
 
-    let sessionId: string | null = null;
-
     try {
-      // Create PoC session if saveToPoc is enabled
-      if (saveToPoc[historyId]) {
-        const historyItem = history.find(h => h.id === historyId);
-        const session = await createPocSession(
-          `History Scan: ${historyItem?.query || 'RSC Scan'}`,
-          `RSC vulnerability scan from history #${historyId}`,
-          historyItem?.query
-        );
-        sessionId = session.sessionId;
-      }
+      const historyItem = history.find(h => h.id === historyId);
+      const pocScript = pocScripts.find(s => s.scriptId === pocScriptId);
+      const pocName = pocScript
+        ? `PoC Scan: ${pocScript.name} - ${historyItem?.query || 'History Query'}`
+        : `PoC Scan: ${historyItem?.query || 'History Query'}`;
+      const pocDescription = pocScript
+        ? `PoC scan (${pocScript.name}) for ${hosts.length} hosts from history #${historyId}`
+        : `PoC scan for ${hosts.length} hosts from history #${historyId}`;
 
-      const batchSize = 5;
-      const resultsMap: Record<string, RSCScanResult> = {};
-      let vulnerableCount = 0;
-      let safeCount = 0;
+      // Start background scan - this will run on server and continue even if user navigates away
+      const response = await startBackgroundScan(hosts, {
+        pocScriptId: pocScriptId,
+        timeout: 30,
+        name: pocName,
+        description: pocDescription,
+        query: historyItem?.query || '',
+        useRscScan: false,
+      });
 
-      for (let i = 0; i < hosts.length; i += batchSize) {
-        const batch = hosts.slice(i, i + batchSize);
+      if (response.success && response.sessionId) {
+        // Poll for progress updates
+        const pollProgress = async () => {
+          try {
+            const { getPocSession } = await import('../utils/poc-api');
+            const session = await getPocSession(response.sessionId!);
+            setScanProgress(prev => ({
+              ...prev,
+              [historyId]: {
+                current: session.scannedHosts || 0,
+                total: session.totalHosts || hosts.length,
+              },
+            }));
+            setScanSummary(prev => ({
+              ...prev,
+              [historyId]: {
+                total: session.totalHosts || hosts.length,
+                vulnerable: session.vulnerableCount || 0,
+                safe: session.safeCount || 0,
+              },
+            }));
 
-        // Create session on first batch if saveToPoc is enabled
-        if (saveToPoc[historyId] && i === 0 && !sessionId) {
-          const historyItem = history.find(h => h.id === historyId);
-          const session = await createPocSession(
-            `History Scan: ${historyItem?.query || 'RSC Scan'}`,
-            `RSC vulnerability scan from history #${historyId}`,
-            historyItem?.query
-          );
-          sessionId = session.sessionId;
-        }
-
-        const batchResults = await scanRSCs(batch, {
-          timeout: 15,
-          sessionId: sessionId || undefined,
-          saveToPoc: false, // Don't create new session, use existing sessionId
-        });
-
-        batchResults.forEach(scanResult => {
-          resultsMap[scanResult.host] = scanResult;
-          if (scanResult.vulnerable === true) {
-            vulnerableCount++;
-          } else if (scanResult.vulnerable === false) {
-            safeCount++;
+            if (session.status === 'scanning') {
+              setTimeout(pollProgress, 2000); // Poll every 2 seconds
+            } else {
+              setScanningAll(prev => ({ ...prev, [historyId]: false }));
+            }
+          } catch (error) {
+            console.error('Failed to poll progress:', error);
+            setScanningAll(prev => ({ ...prev, [historyId]: false }));
           }
-        });
+        };
 
-        setScanResults(prev => ({
-          ...prev,
-          [historyId]: { ...prev[historyId], ...resultsMap },
-        }));
-        setScanProgress(prev => ({
-          ...prev,
-          [historyId]: { current: Math.min(i + batchSize, hosts.length), total: hosts.length },
-        }));
+        pollProgress();
+      } else {
+        throw new Error('Failed to start scan');
       }
-
-      setScanSummary(prev => ({
-        ...prev,
-        [historyId]: {
-          total: hosts.length,
-          vulnerable: vulnerableCount,
-          safe: safeCount,
-        },
-      }));
     } catch (error) {
       console.error('Failed to scan all hosts:', error);
-    } finally {
+      alert(t('query.results.scanError') || 'Failed to start scan');
       setScanningAll(prev => ({ ...prev, [historyId]: false }));
     }
   };
