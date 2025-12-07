@@ -180,6 +180,14 @@ export const zhCN = {
       script: '脚本',
       scriptPlaceholder: '输入 PoC 脚本代码',
       enabled: '启用',
+      help: {
+        title: '使用说明',
+        python:
+          '对于 Python 脚本，目标主机 URL 会作为第一个命令行参数 (sys.argv[1]) 传递。您的脚本应该这样读取：',
+        pythonExample: 'import sys\ntarget_url = sys.argv[1]  # 主机 URL 在此传递',
+        http: '对于 HTTP Request 类型，请指定 HTTP 方法、URL、标头和请求体。目标主机会自动替换到 URL 中。',
+        general: '目标主机 URL 会传递给您的脚本。请参考您特定语言的文档。',
+      },
     },
     viewer: {
       description: '描述',

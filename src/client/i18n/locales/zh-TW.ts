@@ -180,6 +180,14 @@ export const zhTW = {
       script: '腳本',
       scriptPlaceholder: '輸入 PoC 腳本代碼',
       enabled: '啟用',
+      help: {
+        title: '使用說明',
+        python:
+          '對於 Python 腳本，目標主機 URL 會作為第一個命令行參數 (sys.argv[1]) 傳遞。您的腳本應該這樣讀取：',
+        pythonExample: 'import sys\ntarget_url = sys.argv[1]  # 主機 URL 在此傳遞',
+        http: '對於 HTTP Request 類型，請指定 HTTP 方法、URL、標頭和請求體。目標主機會自動替換到 URL 中。',
+        general: '目標主機 URL 會傳遞給您的腳本。請參考您特定語言的文檔。',
+      },
     },
     viewer: {
       description: '描述',

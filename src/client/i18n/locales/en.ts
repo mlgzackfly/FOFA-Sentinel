@@ -180,6 +180,15 @@ export const en = {
       script: 'Script',
       scriptPlaceholder: 'Enter PoC script code',
       enabled: 'Enabled',
+      help: {
+        title: 'Usage Instructions',
+        python:
+          'For Python scripts, the target host URL is passed as the first command-line argument (sys.argv[1]). Your script should read it like this:',
+        pythonExample: 'import sys\ntarget_url = sys.argv[1]  # Host URL is passed here',
+        http: 'For HTTP Request type, specify the HTTP method, URL, headers, and body. The target host will be automatically replaced in the URL.',
+        general:
+          'The target host URL will be passed to your script. Refer to the documentation for your specific language.',
+      },
     },
     viewer: {
       description: 'Description',

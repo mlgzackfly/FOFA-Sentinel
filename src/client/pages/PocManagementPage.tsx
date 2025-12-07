@@ -245,7 +245,17 @@ export function PocManagementPage() {
                     <label>{t('poc.editor.language')}</label>
                     <select
                       value={formData.language || 'python'}
-                      onChange={e => setFormData({ ...formData, language: e.target.value as any })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          language: e.target.value as
+                            | 'python'
+                            | 'http'
+                            | 'javascript'
+                            | 'bash'
+                            | 'other',
+                        })
+                      }
                     >
                       <option value="python">Python</option>
                       <option value="http">HTTP Request</option>
