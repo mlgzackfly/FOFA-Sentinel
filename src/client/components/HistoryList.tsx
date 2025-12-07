@@ -318,10 +318,10 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                 <div className="results-content">
                   {results[item.id].map((result, idx: number) => {
                     const resultData = result.result_data;
-                    const hasResults =
-                      resultData &&
-                      typeof resultData === 'object' &&
+                    const hasResults: boolean =
                       resultData !== null &&
+                      resultData !== undefined &&
+                      typeof resultData === 'object' &&
                       'results' in resultData &&
                       Array.isArray((resultData as { results: unknown }).results) &&
                       (resultData as { results: unknown[] }).results.length > 0;
@@ -339,7 +339,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
                             <button
                               className="btn-secondary btn-check-all"
                               onClick={() => handleCheckAll(item.id)}
-                              disabled={checkingAll[item.id]}
+                              disabled={checkingAll[item.id] || false}
                             >
                               {checkingAll[item.id]
                                 ? `${t('query.results.checking')} (${checkProgress[item.id]?.current || 0}/${checkProgress[item.id]?.total || 0})`
