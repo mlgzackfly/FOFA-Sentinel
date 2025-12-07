@@ -262,6 +262,23 @@ export function getScanResults(
   }
 ): PocScanResult[] {
   const db = getDatabase();
+
+  // First, check if session exists and count total results
+  const sessionCheck = db
+    .prepare('SELECT session_id FROM poc_scan_sessions WHERE session_id = ?')
+    .get(sessionId) as { session_id: string } | undefined;
+
+  if (!sessionCheck) {
+    console.log(`[DB] Session ${sessionId} not found in poc_scan_sessions`);
+    return [];
+  }
+
+  const totalCount = db
+    .prepare('SELECT COUNT(*) as count FROM poc_scan_results WHERE session_id = ?')
+    .get(sessionId) as { count: number } | undefined;
+
+  console.log(`[DB] Session ${sessionId} exists. Total results in DB: ${totalCount?.count || 0}`);
+
   let query = 'SELECT * FROM poc_scan_results WHERE session_id = ?';
   const params: unknown[] = [sessionId];
 

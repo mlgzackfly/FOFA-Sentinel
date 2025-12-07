@@ -237,6 +237,10 @@ pocRoutes.get('/sessions/:sessionId/results', (req, res) => {
     const vulnerable = req.query.vulnerable;
     const status = req.query.status as string | undefined;
 
+    console.log(
+      `[API] GET /sessions/${sessionId}/results - vulnerable: ${vulnerable}, status: ${status}`
+    );
+
     const filter: { vulnerable?: boolean | null; status?: string } = {};
     if (vulnerable !== undefined) {
       filter.vulnerable = vulnerable === 'true' ? true : vulnerable === 'false' ? false : null;
@@ -245,6 +249,7 @@ pocRoutes.get('/sessions/:sessionId/results', (req, res) => {
       filter.status = status;
     }
 
+    console.log(`[API] Calling getScanResults with filter:`, filter);
     const results = getScanResults(sessionId, filter);
     console.log(
       `[API] getScanResults for session ${sessionId} with filter:`,
@@ -254,7 +259,7 @@ pocRoutes.get('/sessions/:sessionId/results', (req, res) => {
     res.json({ results });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    console.error('Get results error:', error);
+    console.error('[API] Get results error:', error);
     res.status(500).json({ error: errorMessage });
   }
 });
