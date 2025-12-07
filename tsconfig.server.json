@@ -6,7 +6,8 @@
     "target": "ES2022",
     "outDir": "./dist",
     "noEmit": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": false
   },
   "include": ["src/server/**/*"],
   "exclude": ["node_modules", "dist"]
