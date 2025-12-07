@@ -185,8 +185,6 @@ pocRoutes.post('/scan-batch', async (req, res) => {
               }
             });
 
-            scannedCount = Math.min(i + batchSize, hosts.length);
-
             // Update session progress
             updateScanSession(session.sessionId, {
               scannedHosts: scannedCount,
@@ -196,14 +194,31 @@ pocRoutes.post('/scan-batch', async (req, res) => {
               status: scannedCount < hosts.length ? 'scanning' : 'completed',
             });
           } catch (batchError) {
-            console.error(`Failed to scan batch ${i}-${i + batchSize}:`, batchError);
+            console.error(`[scan-batch] Failed to scan batch ${i}-${i + batchSize}:`, batchError);
+            // Even if batch fails, mark all hosts in batch as errors and continue
             errorCount += batch.length;
             scannedCount = Math.min(i + batchSize, hosts.length);
+
+            // Create error results for all hosts in the failed batch
+            const errorResults = batch.map(host => ({
+              host,
+              vulnerable: null as boolean | null,
+              error: batchError instanceof Error ? batchError.message : 'Batch scan failed',
+            }));
+            try {
+              saveScanResults(session.sessionId, errorResults);
+            } catch (saveError) {
+              console.error(`[scan-batch] Failed to save error results:`, saveError);
+            }
+
             updateScanSession(session.sessionId, {
               scannedHosts: scannedCount,
               errorCount: errorCount,
               status: scannedCount < hosts.length ? 'scanning' : 'completed',
             });
+
+            // Continue to next batch even if this one failed
+            console.log(`[scan-batch] Continuing to next batch after error...`);
           }
         }
 
