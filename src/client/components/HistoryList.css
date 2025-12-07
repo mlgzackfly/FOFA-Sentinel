@@ -294,8 +294,9 @@
 .scan-actions-group {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .poc-select {
@@ -314,6 +315,7 @@
   background-position: right var(--space-2) center;
   padding-right: var(--space-8);
   min-width: 200px;
+  flex-shrink: 0;
 }
 
 .poc-select:hover {
