@@ -15,13 +15,64 @@ A modern, hacker-style web application for proactive security reconnaissance usi
 
 </div>
 
-## Screenshot
+## Screenshots
 
 <div align="center">
 
+### Main Features
+
+<table>
+<tr>
+<td width="50%">
+  
+**Query Interface**
+  
 ![Query Interface](./docs/screenshots/query-interface.png)
 
-*FOFA Sentinel Query Interface*
+*Search and query hosts using FOFA API*
+
+</td>
+<td width="50%">
+  
+**PoC Management**
+  
+![PoC Management](./docs/screenshots/poc-management.png)
+
+*Create and manage Proof of Concept scripts*
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+  
+**Scan Results**
+  
+![Scan Results](./docs/screenshots/scan-results.png)
+
+*View vulnerability scan results and statistics*
+
+</td>
+<td width="50%">
+  
+**Query History**
+  
+![Query History](./docs/screenshots/query-history.png)
+
+*Manage and review past search queries*
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+  
+**Settings**
+  
+![Settings](./docs/screenshots/settings.png)
+
+*Configure API keys and application settings*
+
+</td>
+</table>
 
 </div>
 
