@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { formatDateTime } from '../utils/date-format';
 import {
   getAllPocSessions,
   getPocResults,
@@ -471,9 +472,7 @@ export function ScanResultsPage() {
                               </div>
                             )}
                           </td>
-                          <td className="date-cell">
-                            {new Date(result.scannedAt).toLocaleString()}
-                          </td>
+                          <td className="date-cell">{formatDateTime(result.scannedAt)}</td>
                           <td className="actions-cell">
                             {editingResult?.host === result.host ? (
                               <>

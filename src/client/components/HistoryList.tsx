@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { HealthCheckStatus } from './HealthCheckStatus';
 import { RSCScanStatus } from './RSCScanStatus';
+import { formatDateTime } from '../utils/date-format';
 import {
   type ExportData,
   type ExportFormat,
@@ -506,7 +507,7 @@ export function HistoryList({ history, onDelete, onRefresh }: HistoryListProps) 
               </button>
             </div>
           </div>
-          <div className="history-item-time">{new Date(item.created_at).toLocaleString()}</div>
+          <div className="history-item-time">{formatDateTime(item.created_at)}</div>
           {expandedId === item.id && (
             <div className="history-item-results">
               <div className="history-item-query-section">

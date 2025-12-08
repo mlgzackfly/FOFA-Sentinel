@@ -6,6 +6,7 @@ import { DocsPage } from './pages/DocsPage';
 import { ScanResultsPage } from './pages/ScanResultsPage';
 import { PocManagementPage } from './pages/PocManagementPage';
 import { ModalTestPage } from './pages/ModalTestPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { NavigationDrawer } from './components/NavigationDrawer';
 import { getLocale } from './i18n';
 import { type Page } from './types';
@@ -64,6 +65,7 @@ function App() {
         {currentPage === 'docs' && <DocsPage />}
         {currentPage === 'settings' && <SettingsPage onPageChange={setCurrentPage} />}
         {currentPage === 'modal-test' && <ModalTestPage />}
+        {currentPage === 'profile' && <ProfilePage />}
       </main>
     </div>
   );

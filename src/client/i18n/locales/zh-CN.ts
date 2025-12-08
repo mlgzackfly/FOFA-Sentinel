@@ -8,6 +8,7 @@ export const zhCN = {
     poc: 'POC 管理',
     docs: '文档',
     config: '设置',
+    profile: '个人档案',
   },
 
   // Common
@@ -238,6 +239,28 @@ export const zhCN = {
     language: '语言',
     testModals: '测试弹出视窗',
     testModalsDescription: '测试不同类型的弹出式视窗',
+  },
+
+  // Profile Page
+  profile: {
+    title: '个人档案',
+    accountInfo: '账号信息',
+    email: '电子邮件',
+    username: '用户名',
+    vipLevel: 'VIP 等级',
+    vip: 'VIP',
+    free: '免费',
+    fcoinBalance: 'FCoin 余额',
+    cacheInfo: '缓存信息',
+    cacheDescription: '账号信息会缓存 5 分钟以减少 API 调用。点击刷新可立即更新。',
+    clearCache: '清除缓存',
+    loadError: '加载账号信息失败',
+    loading: '加载账号信息中...',
+    refresh: '刷新',
+    syncing: '同步中...',
+    system: '系统',
+    online: '在线',
+    offline: '离线',
   },
 
   // Docs Page

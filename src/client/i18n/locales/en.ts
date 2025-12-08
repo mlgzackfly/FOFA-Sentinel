@@ -8,6 +8,7 @@ export const en = {
     poc: 'POC MANAGER',
     docs: 'DOCS',
     config: 'CONFIG',
+    profile: 'PROFILE',
   },
 
   // Common
@@ -239,6 +240,29 @@ export const en = {
     language: 'LANGUAGE',
     testModals: 'TEST MODALS',
     testModalsDescription: 'Test different types of modal dialogs',
+  },
+
+  // Profile Page
+  profile: {
+    title: 'PROFILE',
+    accountInfo: 'ACCOUNT INFORMATION',
+    email: 'Email',
+    username: 'Username',
+    vipLevel: 'VIP Level',
+    vip: 'VIP',
+    free: 'Free',
+    fcoinBalance: 'FCoin Balance',
+    cacheInfo: 'CACHE INFORMATION',
+    cacheDescription:
+      'Account information is cached for 5 minutes to reduce API calls. Click refresh to update immediately.',
+    clearCache: 'CLEAR CACHE',
+    loadError: 'Failed to load account information',
+    loading: 'loading account info...',
+    refresh: 'REFRESH',
+    syncing: 'SYNCING...',
+    system: 'SYSTEM',
+    online: 'ONLINE',
+    offline: 'OFFLINE',
   },
 
   // Docs Page

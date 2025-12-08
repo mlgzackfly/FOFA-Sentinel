@@ -25,6 +25,7 @@ export function NavigationDrawer({
     { id: 'poc', labelKey: 'nav.poc', icon: '⚠' },
     { id: 'docs', labelKey: 'nav.docs', icon: '?' },
     { id: 'settings', labelKey: 'nav.config', icon: '$' },
+    { id: 'profile', labelKey: 'nav.profile', icon: '@' },
   ];
 
   return (

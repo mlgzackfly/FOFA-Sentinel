@@ -5,4 +5,5 @@ export type Page =
   | 'poc'
   | 'settings'
   | 'docs'
-  | 'modal-test';
+  | 'modal-test'
+  | 'profile';

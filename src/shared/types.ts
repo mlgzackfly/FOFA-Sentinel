@@ -25,12 +25,25 @@ export interface FofaHostResult {
 }
 
 export interface FofaAccountResult {
+  error?: boolean;
   email?: string;
   username?: string;
-  vip_level?: number;
+  category?: string;
+  fcoin?: number;
+  fofa_point?: number;
+  remain_free_point?: number;
+  remain_api_query?: number;
+  remain_api_data?: number;
   isvip?: boolean;
+  vip_level?: number;
+  is_verified?: boolean;
+  avatar?: string;
+  message?: string;
+  fofacli_ver?: string;
+  fofa_server?: boolean;
+  expiration?: string;
+  // Legacy field names (for backward compatibility)
   fcoin_balance?: number;
-  error?: boolean;
   errmsg?: string;
 }
 

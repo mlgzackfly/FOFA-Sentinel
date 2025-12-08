@@ -47,13 +47,31 @@ export async function getFofaHostAggregation(params: { qbase64: string; size?: n
   return response.json();
 }
 
-export async function getFofaAccountInfo() {
+import { getCachedAccountInfo, setCachedAccountInfo } from './account-cache';
+
+export async function getFofaAccountInfo(useCache = true) {
+  // Check cache first if useCache is true
+  if (useCache) {
+    const cached = getCachedAccountInfo();
+    if (cached) {
+      return cached;
+    }
+  }
+
+  // Fetch from API
   const response = await fetch(`${API_BASE}/fofa/account`);
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || 'Request failed');
   }
-  return response.json();
+  const data = await response.json();
+
+  // Cache the result
+  if (useCache) {
+    setCachedAccountInfo(data);
+  }
+
+  return data;
 }
 
 export async function searchAfterFofa(params: {

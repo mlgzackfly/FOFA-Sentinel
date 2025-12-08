@@ -8,6 +8,7 @@ export const zhTW = {
     poc: 'POC 管理',
     docs: '文檔',
     config: '設定',
+    profile: '個人檔案',
   },
 
   // Common
@@ -238,6 +239,28 @@ export const zhTW = {
     language: '語言',
     testModals: '測試彈出視窗',
     testModalsDescription: '測試不同類型的彈出式視窗',
+  },
+
+  // Profile Page
+  profile: {
+    title: '個人檔案',
+    accountInfo: '帳號資訊',
+    email: '電子郵件',
+    username: '使用者名稱',
+    vipLevel: 'VIP 等級',
+    vip: 'VIP',
+    free: '免費',
+    fcoinBalance: 'FCoin 餘額',
+    cacheInfo: '快取資訊',
+    cacheDescription: '帳號資訊會快取 5 分鐘以減少 API 呼叫。點擊重新整理可立即更新。',
+    clearCache: '清除快取',
+    loadError: '載入帳號資訊失敗',
+    loading: '載入帳號資訊中...',
+    refresh: '重新整理',
+    syncing: '同步中...',
+    system: '系統',
+    online: '線上',
+    offline: '離線',
   },
 
   // Docs Page
