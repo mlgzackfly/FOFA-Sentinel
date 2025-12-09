@@ -32,7 +32,14 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve static files from React app (in production)
-const clientDistPath = path.join(__dirname, '../../client');
+// Handle both cases:
+// 1. When running with tsx from src/server/index.ts: __dirname = /app/src/server, need ../../dist/client
+// 2. When running compiled dist/index.js: __dirname = /app/dist, need ./client
+let clientDistPath = path.join(__dirname, './client');
+if (!existsSync(clientDistPath)) {
+  // Try alternative path for tsx execution
+  clientDistPath = path.join(__dirname, '../../dist/client');
+}
 
 // Check if client dist exists (for production builds)
 if (existsSync(clientDistPath)) {
